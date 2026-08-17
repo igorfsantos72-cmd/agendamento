@@ -1054,4 +1054,91 @@ function renderDayView(){
       list.appendChild(el(`<div style="background:var(--paper);border-radius:8px;padding:8px 10px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
           <span style="font-size:13px;font-weight:700;color:var(--ink);">${esc(e.funcionario)||"—"}</span>
-          <span class="mono" style="f
+          <span class="mono" style="font-size:11px;color:var(--navy);font-weight:700;">${esc(e.horario)||""}</span>
+        </div>
+        <div style="font-size:12px;color:#6B7280;margin-top:2px;">${esc(e.tipo)||"tipo não informado"} · ${esc(e.empresa)||"empresa não informada"}</div>
+      </div>`));
+    });
+    psicoCard.appendChild(list);
+  }
+  right.appendChild(psicoCard);
+
+  const tips = el(`<div class="tips">
+    <p class="k">como funciona</p>
+    <ul>
+      <li>• Digite o horário — o sistema ordena tudo automaticamente.</li>
+      <li>• Use as abas Mês/Ano para ver a agenda inteira de uma vez.</li>
+      <li>• Ao marcar CLÍNICO, o médico responsável é identificado sozinho.</li>
+      <li>• Cada dado fica salvo neste navegador (localStorage).</li>
+    </ul>
+  </div>`);
+  right.appendChild(tips);
+
+  container.append(left,right);
+  return container;
+}
+
+function renderMonthView(){
+  const card = el(`<div class="card"></div>`);
+  const wkRow = el(`<div class="month-grid" style="margin-bottom:2px;"></div>`);
+  WEEKDAY_LABELS.forEach(w=> wkRow.appendChild(el(`<div class="wk-lbl">${w}</div>`)));
+  card.appendChild(wkRow);
+  const grid = el(`<div class="month-grid"></div>`);
+  const todayStr = todayISO();
+  monthMatrix(state.monthCursor).forEach(iso=>{
+    if(!iso){ grid.appendChild(el(`<div></div>`)); return; }
+    const count = state.index[iso]||0;
+    const isToday = iso===todayStr;
+    const dayNum = Number(iso.slice(8,10));
+    const cell = el(`<button class="day-cell ${count>0?'has':''} ${isToday?'today':''}">
+      <span class="day-num">${dayNum}</span>
+      ${count>0?`<span class="day-badge">${count}</span>`:""}
+    </button>`);
+    cell.onclick = ()=>goToDay(iso);
+    grid.appendChild(cell);
+  });
+  card.appendChild(grid);
+  return card;
+}
+
+function renderYearView(){
+  const grid = el(`<div class="year-grid"></div>`);
+  MONTH_LABELS.forEach((label, mIdx)=>{
+    const ym = `${state.yearCursor}-${pad2(mIdx+1)}`;
+    const total = Object.entries(state.index).filter(([d])=>d.startsWith(ym)).reduce((s,[,c])=>s+c,0);
+    const card = el(`<button class="month-card"></button>`);
+    const top = el(`<div class="month-card-top">
+      <span class="name">${label}</span>
+      ${total>0?`<span class="mono" style="font-size:10px;font-weight:800;background:var(--good-bg);color:var(--good-fg);padding:2px 6px;border-radius:6px;">${total}</span>`:""}
+    </div>`);
+    card.appendChild(top);
+    const mini = el(`<div class="mini-grid"></div>`);
+    miniMonthMatrix(state.yearCursor, mIdx).forEach(iso=>{
+      const has = iso && state.index[iso];
+      const c = el(`<div class="mini-cell" style="background:${iso?(has?'var(--teal)':'var(--line)'):'transparent'};opacity:${iso?(has?1:0.35):0};"></div>`);
+      mini.appendChild(c);
+    });
+    card.appendChild(mini);
+    card.onclick = ()=>openMonth(ym);
+    grid.appendChild(card);
+  });
+  return grid;
+}
+
+function render(){
+  renderTabs();
+  renderNav();
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+  const wrap = el(`<div class="wrap" style="padding-top:0;"></div>`);
+  if(state.viewMode==="day") wrap.appendChild(renderDayView());
+  else if(state.viewMode==="month") wrap.appendChild(renderMonthView());
+  else wrap.appendChild(renderYearView());
+  main.appendChild(wrap);
+  renderVoiceWidget();
+}
+
+render();
+</script>
+</body>
+</html>
