@@ -155,6 +155,10 @@
   .talk-btn.listening{background:#DC2626;}
   .talk-btn:disabled{opacity:.5;cursor:not-allowed;}
   .chat-foot-hint{font-size:10.5px;color:#9CA3AF;text-align:center;margin:6px 0 0;}
+  .medico-hint{margin-top:12px;padding:9px 12px;border-radius:9px;font-size:13px;}
+  .medico-hint.ok{background:var(--good-bg);color:var(--good-fg);}
+  .medico-hint.pending{background:var(--paper);color:#6B7280;border:1px dashed var(--line);}
+  .medico-hint.warn{background:var(--amber-bg);color:var(--amber-fg);}
 </style>
 </head>
 <body>
@@ -186,6 +190,53 @@ function roundToHalfHour(hhmm){
   totalMin = Math.round(totalMin/30)*30;
   totalMin = ((totalMin % 1440) + 1440) % 1440;
   return `${pad2(Math.floor(totalMin/60))}:${pad2(totalMin%60)}`;
+}
+
+// ---------- médico do plantão (escala clínica) ----------
+// weekday: 0=domingo ... 6=sábado (igual Date.getDay())
+const SCHEDULE_BY_WEEKDAY = {
+  1: [ // segunda
+    { start:"06:30", end:"10:30", medico:"Dra. Gizelle" },
+    { start:"11:00", end:"13:00", medico:"Dr. Luiz" },
+    { start:"16:00", end:"17:00", medico:"Dra. Nadia" },
+  ],
+  2: [ // terça
+    { start:"06:30", end:"10:30", medico:"Dra. Gizelle" },
+    { start:"11:00", end:"13:00", medico:"Dra. Nadia" },
+    { start:"14:30", end:"16:00", medico:"Dr. Luiz" },
+  ],
+  3: [ // quarta
+    { start:"06:30", end:"10:30", medico:"Dra. Gizelle" },
+    { start:"11:00", end:"13:00", medico:"Dr. Luiz" },
+  ],
+  4: [ // quinta
+    { start:"06:30", end:"10:30", medico:"Dra. Louane" },
+    { start:"11:00", end:"13:00", medico:"Dra. Nadia" },
+    { start:"13:30", end:"17:00", medico:"Dra. Gizelle" },
+  ],
+  5: [ // sexta
+    { start:"06:30", end:"10:30", medico:"Dra. Louane" },
+    { start:"11:00", end:"13:00", medico:"Dra. Nadia" },
+    { start:"13:30", end:"16:00", medico:"Dr. Guilherme" },
+  ],
+};
+const WEEKDAY_FULL = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+
+function timeToMin(hhmm){
+  const [h,m] = hhmm.split(":").map(Number);
+  return h*60+m;
+}
+function getMedicoForSlot(weekday, hhmm){
+  const slots = SCHEDULE_BY_WEEKDAY[weekday];
+  if(!slots || !hhmm) return null;
+  const t = timeToMin(hhmm);
+  const hit = slots.find(s => t >= timeToMin(s.start) && t < timeToMin(s.end));
+  return hit ? hit.medico : null;
+}
+function getMedicoForDate(dateISO, hhmm){
+  if(!hhmm) return null;
+  const weekday = new Date(dateISO+"T12:00:00").getDay();
+  return getMedicoForSlot(weekday, hhmm);
 }
 function todayISO(){
   const d = new Date();
@@ -295,11 +346,12 @@ function submitForm(e){
   if(!f.empresa.trim() && !f.funcionario.trim()){ setState({formError:"Informe ao menos a empresa ou o funcionário."}); return; }
   const cleanExams = {};
   EXAMS.forEach(k=>{ if(f.exams[k]) cleanExams[k]=1; });
+  const medico = cleanExams.CLINICO ? getMedicoForDate(state.date, f.horario) : null;
   let next;
   if(state.editingId){
-    next = state.entries.map(en => en.id===state.editingId ? {...en, ...f, exams: cleanExams} : en);
+    next = state.entries.map(en => en.id===state.editingId ? {...en, ...f, exams: cleanExams, medico} : en);
   } else {
-    next = [...state.entries, { id: uid(), ...f, exams: cleanExams }];
+    next = [...state.entries, { id: uid(), ...f, exams: cleanExams, medico }];
   }
   saveEntries(state.date, next);
   setState({ entries: next, form: emptyForm(), editingId:null, formError:"" });
@@ -426,7 +478,7 @@ function speak(text){
   } catch(_){}
 }
 
-function buildSpokenSummary(result){
+function buildSpokenSummary(result, medico){
   const parts = [];
   if(result.empresa) parts.push(`empresa ${result.empresa}`);
   if(result.funcionario) parts.push(`funcionário ${result.funcionario}`);
@@ -434,6 +486,7 @@ function buildSpokenSummary(result){
   if(result.horario) parts.push(`às ${result.horario}`);
   const exams = result.exames || Object.keys(result.exams||{});
   if(exams && exams.length) parts.push(`exames ${exams.join(", ")}`);
+  if(medico) parts.push(`médico ${medico}`);
   return parts.join(", ");
 }
 
@@ -442,14 +495,15 @@ function confirmAppointment(){
   const p = state.pendingAppointment;
   const cleanExams = {};
   Object.keys(p.exams||{}).forEach(k=>{ if(p.exams[k]) cleanExams[k]=1; });
-  const entry = { id: uid(), horario:p.horario, empresa:p.empresa, tipo:p.tipo, funcionario:p.funcionario, exams: cleanExams };
+  const medico = cleanExams.CLINICO ? getMedicoForDate(state.date, p.horario) : null;
+  const entry = { id: uid(), horario:p.horario, empresa:p.empresa, tipo:p.tipo, funcionario:p.funcionario, exams: cleanExams, medico };
   const next = [...state.entries, entry];
   saveEntries(state.date, next);
   state.entries = next;
   state.pendingAppointment = null;
   state.awaitingConfirmation = false;
-  pushMessage({ role:"assistant", text:"✅ Agendamento adicionado com sucesso!" });
-  speak("Agendamento confirmado e adicionado.");
+  pushMessage({ role:"assistant", text: medico ? `✅ Agendamento adicionado com ${medico}!` : "✅ Agendamento adicionado com sucesso!" });
+  speak(medico ? `Agendamento confirmado com ${medico}.` : "Agendamento confirmado e adicionado.");
 }
 
 function cancelPendingAppointment(){
@@ -470,6 +524,8 @@ function applyParsedResult(result, fields, source){
   }
 
   const canConfirm = !!result.horario && (!!result.empresa || !!result.funcionario);
+  const medico = (result.horario && exams.includes("CLINICO")) ? getMedicoForDate(state.date, result.horario) : null;
+  const displayFields = medico ? [...fields, "médico: "+medico] : fields;
 
   if(canConfirm){
     state.pendingAppointment = {
@@ -477,8 +533,8 @@ function applyParsedResult(result, fields, source){
       tipo: result.tipo||"", exams: Object.fromEntries(exams.map(k=>[k,true]))
     };
     state.awaitingConfirmation = true;
-    const summary = buildSpokenSummary(result);
-    pushMessage({ role:"assistant", text: prefix+"Entendi: "+summary+". Confirma o agendamento?", fields, confirm:true });
+    const summary = buildSpokenSummary(result, medico);
+    pushMessage({ role:"assistant", text: prefix+"Entendi: "+summary+". Confirma o agendamento?", fields: displayFields, confirm:true });
     speak(`Você quer agendar ${summary}. Confirma?`);
   } else {
     if(result.horario) state.form.horario = result.horario;
@@ -487,7 +543,7 @@ function applyParsedResult(result, fields, source){
     if(result.tipo) state.form.tipo = result.tipo;
     exams.forEach(k=>{ if(EXAMS.includes(k)) state.form.exams[k]=true; });
     if(state.viewMode!=="day") state.viewMode = "day";
-    pushMessage({ role:"assistant", text: prefix+"Preenchi o que entendi no formulário — falta horário ou empresa/funcionário para eu confirmar direto. Complete e clique em Adicionar.", fields });
+    pushMessage({ role:"assistant", text: prefix+"Preenchi o que entendi no formulário — falta horário ou empresa/funcionário para eu confirmar direto. Complete e clique em Adicionar.", fields: displayFields });
     speak("Preenchi o formulário, mas falta horário ou empresa. Confira e adicione manualmente.");
   }
 }
@@ -835,7 +891,7 @@ function renderDayView(){
     </label>
   `;
   form.appendChild(fg);
-  fg.querySelector("#f-horario").oninput = e=>{ state.form.horario = e.target.value; };
+  fg.querySelector("#f-horario").oninput = e=>{ state.form.horario = e.target.value; render(); };
   fg.querySelector("#f-horario").onchange = e=>{
     if(e.target.value){
       state.form.horario = roundToHalfHour(e.target.value);
@@ -856,6 +912,24 @@ function renderDayView(){
   });
   examBlock.appendChild(eg);
   form.appendChild(examBlock);
+
+  if(state.form.exams["CLINICO"]){
+    let hintHtml, hintClass;
+    if(!state.form.horario){
+      hintHtml = "🩺 Informe o horário para eu identificar o médico responsável.";
+      hintClass = "medico-hint pending";
+    } else {
+      const medico = getMedicoForDate(state.date, state.form.horario);
+      if(medico){
+        hintHtml = `🩺 Médico responsável: <b>${esc(medico)}</b>`;
+        hintClass = "medico-hint ok";
+      } else {
+        hintHtml = `⚠️ Nenhum médico escalado para ${esc(state.form.horario)} nesta ${esc(WEEKDAY_FULL[new Date(state.date+"T12:00:00").getDay()])}.`;
+        hintClass = "medico-hint warn";
+      }
+    }
+    form.appendChild(el(`<div class="${hintClass}">${hintHtml}</div>`));
+  }
 
   if(state.formError){
     form.appendChild(el(`<div class="err">⚠️ ${esc(state.formError)}</div>`));
@@ -891,7 +965,7 @@ function renderDayView(){
     const tbody = table.querySelector("tbody");
     sorted.forEach((entry,i)=>{
       const tr = el(`<tr style="background:${i%2?'#FBFAF7':'white'};"></tr>`);
-      tr.appendChild(el(`<td class="mono" style="font-weight:700;color:var(--navy);">${esc(entry.horario)||"—"}</td>`));
+      tr.appendChild(el(`<td class="mono" style="font-weight:700;color:var(--navy);">${esc(entry.horario)||"—"}${entry.medico?`<div style="font-family:'Inter',sans-serif;font-weight:600;font-size:10.5px;color:var(--good-fg);margin-top:2px;">🩺 ${esc(entry.medico)}</div>`:""}</td>`));
       tr.appendChild(el(`<td>${esc(entry.empresa)||"—"}</td>`));
       tr.appendChild(el(`<td style="color:#6B7280;">${esc(entry.tipo)||"—"}</td>`));
       tr.appendChild(el(`<td>${esc(entry.funcionario)||"—"}</td>`));
@@ -951,81 +1025,33 @@ function renderDayView(){
   }
   right.appendChild(summaryCard);
 
-  const tips = el(`<div class="tips">
-    <p class="k">como funciona</p>
-    <ul>
-      <li>• Digite o horário — o sistema ordena tudo automaticamente.</li>
-      <li>• Use as abas Mês/Ano para ver a agenda inteira de uma vez.</li>
-      <li>• Cada dado fica salvo neste navegador (localStorage).</li>
-    </ul>
-  </div>`);
-  right.appendChild(tips);
-
-  container.append(left,right);
-  return container;
-}
-
-function renderMonthView(){
-  const card = el(`<div class="card"></div>`);
-  const wkRow = el(`<div class="month-grid" style="margin-bottom:2px;"></div>`);
-  WEEKDAY_LABELS.forEach(w=> wkRow.appendChild(el(`<div class="wk-lbl">${w}</div>`)));
-  card.appendChild(wkRow);
-  const grid = el(`<div class="month-grid"></div>`);
-  const todayStr = todayISO();
-  monthMatrix(state.monthCursor).forEach(iso=>{
-    if(!iso){ grid.appendChild(el(`<div></div>`)); return; }
-    const count = state.index[iso]||0;
-    const isToday = iso===todayStr;
-    const dayNum = Number(iso.slice(8,10));
-    const cell = el(`<button class="day-cell ${count>0?'has':''} ${isToday?'today':''}">
-      <span class="day-num">${dayNum}</span>
-      ${count>0?`<span class="day-badge">${count}</span>`:""}
-    </button>`);
-    cell.onclick = ()=>goToDay(iso);
-    grid.appendChild(cell);
-  });
-  card.appendChild(grid);
-  return card;
-}
-
-function renderYearView(){
-  const grid = el(`<div class="year-grid"></div>`);
-  MONTH_LABELS.forEach((label, mIdx)=>{
-    const ym = `${state.yearCursor}-${pad2(mIdx+1)}`;
-    const total = Object.entries(state.index).filter(([d])=>d.startsWith(ym)).reduce((s,[,c])=>s+c,0);
-    const card = el(`<button class="month-card"></button>`);
-    const top = el(`<div class="month-card-top">
-      <span class="name">${label}</span>
-      ${total>0?`<span class="mono" style="font-size:10px;font-weight:800;background:var(--good-bg);color:var(--good-fg);padding:2px 6px;border-radius:6px;">${total}</span>`:""}
-    </div>`);
-    card.appendChild(top);
-    const mini = el(`<div class="mini-grid"></div>`);
-    miniMonthMatrix(state.yearCursor, mIdx).forEach(iso=>{
-      const has = iso && state.index[iso];
-      const c = el(`<div class="mini-cell" style="background:${iso?(has?'var(--teal)':'var(--line)'):'transparent'};opacity:${iso?(has?1:0.35):0};"></div>`);
-      mini.appendChild(c);
+  const weekday = new Date(state.date+"T12:00:00").getDay();
+  const todaySlots = SCHEDULE_BY_WEEKDAY[weekday];
+  const scheduleCard = el(`<div class="card"></div>`);
+  scheduleCard.appendChild(el(`<h2>🩺 Escala de ${esc(WEEKDAY_FULL[weekday])}</h2>`));
+  if(!todaySlots || todaySlots.length===0){
+    scheduleCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum médico de clínico escalado neste dia.</p>`));
+  } else {
+    const list = el(`<div style="display:flex;flex-direction:column;gap:8px;"></div>`);
+    todaySlots.forEach(s=>{
+      list.appendChild(el(`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--paper);border-radius:8px;padding:8px 10px;">
+        <span class="mono" style="font-size:12px;color:var(--navy);font-weight:700;">${s.start}–${s.end}</span>
+        <span style="font-size:13px;font-weight:600;">${esc(s.medico)}</span>
+      </div>`));
     });
-    card.appendChild(mini);
-    card.onclick = ()=>openMonth(ym);
-    grid.appendChild(card);
-  });
-  return grid;
-}
+    scheduleCard.appendChild(list);
+  }
+  right.appendChild(scheduleCard);
 
-function render(){
-  renderTabs();
-  renderNav();
-  const main = document.getElementById("main");
-  main.innerHTML = "";
-  const wrap = el(`<div class="wrap" style="padding-top:0;"></div>`);
-  if(state.viewMode==="day") wrap.appendChild(renderDayView());
-  else if(state.viewMode==="month") wrap.appendChild(renderMonthView());
-  else wrap.appendChild(renderYearView());
-  main.appendChild(wrap);
-  renderVoiceWidget();
-}
-
-render();
-</script>
-</body>
-</html>
+  const psicoEntries = sorted.filter(e => e.exams?.PSICO);
+  const psicoCard = el(`<div class="card"></div>`);
+  psicoCard.appendChild(el(`<h2>🧠 Lista PSICO do dia</h2>`));
+  if(psicoEntries.length === 0){
+    psicoCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum agendamento com PSICO hoje.</p>`));
+  } else {
+    const list = el(`<div style="display:flex;flex-direction:column;gap:8px;"></div>`);
+    psicoEntries.forEach(e=>{
+      list.appendChild(el(`<div style="background:var(--paper);border-radius:8px;padding:8px 10px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+          <span style="font-size:13px;font-weight:700;color:var(--ink);">${esc(e.funcionario)||"—"}</span>
+          <span class="mono" style="f
