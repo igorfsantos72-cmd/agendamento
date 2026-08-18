@@ -1,183 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Agenda de Exames Ocupacionais</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
-  :root{
-    --navy:#1F4E5F; --teal:#2E86AB; --ink:#1A2B32; --paper:#F6F4EF; --line:#DCD6C9;
-    --good-bg:#E4F5EC; --good-fg:#1F8A55; --amber-bg:#FEF3C7; --amber-fg:#92400E;
-  }
-  *{box-sizing:border-box;}
-  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;}
-  .mono{font-family:'JetBrains Mono',monospace;}
-  header{background:linear-gradient(120deg,var(--navy),var(--teal));color:#fff;}
-  .wrap{max-width:1100px;margin:0 auto;padding:24px 20px;}
-  h1{font-size:22px;font-weight:800;margin:0;}
-  .sub{color:rgba(255,255,255,.7);font-size:13px;margin:2px 0 0;}
-  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-  .top{justify-content:space-between;}
-  .tabs{display:flex;background:rgba(255,255,255,.1);border-radius:10px;padding:4px;gap:4px;}
-  .tab{border:none;background:transparent;color:rgba(255,255,255,.8);font-weight:600;font-size:12px;
-       padding:7px 12px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:6px;}
-  .tab.active{background:#fff;color:var(--navy);}
-  .nav{margin-top:18px;}
-  .btn-ghost{background:rgba(255,255,255,.1);border:none;color:#fff;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:14px;}
-  .btn-ghost:hover{background:rgba(255,255,255,.2);}
-  .datebox{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;}
-  .datebox input{background:transparent;border:none;color:#fff;font-weight:600;font-size:13px;outline:none;}
-  main{max-width:1100px;margin:0 auto;padding:24px 20px;}
-  .grid5{display:grid;grid-template-columns:3fr 2fr;gap:22px;}
-  @media (max-width:900px){.grid5{grid-template-columns:1fr;}}
-  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px;}
-  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--navy);font-weight:800;margin:0 0 14px;}
-  .form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-  @media (max-width:640px){.form-grid{grid-template-columns:1fr 1fr;}}
-  label.field{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700;color:#6B7280;}
-  input[type=text],input[type=time],input[type=date],input[type=number]{
-    border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;
-  }
-  .exam-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:8px;}
-  @media (max-width:640px){.exam-grid{grid-template-columns:repeat(4,1fr);}}
-  .exam-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-    border:1px solid var(--line);background:#fff;color:#6B7280;border-radius:10px;padding:9px 4px;cursor:pointer;
-    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;transition:transform .12s;}
-  .exam-btn:hover{transform:translateY(-1px);}
-  .exam-btn.active{background:var(--good-fg);border-color:var(--good-fg);color:#fff;}
-  .submit-btn{margin-top:16px;display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;
-    border:none;padding:11px 18px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;}
-  .submit-btn:hover{opacity:.9;}
-  .err{margin-top:10px;background:var(--amber-bg);color:var(--amber-fg);padding:9px 12px;border-radius:8px;font-size:13px;}
-  table{width:100%;border-collapse:collapse;font-size:14px;}
-  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#9CA3AF;
-     padding:8px 12px;border-bottom:1px solid var(--line);}
-  td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle;}
-  tr:last-child td{border-bottom:none;}
-  .chip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
-        padding:2px 6px;border-radius:6px;background:var(--good-bg);color:var(--good-fg);border:1px solid var(--good-fg);margin:1px;}
-  .icon-btn{border:none;background:transparent;cursor:pointer;padding:6px;border-radius:6px;color:#6B7280;}
-  .icon-btn:hover{background:#F3F4F6;}
-  .empty{text-align:center;color:#9CA3AF;font-size:14px;padding:36px 10px;}
-  .stat{background:var(--paper);border-radius:10px;padding:12px;}
-  .stat p.label{font-size:10.5px;text-transform:uppercase;color:#9CA3AF;margin:0 0 3px;font-family:'JetBrains Mono',monospace;}
-  .stat p.value{font-size:24px;font-weight:800;margin:0;font-family:'JetBrains Mono',monospace;}
-  .stats2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-  .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-  .bar-label{width:70px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);flex-shrink:0;text-align:right;}
-  .bar-track{flex:1;background:#F3F4F6;border-radius:5px;height:16px;position:relative;overflow:hidden;}
-  .bar-fill{background:var(--teal);height:100%;border-radius:5px;}
-  .bar-val{width:26px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6B7280;text-align:left;}
-  .tips{border-radius:14px;padding:20px;color:#fff;background:linear-gradient(135deg,var(--navy),var(--teal));}
-  .tips p.k{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,.7);
-            font-family:'JetBrains Mono',monospace;margin:0 0 6px;}
-  .tips ul{margin:0;padding-left:0;list-style:none;font-size:14px;line-height:1.7;color:rgba(255,255,255,.92);}
-  .month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
-  .wk-lbl{text-align:center;font-size:10.5px;text-transform:uppercase;color:#9CA3AF;font-weight:800;
-          font-family:'JetBrains Mono',monospace;margin-bottom:4px;}
-  .day-cell{min-height:64px;border:1px solid var(--line);border-radius:9px;padding:8px;text-align:left;
-    background:#fff;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;}
-  .day-cell:hover{transform:translateY(-1px);}
-  .day-cell.has{background:var(--good-bg);}
-  .day-cell.today{border-width:2px;border-color:var(--navy);}
-  .day-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;}
-  .day-badge{align-self:flex-start;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;
-    background:var(--good-fg);color:#fff;padding:2px 6px;border-radius:6px;}
-  .year-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-  @media (max-width:800px){.year-grid{grid-template-columns:repeat(2,1fr);}}
-  @media (max-width:520px){.year-grid{grid-template-columns:1fr;}}
-  .month-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;text-align:left;}
-  .month-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-  .month-card-top .name{font-weight:800;font-size:13px;color:var(--navy);}
-  .mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
-  .mini-cell{aspect-ratio:1;border-radius:2px;}
-  select, .free-input{width:100%;}
-  .mic-hint{font-size:12px;color:#9CA3AF;margin:0;}
-  .mic-warn{color:var(--amber-fg);}
-  .ai-toggle{background:transparent;border:1px solid var(--line);color:var(--navy);font-weight:700;font-size:12px;
-    padding:7px 12px;border-radius:999px;cursor:pointer;}
-  .ai-toggle.on{border-color:var(--good-fg);color:var(--good-fg);background:var(--good-bg);}
-  .ai-panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:10px;}
-  .ai-panel p{font-size:12.5px;color:#4B5563;line-height:1.6;margin:0 0 10px;}
-  .ai-panel a{color:var(--teal);}
-  .ai-key-row{display:flex;gap:8px;flex-wrap:wrap;}
-  .ai-key-row input{flex:1;min-width:200px;}
-  .ai-key-row button{border:none;border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;}
-  .ai-save{background:var(--navy);color:#fff;}
-  .ai-remove{background:#FEE2E2;color:#DC2626;}
-  .ai-status{margin-top:8px;font-size:12px;font-weight:700;}
-  .ai-status.on{color:var(--good-fg);}
-  .ai-status.off{color:#9CA3AF;}
-  .logo-badge{display:flex;align-items:center;}
-  .logo-badge img{height:150px;display:block;}
-
-  /* ---- floating voice assistant widget ---- */
-  .fab{position:fixed;left:22px;bottom:22px;width:60px;height:60px;border-radius:50%;border:none;
-    background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;font-size:24px;cursor:pointer;
-    box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:1000;display:flex;align-items:center;justify-content:center;
-    transition:transform .15s ease;}
-  .fab:hover{transform:scale(1.06);}
-  .fab.listening{background:#DC2626;animation:fabpulse 1.3s infinite;}
-  .fab.thinking{background:var(--teal);}
-  @keyframes fabpulse{0%{box-shadow:0 0 0 0 rgba(220,38,38,.5);}70%{box-shadow:0 0 0 16px rgba(220,38,38,0);}100%{box-shadow:0 0 0 0 rgba(220,38,38,0);}}
-  .fab-dot{position:absolute;top:2px;right:2px;width:14px;height:14px;border-radius:50%;background:var(--good-fg);
-    border:2px solid #fff;}
-  .chat-panel{position:fixed;left:22px;bottom:94px;width:340px;max-width:calc(100vw - 44px);max-height:70vh;
-    background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.22);display:flex;flex-direction:column;
-    overflow:hidden;z-index:1000;border:1px solid var(--line);}
-  .chat-head{background:linear-gradient(120deg,var(--navy),var(--teal));color:#fff;padding:12px 14px;
-    display:flex;align-items:center;justify-content:space-between;gap:8px;}
-  .chat-head .title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13.5px;}
-  .chat-head .status{font-size:11px;color:rgba(255,255,255,.8);font-weight:600;}
-  .chat-head-btns{display:flex;gap:4px;}
-  .chat-head-btns button{background:rgba(255,255,255,.15);border:none;color:#fff;width:26px;height:26px;
-    border-radius:7px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;}
-  .chat-head-btns button:hover{background:rgba(255,255,255,.28);}
-  .chat-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--paper);}
-  .bubble-row{display:flex;}
-  .bubble-row.user{justify-content:flex-end;}
-  .bubble-row.assistant{justify-content:flex-start;}
-  .bubble{max-width:85%;padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.5;}
-  .bubble.user{background:var(--navy);color:#fff;border-bottom-right-radius:4px;}
-  .bubble.assistant{background:#fff;border:1px solid var(--line);color:var(--ink);border-bottom-left-radius:4px;}
-  .bubble.error{background:var(--amber-bg);border:1px solid #F5D08A;color:var(--amber-fg);border-bottom-left-radius:4px;}
-  .bubble .fields{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
-  .thinking-dots{display:inline-flex;gap:3px;align-items:center;}
-  .thinking-dots span{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:bounce 1.2s infinite;}
-  .thinking-dots span:nth-child(2){animation-delay:.15s;}
-  .thinking-dots span:nth-child(3){animation-delay:.3s;}
-  @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.5;}30%{transform:translateY(-4px);opacity:1;}}
-  .chat-empty{text-align:center;color:#9CA3AF;font-size:12.5px;padding:24px 10px;}
-  .chat-foot{padding:12px;border-top:1px solid var(--line);background:#fff;}
-  .talk-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:10px;
-    padding:11px;font-weight:700;font-size:13.5px;cursor:pointer;background:var(--navy);color:#fff;}
-  .talk-btn.listening{background:#DC2626;}
-  .talk-btn:disabled{opacity:.5;cursor:not-allowed;}
-  .chat-foot-hint{font-size:10.5px;color:#9CA3AF;text-align:center;margin:6px 0 0;}
-  .medico-hint{margin-top:12px;padding:9px 12px;border-radius:9px;font-size:13px;}
-  .medico-hint.ok{background:var(--good-bg);color:var(--good-fg);}
-  .medico-hint.pending{background:var(--paper);color:#6B7280;border:1px dashed var(--line);}
-  .medico-hint.warn{background:var(--amber-bg);color:var(--amber-fg);}
-</style>
-</head>
-<body>
-<header>
-  <div class="wrap">
-    <div class="row top">
-      <div>
-        <h1>Agenda de Exames Ocupacionais</h1>
-      </div>
-      <!-- Aqui foi alterado para carregar a imagem 'logo.png' -->
-      <div class="logo-badge"><img src="logo.png" alt="Alpale Saúde Ocupacional"></div>
-      <div class="tabs" id="tabs"></div>
-    </div>
-    <div class="row nav" id="nav"></div>
-  </div>
-</header>
-<main id="main"></main>
-<div id="voice-widget"></div>
-
 <script type="module">
   // Importação das ferramentas do Firebase e do Firestore (versão 10.13.0)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
@@ -766,6 +586,7 @@
     }
     left.appendChild(tableCard);
 
+    // 1) CARTÃO: RESUMO DO DIA
     const summaryCard = el(`<div class="card"></div>`);
     summaryCard.appendChild(el(`<h2>Resumo do dia</h2>`));
     const totals = computeTotals(state.entries);
@@ -786,10 +607,47 @@
     }
     right.appendChild(summaryCard);
 
+    // 2) NOVO CARTÃO: ATENDIMENTOS POR MÉDICO (TIPOS E QUANTIDADE)
+    const docCard = el(`<div class="card"></div>`);
+    docCard.appendChild(el(`<h2>🩺 Atendimentos por Médico</h2>`));
+    const docStats = {};
+    sorted.forEach(e => {
+      if (e.medico) {
+        if (!docStats[e.medico]) docStats[e.medico] = { total: 0, tipos: {} };
+        docStats[e.medico].total++;
+        const t = e.tipo || "Sem tipo";
+        docStats[e.medico].tipos[t] = (docStats[e.medico].tipos[t] || 0) + 1;
+      }
+    });
+
+    const docKeys = Object.keys(docStats).sort();
+    if(docKeys.length === 0){
+      docCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;text-align:center;padding:16px 0;">Nenhum atendimento médico registrado para hoje.</p>`));
+    } else {
+      const list = el(`<div style="display:flex;flex-direction:column;gap:10px;"></div>`);
+      docKeys.forEach(m => {
+        const item = el(`<div style="background:var(--paper);border-radius:8px;padding:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:13.5px;font-weight:700;color:var(--navy);">${esc(m)}</span>
+            <span class="mono" style="font-size:11px;font-weight:800;background:var(--teal);color:#fff;padding:2px 8px;border-radius:6px;" title="Total de exames clínicos">${docStats[m].total}</span>
+          </div>
+        </div>`);
+        const tiposDiv = el(`<div style="display:flex;flex-wrap:wrap;gap:6px;"></div>`);
+        Object.entries(docStats[m].tipos).forEach(([t, qtd]) => {
+          tiposDiv.appendChild(el(`<span style="font-size:11px;color:#4B5563;background:#E5E7EB;padding:4px 8px;border-radius:6px;font-weight:500;">${esc(t)}: <b>${qtd}</b></span>`));
+        });
+        item.appendChild(tiposDiv);
+        list.appendChild(item);
+      });
+      docCard.appendChild(list);
+    }
+    right.appendChild(docCard);
+
+    // 3) CARTÃO: ESCALA DA SEMANA
     const weekday = new Date(state.date+"T12:00:00").getDay();
     const todaySlots = SCHEDULE_BY_WEEKDAY[weekday];
     const scheduleCard = el(`<div class="card"></div>`);
-    scheduleCard.appendChild(el(`<h2>🩺 Escala de ${esc(WEEKDAY_FULL[weekday])}</h2>`));
+    scheduleCard.appendChild(el(`<h2>📋 Escala de ${esc(WEEKDAY_FULL[weekday])}</h2>`));
     if(!todaySlots || todaySlots.length===0){ scheduleCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum médico de clínico escalado neste dia.</p>`)); }
     else {
       const list = el(`<div style="display:flex;flex-direction:column;gap:8px;"></div>`);
@@ -798,11 +656,55 @@
     }
     right.appendChild(scheduleCard);
 
+    // 4) CARTÃO: LISTA PSICO (COM BOTÃO IMPRIMIR)
     const psicoEntries = sorted.filter(e => e.exams?.PSICO);
     const psicoCard = el(`<div class="card"></div>`);
-    psicoCard.appendChild(el(`<h2>🧠 Lista PSICO do dia</h2>`));
-    if(psicoEntries.length === 0){ psicoCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum agendamento com PSICO hoje.</p>`)); }
-    else {
+    
+    const psicoHead = el(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h2 style="margin:0;">🧠 Lista PSICO do dia</h2>
+    </div>`);
+
+    // Adiciona o botão de gerar PDF (imprimir) se houverem entradas
+    if(psicoEntries.length > 0){
+      const printBtn = el(`<button class="btn-ghost mono" style="background:var(--navy);color:#fff;font-size:11px;padding:6px 10px;font-weight:700;">🖨️ IMPRIMIR</button>`);
+      printBtn.onclick = () => {
+        const w = window.open('', '_blank');
+        let html = `<html><head><title>Lista PSICO - ${fmtWeekday(state.date)}</title>
+          <style>
+            body{font-family:sans-serif;padding:20px;color:#1A2B32;}
+            h1{font-size:20px;border-bottom:2px solid #1F4E5F;padding-bottom:10px;margin-bottom:20px;}
+            table{width:100%;border-collapse:collapse;font-size:14px;}
+            th,td{border:1px solid #DCD6C9;padding:12px;text-align:left;}
+            th{background:#F6F4EF;color:#1F4E5F;text-transform:uppercase;font-size:12px;}
+          </style>
+          </head><body>
+          <h1>Lista de Exames Psicológicos - ${fmtWeekday(state.date)}</h1>
+          <table>
+            <thead><tr><th>Horário</th><th>Funcionário(a)</th><th>Empresa</th><th>Tipo</th></tr></thead>
+            <tbody>`;
+        psicoEntries.forEach(e => {
+          html += `<tr>
+            <td style="font-family:monospace;font-weight:bold;">${esc(e.horario)||'--:--'}</td>
+            <td><b>${esc(e.funcionario)||'—'}</b></td>
+            <td>${esc(e.empresa)||'—'}</td>
+            <td>${esc(e.tipo)||'—'}</td>
+          </tr>`;
+        });
+        html += `</tbody></table>
+          <script>
+            window.onload = function() { window.print(); window.close(); }
+          <\/script>
+          </body></html>`;
+        w.document.write(html);
+        w.document.close();
+      };
+      psicoHead.appendChild(printBtn);
+    }
+    psicoCard.appendChild(psicoHead);
+
+    if(psicoEntries.length === 0){ 
+      psicoCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum agendamento com PSICO hoje.</p>`)); 
+    } else {
       const list = el(`<div style="display:flex;flex-direction:column;gap:8px;"></div>`);
       psicoEntries.forEach(e=>{ list.appendChild(el(`<div style="background:var(--paper);border-radius:8px;padding:8px 10px;"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;"><span style="font-size:13px;font-weight:700;color:var(--ink);">${esc(e.funcionario)||"—"}</span><span class="mono" style="font-size:11px;color:var(--navy);font-weight:700;">${esc(e.horario)||""}</span></div><div style="font-size:12px;color:#6B7280;margin-top:2px;">${esc(e.tipo)||"tipo não informado"} · ${esc(e.empresa)||"empresa não informada"}</div></div>`)); });
       psicoCard.appendChild(list);
@@ -910,5 +812,3 @@
   // Inicia com a tela limpa esperando os dados chegarem da nuvem
   render();
 </script>
-</body>
-</html>
