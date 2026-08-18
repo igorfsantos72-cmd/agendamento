@@ -178,7 +178,7 @@
 <div id="voice-widget"></div>
 
 <script>
-const EXAMS = ["CLINICO","AUDIO","EEG","ECG","ACV","ESP","ISHI","RX","LAB","PSICO","CINESIO","ODONTO","TOXIC","OTOLOGICO"];
+const EXAMS = ["CLINICO","AUDIO","EEG","ECG","ACV","ESP","ISHI","RX","LAB","PSICO","CINESIO","ODONTO","TOXIC","OTOLOGICO","VOCAL"];
 const TIPOS_SUGERIDOS = ["Admissional","Periódico","Demissional","Mudança de Função","Mudança de Risco","Retorno","Revalidação"];
 const WEEKDAY_LABELS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 const MONTH_LABELS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -395,7 +395,8 @@ const EXAM_SYNONYMS = {
   CINESIO: ["cinesio","cinesioteste","cinesiologico"],
   ODONTO: ["odonto","odontologico","dental"],
   TOXIC: ["toxic","toxicologico"],
-  OTOLOGICO: ["otologico","otologia"]
+  OTOLOGICO: ["otologico","otologia"],
+  VOCAL: ["triagem vocal","vocal","fonoaudiologia"]
 };
 
 const TIME_WORDS = { "meio dia":"12:00", "meio-dia":"12:00", "meia noite":"00:00", "meia-noite":"00:00" };
@@ -1141,23 +1142,4 @@ function render(){
 render();
 </script>
 </body>
-  <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyAL2xXqo83pWKhyCta4Nk0gockDstxtJY4",
-    authDomain: "agendamento-alpale.firebaseapp.com",
-    projectId: "agendamento-alpale",
-    storageBucket: "agendamento-alpale.firebasestorage.app",
-    messagingSenderId: "491340347533",
-    appId: "1:491340347533:web:8914f6645d93de0234cac4"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-    </script>
 </html>
