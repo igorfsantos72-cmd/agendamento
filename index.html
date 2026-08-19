@@ -189,11 +189,9 @@
 <div id="voice-widget"></div>
 
 <script type="module">
-  // IMPORTAÇÃO PADRÃO
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-  // Configuração web do Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyAL2xXqo83pWKhyCta4Nk0gockDstxtJY4",
     authDomain: "agendamento-alpale.firebaseapp.com",
@@ -207,12 +205,8 @@
   const db = getFirestore(app);
   window.db = db; 
 
-  // --- DADOS BÁSICOS DO SISTEMA ---
   const EXAMS = ["CLINICO","AUDIO","EEG","ECG","ACV","ESP","ISHI","RX","LAB","PSICO","CINESIO","ODONTO","TOXIC","OTOLOGICO","VOCAL"];
-  
-  // ADICIONADO: Perícia e Perícia Domiciliar
   const TIPOS_SUGERIDOS = ["Admissional","Periódico","Demissional","Mudança de Função","Mudança de Risco","Retorno","Revalidação","Perícia","Perícia Domiciliar"];
-  
   const WEEKDAY_LABELS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
   const MONTH_LABELS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
@@ -734,11 +728,12 @@
     `;
     form.appendChild(fg);
     
-    fg.querySelector("#ef-data").onchange = e => f.date = e.target.value;
+    // O segredo: usamos 'onblur' para não travar a digitação do usuário
+    fg.querySelector("#ef-data").oninput = e => { f.date = e.target.value; };
+    fg.querySelector("#ef-data").onblur = e => { f.date = e.target.value; setState({editForm:f}); };
     
-    // O segredo do horário: oninput só salva a variável pra não travar a tela enquanto digita!
     fg.querySelector("#ef-horario").oninput = e => { f.horario = e.target.value; };
-    fg.querySelector("#ef-horario").onchange = e => { f.horario = e.target.value; setState({editForm:f}); };
+    fg.querySelector("#ef-horario").onblur = e => { f.horario = e.target.value; setState({editForm:f}); };
     
     fg.querySelector("#ef-empresa").oninput = e => f.empresa = e.target.value;
     fg.querySelector("#ef-tipo").oninput = e => f.tipo = e.target.value;
@@ -805,11 +800,12 @@
     `;
     form.appendChild(fg);
     
-    fg.querySelector("#f-data").onchange = e => { state.form.date = e.target.value; render(); };
+    fg.querySelector("#f-data").oninput = e => { state.form.date = e.target.value; };
+    fg.querySelector("#f-data").onblur = e => { state.form.date = e.target.value; render(); };
     
-    // O segredo do horário também aplicado no form principal
+    // Deixa o teclado livre. Só atualiza a tela quando clicar fora (onblur)
     fg.querySelector("#f-horario").oninput = e => { state.form.horario = e.target.value; };
-    fg.querySelector("#f-horario").onchange = e => { state.form.horario = e.target.value; render(); };
+    fg.querySelector("#f-horario").onblur = e => { state.form.horario = e.target.value; render(); };
     
     fg.querySelector("#f-empresa").oninput = e=>{ state.form.empresa = e.target.value; };
     fg.querySelector("#f-tipo").oninput = e=>{ state.form.tipo = e.target.value; };
@@ -1191,7 +1187,6 @@
     if(state.viewMode==="day") wrap.appendChild(renderDayView()); else if(state.viewMode==="month") wrap.appendChild(renderMonthView()); else wrap.appendChild(renderYearView());
     main.appendChild(wrap); renderVoiceWidget();
     
-    // Renderiza a janela suspensa de edição se necessário
     const modal = renderEditModal();
     if(modal) main.appendChild(modal);
   }
