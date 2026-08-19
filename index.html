@@ -209,7 +209,10 @@
 
   // --- DADOS BÁSICOS DO SISTEMA ---
   const EXAMS = ["CLINICO","AUDIO","EEG","ECG","ACV","ESP","ISHI","RX","LAB","PSICO","CINESIO","ODONTO","TOXIC","OTOLOGICO","VOCAL"];
-  const TIPOS_SUGERIDOS = ["Admissional","Periódico","Demissional","Mudança de Função","Mudança de Risco","Retorno","Revalidação"];
+  
+  // ADICIONADO: Perícia e Perícia Domiciliar
+  const TIPOS_SUGERIDOS = ["Admissional","Periódico","Demissional","Mudança de Função","Mudança de Risco","Retorno","Revalidação","Perícia","Perícia Domiciliar"];
+  
   const WEEKDAY_LABELS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
   const MONTH_LABELS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
@@ -352,7 +355,6 @@
     
     try {
       const entryId = uid(); 
-      // Agora salvamos um bloco unico com a propriedade 'qtd'
       const entryData = { id: entryId, date: targetDate, horario: f.horario, empresa: f.empresa, tipo: f.tipo, funcionario: f.funcionario, exams: cleanExams, medico, qtd: parseInt(f.qtd) || 1 };
       
       if(db) await setDoc(doc(db, "agendamentos", entryId), entryData);
@@ -734,7 +736,7 @@
     
     fg.querySelector("#ef-data").onchange = e => f.date = e.target.value;
     
-    // Agora o horário atualiza silenciosamente e não renderiza a tela enquanto digita!
+    // O segredo do horário: oninput só salva a variável pra não travar a tela enquanto digita!
     fg.querySelector("#ef-horario").oninput = e => { f.horario = e.target.value; };
     fg.querySelector("#ef-horario").onchange = e => { f.horario = e.target.value; setState({editForm:f}); };
     
@@ -805,7 +807,7 @@
     
     fg.querySelector("#f-data").onchange = e => { state.form.date = e.target.value; render(); };
     
-    // Agora o horário atualiza silenciosamente sem roubar o foco enquanto digita!
+    // O segredo do horário também aplicado no form principal
     fg.querySelector("#f-horario").oninput = e => { state.form.horario = e.target.value; };
     fg.querySelector("#f-horario").onchange = e => { state.form.horario = e.target.value; render(); };
     
