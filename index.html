@@ -301,7 +301,7 @@
     entries: [],    
     index: {},      
     form: emptyForm(todayISO()),
-    editForm: null, // Armazena os dados do agendamento sendo editado
+    editForm: null, 
     formError: "",
     confirmDeleteId: null,
     error: "",
@@ -867,6 +867,15 @@
     }
     left.appendChild(tableCard);
 
+    // --- CARREGA DADOS DO DIA PARA OS CARTÕES DA DIREITA ---
+    const weekday = new Date(state.date+"T12:00:00").getDay();
+    const todaySlots = SCHEDULE_BY_WEEKDAY[weekday] || [];
+    
+    // Nomes dos médicos do dia para os Turnos
+    const lbl1 = `1º Turno (${todaySlots[0] ? todaySlots[0].medico : "Manhã"})`;
+    const lbl2 = `2º Turno (${todaySlots[1] ? todaySlots[1].medico : "Almoço"})`;
+    const lbl3 = `3º Turno (${todaySlots[2] ? todaySlots[2].medico : "Tarde"})`;
+
     // 0) CARTÃO: BUSCA DE FUNCIONÁRIOS
     const searchCard = el(`<div class="card" style="padding:14px 20px; border: 2px solid var(--teal);"></div>`);
     const searchWrap = el(`<div style="display:flex; align-items:center; gap:10px;">
@@ -889,23 +898,23 @@
     };
     right.appendChild(searchCard);
 
-    // 1) CARTÃO: RESUMO DO DIA POR TURNOS
+    // 1) CARTÃO: RESUMO DO DIA POR TURNOS (COM NOMES DOS MÉDICOS)
     const summaryCard = el(`<div class="card"></div>`);
     summaryCard.appendChild(el(`<div style="display:flex; justify-content:space-between; align-items:center;">
         <h2 style="margin:0;">Resumo do Dia</h2>
         <span class="mono" style="font-size:11px; background:var(--paper); padding:4px 8px; border-radius:6px; color:var(--navy); font-weight:700;">${state.entries.length} Agendamentos</span>
     </div>`));
 
-    const turnos = ["1º Turno (Manhã)", "2º Turno (Almoço)", "3º Turno (Tarde)", "Sem Horário"];
-    const byTurno = { "1º Turno (Manhã)":[], "2º Turno (Almoço)":[], "3º Turno (Tarde)":[], "Sem Horário":[] };
+    const turnos = [lbl1, lbl2, lbl3, "Sem Horário"];
+    const byTurno = { [lbl1]:[], [lbl2]:[], [lbl3]:[], "Sem Horário":[] };
     
     state.entries.forEach(e => {
       let t = "Sem Horário";
       if(e.horario){
         const m = timeToMin(e.horario);
-        if(m < timeToMin("11:00")) t = "1º Turno (Manhã)";
-        else if(m < timeToMin("13:00")) t = "2º Turno (Almoço)";
-        else t = "3º Turno (Tarde)";
+        if(m < timeToMin("11:00")) t = lbl1;
+        else if(m < timeToMin("13:30")) t = lbl2;
+        else t = lbl3;
       }
       byTurno[t].push(e);
     });
@@ -943,7 +952,7 @@
     }
     right.appendChild(summaryCard);
 
-    // 2) CARTÃO: ATENDIMENTOS POR MÉDICO
+    // 2) CARTÃO: ATENDIMENTOS POR MÉDICO (ORDEM CRONOLÓGICA)
     const docCard = el(`<div class="card"></div>`);
     docCard.appendChild(el(`<h2>🩺 Atendimentos por Médico</h2>`));
     const docStats = {};
@@ -956,7 +965,19 @@
       }
     });
 
-    const docKeys = Object.keys(docStats).sort();
+    // Pega a ordem dos médicos baseada na escala do dia
+    const docOrder = {};
+    todaySlots.forEach((s, idx) => {
+        if (!(s.medico in docOrder)) docOrder[s.medico] = idx;
+    });
+
+    const docKeys = Object.keys(docStats).sort((a, b) => {
+      const orderA = a in docOrder ? docOrder[a] : 999;
+      const orderB = b in docOrder ? docOrder[b] : 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.localeCompare(b); // Desempate por ordem alfabética
+    });
+
     if(docKeys.length === 0){
       docCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;text-align:center;padding:16px 0;">Nenhum atendimento médico registrado para hoje.</p>`));
     } else {
@@ -980,8 +1001,6 @@
     right.appendChild(docCard);
 
     // 3) CARTÃO: ESCALA DA SEMANA
-    const weekday = new Date(state.date+"T12:00:00").getDay();
-    const todaySlots = SCHEDULE_BY_WEEKDAY[weekday];
     const scheduleCard = el(`<div class="card"></div>`);
     scheduleCard.appendChild(el(`<h2>📋 Escala de ${esc(WEEKDAY_FULL[weekday])}</h2>`));
     if(!todaySlots || todaySlots.length===0){ scheduleCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum médico de clínico escalado neste dia.</p>`)); }
