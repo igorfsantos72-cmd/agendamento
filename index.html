@@ -183,35 +183,23 @@
 <div id="voice-widget"></div>
 
 <script type="module">
-  // Usamos try-catch para proteger o carregamento do site.
-  let db = null;
-  let collection, doc, setDoc, deleteDoc, onSnapshot;
+  // IMPORTAÇÃO PADRÃO (Muito mais segura e não trava no GitHub Pages)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-  try {
-    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js");
-    const firestore = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js");
-    
-    collection = firestore.collection;
-    doc = firestore.doc;
-    setDoc = firestore.setDoc;
-    deleteDoc = firestore.deleteDoc;
-    onSnapshot = firestore.onSnapshot;
+  // Configuração web do Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyAL2xXqo83pWKhyCta4Nk0gockDstxtJY4",
+    authDomain: "agendamento-alpale.firebaseapp.com",
+    projectId: "agendamento-alpale",
+    storageBucket: "agendamento-alpale.firebasestorage.app",
+    messagingSenderId: "491340347533",
+    appId: "1:491340347533:web:0983b4dba5bbdcc534cac4"
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAL2xXqo83pWKhyCta4Nk0gockDstxtJY4",
-      authDomain: "agendamento-alpale.firebaseapp.com",
-      projectId: "agendamento-alpale",
-      storageBucket: "agendamento-alpale.firebasestorage.app",
-      messagingSenderId: "491340347533",
-      appId: "1:491340347533:web:0983b4dba5bbdcc534cac4"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    db = firestore.getFirestore(app);
-  } catch(error) {
-    console.error("Erro ao conectar no Firebase: ", error);
-    alert("Houve um problema de conexão com o servidor. O site funcionará no modo offline temporariamente.");
-  }
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window.db = db; // Salva o banco de dados na memória caso precise usar pelo F12
 
   // --- DADOS BÁSICOS DO SISTEMA ---
   const EXAMS = ["CLINICO","AUDIO","EEG","ECG","ACV","ESP","ISHI","RX","LAB","PSICO","CINESIO","ODONTO","TOXIC","OTOLOGICO","VOCAL"];
@@ -327,21 +315,19 @@
   function setState(patch){ Object.assign(state, patch); render(); }
 
   // --- ESCUTANDO O FIREBASE EM TEMPO REAL ---
-  if(db) {
-    onSnapshot(collection(db, "agendamentos"), (snapshot) => {
-      const all = [];
-      const idx = {};
-      snapshot.forEach(d => {
-        const data = d.data();
-        all.push(data);
-        idx[data.date] = (idx[data.date] || 0) + 1;
-      });
-      state.allEntries = all;
-      state.index = idx;
-      state.entries = all.filter(e => e.date === state.date);
-      render(); 
+  onSnapshot(collection(db, "agendamentos"), (snapshot) => {
+    const all = [];
+    const idx = {};
+    snapshot.forEach(d => {
+      const data = d.data();
+      all.push(data);
+      idx[data.date] = (idx[data.date] || 0) + 1;
     });
-  }
+    state.allEntries = all;
+    state.index = idx;
+    state.entries = all.filter(e => e.date === state.date);
+    render(); 
+  });
 
   // ---------- actions ----------
   function goToDay(iso){ setState({ date: iso, viewMode:"day", entries: state.allEntries.filter(e=>e.date===iso), form: emptyForm(iso), editingId:null, formError:"" }); }
@@ -366,7 +352,7 @@
     const entryData = { id: entryId, date: targetDate, horario: f.horario, empresa: f.empresa, tipo: f.tipo, funcionario: f.funcionario, exams: cleanExams, medico };
 
     try {
-      if(db) await setDoc(doc(db, "agendamentos", entryId), entryData);
+      await setDoc(doc(db, "agendamentos", entryId), entryData);
       setState({ date: targetDate, form: emptyForm(targetDate), editingId:null, formError:"" });
     } catch (err) {
       setState({ formError: "Erro ao salvar na nuvem: " + err.message });
@@ -397,7 +383,7 @@
 
   async function deleteEntry(id){
     try {
-      if(db) await deleteDoc(doc(db, "agendamentos", id));
+      await deleteDoc(doc(db, "agendamentos", id));
       setState({ confirmDeleteId:null, ...(state.editingId===id?{form:emptyForm(state.date),editingId:null}:{}) });
     } catch(err) {
       setState({ error: "Erro ao excluir da nuvem: " + err.message });
@@ -520,7 +506,7 @@
     const entryData = { id: entryId, date: state.date, horario:p.horario, empresa:p.empresa, tipo:p.tipo, funcionario:p.funcionario, exams: cleanExams, medico };
 
     try {
-      if(db) await setDoc(doc(db, "agendamentos", entryId), entryData);
+      await setDoc(doc(db, "agendamentos", entryId), entryData);
       
       state.pendingAppointment = null;
       state.awaitingConfirmation = false;
@@ -587,4 +573,474 @@
       if(!resp.ok){ throw new Error(resp.status===401 ? "Chave de API inválida ou expirada." : "Erro na API"); }
       const data = await resp.json();
       const textOut = (data.content||[]).map(b=>b.text||"").join("").trim();
-      const clean = textOut.replace(/```json|
+      const clean = textOut.replace(/```json|```/g,"").trim();
+      const parsed = JSON.parse(clean);
+      if(parsed.horario) parsed.horario = roundToHalfHour(parsed.horario);
+      const fields = [];
+      if(parsed.horario) fields.push("horário "+parsed.horario);
+      if(parsed.empresa) fields.push("empresa: "+parsed.empresa);
+      if(parsed.funcionario) fields.push("funcionário: "+parsed.funcionario);
+      if(parsed.tipo) fields.push("tipo: "+parsed.tipo);
+      if(parsed.exames && parsed.exames.length) fields.push("exames: "+parsed.exames.join(", "));
+      applyParsedResult(parsed, fields, "ai");
+    } catch(err){
+      pushMessage({ role:"error", text:"⚠️ IA indisponível: " + err.message + " Usando reconhecimento por palavras-chave como reserva." });
+      const { result, fields } = parseVoiceCommand(rawText);
+      applyParsedResult({...result, exames: Object.keys(result.exams)}, fields, "rules");
+    } finally {
+      state.aiThinking = false; render();
+    }
+  }
+
+  function handleTranscript(rawText){
+    pushMessage({ role:"user", text: rawText });
+    if(state.awaitingConfirmation){
+      const norm = stripAccents(rawText);
+      const yes = /\b(sim|confirma|confirmar|pode|isso mesmo|correto|positivo|exato)\b/.test(norm);
+      const no = /\b(nao|cancela|cancelar|errado|negativo|espera)\b/.test(norm);
+      if(yes){ confirmAppointment(); return; }
+      if(no){ cancelPendingAppointment(); return; }
+      pushMessage({ role:"assistant", text:'Não entendi — diga "sim" para confirmar ou "não" para cancelar.' });
+      speak("Não entendi. Diga sim para confirmar, ou não para cancelar.");
+      return;
+    }
+    if(state.apiKey){ interpretWithAI(rawText); } else {
+      const { result, fields } = parseVoiceCommand(rawText);
+      applyParsedResult({...result, exames: Object.keys(result.exams)}, fields, "rules");
+    }
+  }
+
+  function saveApiKey(){
+    const key = state.apiKeyDraft.trim(); if(!key) return;
+    localStorage.setItem("claude-api-key", key); state.apiKey = key; state.apiKeyDraft = ""; render();
+  }
+  function removeApiKey(){ localStorage.removeItem("claude-api-key"); state.apiKey = ""; render(); }
+
+  function startListening(){
+    if(!MIC_SUPPORTED){ pushMessage({ role:"error", text:"Seu navegador não tem suporte a ditado por voz. Funciona no Chrome ou Edge." }); return; }
+    if(!recognition){
+      recognition = new SpeechRecognitionCtor();
+      recognition.lang = "pt-BR"; recognition.interimResults = false; recognition.maxAlternatives = 1;
+      recognition.onstart = ()=>{ state.listening = true; render(); };
+      recognition.onresult = (e)=>{ const text = e.results[0][0]?.transcript || ""; if(text.trim()) handleTranscript(text); };
+      recognition.onerror = (e)=>{
+        const messages = {
+          "not-allowed": "Permissão de microfone negada.", "service-not-allowed": "O serviço de reconhecimento de voz foi bloqueado.",
+          "network": "Falha de rede no reconhecimento de voz.", "no-speech": "Não ouvi nada. Toque no microfone e fale novamente.",
+          "audio-capture": "Nenhum microfone encontrado.", "aborted": null
+        };
+        if(messages[e.error]) pushMessage({ role:"error", text: "⚠️ " + messages[e.error] });
+        state.listening = false; render();
+      };
+      recognition.onend = ()=>{ state.listening = false; render(); };
+    }
+    try { recognition.start(); state.listening = true; render(); } catch(err){
+      try { recognition.stop(); } catch(_){}
+      state.listening = false; pushMessage({ role:"error", text:"⚠️ Erro ao iniciar microfone. Toque novamente." }); render();
+    }
+  }
+
+  function stopListening(){ if(recognition){ try { recognition.stop(); } catch(_){} } state.listening = false; render(); }
+  function toggleWidget(){ state.widgetOpen = !state.widgetOpen; render(); }
+
+  // --- FUNÇÕES DE RENDERIZAÇÃO DA INTERFACE ---
+  function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstChild; }
+  function esc(s){ return (s??"").toString().replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+
+  function renderTabs(){
+    const tabs = document.getElementById("tabs"); tabs.innerHTML = "";
+    [["day","Dia"],["month","Mês"],["year","Ano"]].forEach(([id,label])=>{
+      const b = el(`<button class="tab ${state.viewMode===id?'active':''}">${label}</button>`);
+      b.onclick = ()=>{
+        if(id==="month") state.monthCursor = state.date.slice(0,7);
+        if(id==="year") state.yearCursor = Number(state.date.slice(0,4));
+        setState({ viewMode:id });
+      };
+      tabs.appendChild(b);
+    });
+  }
+
+  function renderNav(){
+    const nav = document.getElementById("nav"); nav.innerHTML = "";
+    if(state.viewMode==="day"){
+      const prev = el(`<button class="btn-ghost">‹</button>`); prev.onclick=()=>changeDate(shiftDate(state.date,-1));
+      const box = el(`<div class="datebox">📅 <input type="date" value="${state.date}"></div>`);
+      box.querySelector("input").onchange = (e)=>changeDate(e.target.value);
+      const next = el(`<button class="btn-ghost">›</button>`); next.onclick=()=>changeDate(shiftDate(state.date,1));
+      const today = el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Hoje</button>`);
+      today.onclick = ()=>changeDate(todayISO());
+      const wk = el(`<span style="font-size:14px;color:rgba(255,255,255,.9);margin-left:4px;">${fmtWeekday(state.date)}</span>`);
+      nav.append(prev, box, next, today, wk);
+    } else if(state.viewMode==="month"){
+      const prev = el(`<button class="btn-ghost">‹</button>`); prev.onclick=()=>setState({monthCursor:shiftMonth(state.monthCursor,-1)});
+      const label = el(`<span class="mono" style="font-weight:800;min-width:160px;font-size:14px;">${MONTH_LABELS[Number(state.monthCursor.slice(5,7))-1]} ${state.monthCursor.slice(0,4)}</span>`);
+      const next = el(`<button class="btn-ghost">›</button>`); next.onclick=()=>setState({monthCursor:shiftMonth(state.monthCursor,1)});
+      const today = el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Mês atual</button>`);
+      today.onclick = ()=>setState({monthCursor: todayISO().slice(0,7)});
+      const total = Object.entries(state.index).filter(([d])=>d.startsWith(state.monthCursor)).reduce((s,[,c])=>s+c,0);
+      const info = el(`<span class="mono" style="color:rgba(255,255,255,.8);font-size:13px;">${total} agendamento${total!==1?"s":""} no mês</span>`);
+      nav.append(prev,label,next,today,info);
+    } else {
+      const prev = el(`<button class="btn-ghost">‹</button>`); prev.onclick=()=>setState({yearCursor:state.yearCursor-1});
+      const label = el(`<span class="mono" style="font-weight:800;min-width:70px;font-size:14px;">${state.yearCursor}</span>`);
+      const next = el(`<button class="btn-ghost">›</button>`); next.onclick=()=>setState({yearCursor:state.yearCursor+1});
+      const today = el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Ano atual</button>`);
+      today.onclick = ()=>setState({yearCursor: Number(todayISO().slice(0,4))});
+      const total = Object.entries(state.index).filter(([d])=>d.startsWith(String(state.yearCursor))).reduce((s,[,c])=>s+c,0);
+      const info = el(`<span class="mono" style="color:rgba(255,255,255,.8);font-size:13px;">${total} agendamento${total!==1?"s":""} no ano</span>`);
+      nav.append(prev,label,next,today,info);
+    }
+  }
+
+  function computeTotals(entries){
+    const t = emptyExams(); EXAMS.forEach(k=>t[k]=0);
+    entries.forEach(e=>{ EXAMS.forEach(k=>{ const v=e.exams?.[k]; if(v) t[k]+=Number(v); }); });
+    return t;
+  }
+
+  function renderDayView(){
+    const container = el(`<div class="grid5"></div>`);
+    const left = el(`<div></div>`);
+    const right = el(`<div></div>`);
+
+    const form = el(`<form class="card"></form>`);
+    const formHead = el(`<div class="row" style="justify-content:space-between;margin-bottom:14px;"><h2 style="margin:0;">${state.editingId?"Editar agendamento":"Novo agendamento"}</h2></div>`);
+    if(state.editingId){
+      const cancel = el(`<button type="button" class="icon-btn mono" style="font-size:12px;">✕ cancelar edição</button>`); cancel.onclick = cancelEdit;
+      formHead.querySelector("div").appendChild(cancel);
+    }
+    form.appendChild(formHead);
+
+    const fg = el(`<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px;"></div>`);
+    fg.innerHTML = `
+      <label class="field">📅 Data<input type="date" id="f-data" class="mono" value="${esc(state.form.date)}"></label>
+      <label class="field">⏰ Horário<input type="time" id="f-horario" class="mono" step="1800" value="${esc(state.form.horario)}"></label>
+      <label class="field">🏢 Empresa<input type="text" id="f-empresa" placeholder="ex: paraty" value="${esc(state.form.empresa)}"></label>
+      <label class="field">📋 Tipo de exame<input type="text" id="f-tipo" list="tipos-exame" placeholder="periódico…" value="${esc(state.form.tipo)}"><datalist id="tipos-exame">${TIPOS_SUGERIDOS.map(t=>`<option value="${esc(t)}">`).join("")}</datalist></label>
+      <label class="field">👤 Funcionário(a)<input type="text" id="f-func" placeholder="nome ou lote" value="${esc(state.form.funcionario)}"></label>
+    `;
+    form.appendChild(fg);
+    fg.querySelector("#f-data").onchange = e => { state.form.date = e.target.value; render(); };
+    fg.querySelector("#f-horario").oninput = e=>{ state.form.horario = e.target.value; render(); };
+    fg.querySelector("#f-horario").onchange = e=>{ if(e.target.value){ state.form.horario = roundToHalfHour(e.target.value); render(); } };
+    fg.querySelector("#f-empresa").oninput = e=>{ state.form.empresa = e.target.value; };
+    fg.querySelector("#f-tipo").oninput = e=>{ state.form.tipo = e.target.value; };
+    fg.querySelector("#f-func").oninput = e=>{ state.form.funcionario = e.target.value; };
+
+    const examBlock = el(`<div style="margin-top:16px;"><p style="font-size:12px;font-weight:700;color:#6B7280;margin:0 0 6px;">Exames — clique para marcar se vai fazer</p></div>`);
+    const eg = el(`<div class="exam-grid"></div>`);
+    EXAMS.forEach(k=>{
+      const active = !!state.form.exams[k];
+      const btn = el(`<button type="button" class="exam-btn ${active?'active':''}">${active?"✓":"&nbsp;"}<span>${k}</span></button>`);
+      btn.onclick = ()=>toggleExam(k); eg.appendChild(btn);
+    });
+    examBlock.appendChild(eg); form.appendChild(examBlock);
+
+    if(state.form.exams["CLINICO"]){
+      let hintHtml, hintClass;
+      if(!state.form.horario){ hintHtml = "🩺 Informe o horário para eu identificar o médico responsável."; hintClass = "medico-hint pending"; }
+      else {
+        const targetDate = state.form.date || state.date;
+        const medico = getMedicoForDate(targetDate, state.form.horario);
+        if(medico){ hintHtml = `🩺 Médico responsável: <b>${esc(medico)}</b>`; hintClass = "medico-hint ok"; }
+        else { hintHtml = `⚠️ Nenhum médico escalado para ${esc(state.form.horario)} nesta ${esc(WEEKDAY_FULL[new Date(targetDate+"T12:00:00").getDay()])}.`; hintClass = "medico-hint warn"; }
+      }
+      form.appendChild(el(`<div class="${hintClass}">${hintHtml}</div>`));
+    }
+    if(state.formError) form.appendChild(el(`<div class="err">⚠️ ${esc(state.formError)}</div>`));
+    const submitBtn = el(`<button type="submit" class="submit-btn">${state.editingId?"✓ Salvar alterações":"+ Adicionar agendamento"}</button>`);
+    form.appendChild(submitBtn); form.onsubmit = submitForm; left.appendChild(form);
+
+    const tableCard = el(`<div class="card" style="padding:0;overflow:hidden;"></div>`);
+    tableCard.appendChild(el(`<div style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
+      <h2 style="margin:0;">Agendamentos do dia</h2><span class="mono entry-count" style="font-size:12px;color:#9CA3AF;">${state.entries.length} entrada${state.entries.length!==1?"s":""}</span></div>`));
+
+    const sorted = [...state.entries].sort((a,b)=>{
+      if(!a.horario) return 1; if(!b.horario) return -1; return a.horario.localeCompare(b.horario);
+    });
+
+    if(state.error) tableCard.appendChild(el(`<div class="empty" style="color:var(--amber-fg);">⚠️ ${esc(state.error)}</div>`));
+    else if(sorted.length===0) tableCard.appendChild(el(`<div class="empty">Nenhum agendamento para ${esc(fmtWeekday(state.date).toLowerCase())}. Use o formulário acima para adicionar.</div>`));
+    else {
+      const wrap = el(`<div style="overflow-x:auto;"></div>`);
+      const table = el(`<table><thead><tr><th>Hora</th><th>Empresa</th><th>Tipo</th><th>Funcionário(a)</th><th>Exames</th><th></th></tr></thead><tbody></tbody></table>`);
+      const tbody = table.querySelector("tbody");
+      sorted.forEach((entry,i)=>{
+        const tr = el(`<tr class="entry-row" data-name="${esc(entry.funcionario).toLowerCase()}" style="background:${i%2?'#FBFAF7':'white'};"></tr>`);
+        tr.appendChild(el(`<td class="mono" style="font-weight:700;color:var(--navy);">${esc(entry.horario)||"—"}${entry.medico?`<div style="font-family:'Inter',sans-serif;font-weight:600;font-size:10.5px;color:var(--good-fg);margin-top:2px;">🩺 ${esc(entry.medico)}</div>`:""}</td>`));
+        tr.appendChild(el(`<td>${esc(entry.empresa)||"—"}</td>`));
+        tr.appendChild(el(`<td style="color:#6B7280;">${esc(entry.tipo)||"—"}</td>`));
+        tr.appendChild(el(`<td>${esc(entry.funcionario)||"—"}</td>`));
+        const examsTd = el(`<td></td>`);
+        const marked = EXAMS.filter(k=>entry.exams?.[k]);
+        if(marked.length===0){ examsTd.innerHTML = `<span style="color:#D1D5DB;font-size:12px;">—</span>`; } else { marked.forEach(k=> examsTd.appendChild(el(`<span class="chip">${k}</span>`))); }
+        tr.appendChild(examsTd);
+        const actionsTd = el(`<td></td>`);
+        const actionsRow = el(`<div style="display:flex;gap:4px;justify-content:flex-end;"></div>`);
+        const editBtn = el(`<button class="icon-btn">✏️</button>`); editBtn.onclick=()=>startEdit(entry); actionsRow.appendChild(editBtn);
+        if(state.confirmDeleteId===entry.id){
+          const conf = el(`<button class="mono" style="font-size:11px;font-weight:700;padding:5px 8px;border:none;border-radius:6px;background:#FEE2E2;color:#DC2626;cursor:pointer;">confirmar</button>`); conf.onclick=()=>deleteEntry(entry.id);
+          const cancelDel = el(`<button class="icon-btn">✕</button>`); cancelDel.onclick=()=>setState({confirmDeleteId:null});
+          actionsRow.append(conf,cancelDel);
+        } else {
+          const delBtn = el(`<button class="icon-btn">🗑️</button>`); delBtn.onclick=()=>setState({confirmDeleteId:entry.id}); actionsRow.appendChild(delBtn);
+        }
+        actionsTd.appendChild(actionsRow); tr.appendChild(actionsTd); tbody.appendChild(tr);
+      });
+      wrap.appendChild(table); tableCard.appendChild(wrap);
+    }
+    left.appendChild(tableCard);
+
+    // 0) CARTÃO: BUSCA DE FUNCIONÁRIOS (Antes do Resumo)
+    const searchCard = el(`<div class="card" style="padding:14px 20px; border: 2px solid var(--teal);"></div>`);
+    const searchWrap = el(`<div style="display:flex; align-items:center; gap:10px;">
+      <span style="font-size:16px;">🔍</span>
+      <input type="text" id="search-input" placeholder="Buscar por funcionário..." style="width:100%; border:none; outline:none; font-size:14px; font-weight:600; font-family:inherit; color:var(--ink); background:transparent;">
+    </div>`);
+    searchCard.appendChild(searchWrap);
+    
+    // Lógica da busca em tempo real sem recarregar a tela
+    searchWrap.querySelector("input").oninput = (e) => {
+      const term = stripAccents(e.target.value);
+      const rows = left.querySelectorAll(".entry-row");
+      let count = 0;
+      rows.forEach(r => {
+        const name = stripAccents(r.getAttribute("data-name") || "");
+        if (name.includes(term)) {
+          r.style.display = "";
+          count++;
+        } else {
+          r.style.display = "none";
+        }
+      });
+      const countSpan = left.querySelector(".entry-count");
+      if (countSpan) countSpan.textContent = count + (count !== 1 ? " entradas" : " entrada");
+    };
+    
+    right.appendChild(searchCard);
+
+    // 1) CARTÃO: RESUMO DO DIA
+    const summaryCard = el(`<div class="card"></div>`);
+    summaryCard.appendChild(el(`<h2>Resumo do dia</h2>`));
+    const totals = computeTotals(state.entries);
+    const grand = Object.values(totals).reduce((a,b)=>a+b,0);
+    summaryCard.appendChild(el(`<div class="stats2">
+      <div class="stat"><p class="label">Agendamentos</p><p class="value" style="color:var(--navy);">${state.entries.length}</p></div>
+      <div class="stat"><p class="label">Exames no total</p><p class="value" style="color:var(--teal);">${grand}</p></div>
+    </div>`));
+    const chartData = EXAMS.map(k=>({name:k,total:totals[k]})).filter(d=>d.total>0);
+    if(chartData.length===0){ summaryCard.appendChild(el(`<p style="text-align:center;color:#9CA3AF;font-size:14px;padding:32px 0;">Sem exames marcados ainda.</p>`)); }
+    else {
+      const max = Math.max(...chartData.map(d=>d.total)); const chart = el(`<div></div>`);
+      chartData.forEach(d=>{
+        const pct = Math.max(6, Math.round((d.total/max)*100));
+        chart.appendChild(el(`<div class="bar-row"><span class="bar-label">${d.name}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%;"></div></div><span class="bar-val">${d.total}</span></div>`));
+      });
+      summaryCard.appendChild(chart);
+    }
+    right.appendChild(summaryCard);
+
+    // 2) CARTÃO: ATENDIMENTOS POR MÉDICO
+    const docCard = el(`<div class="card"></div>`);
+    docCard.appendChild(el(`<h2>🩺 Atendimentos por Médico</h2>`));
+    const docStats = {};
+    sorted.forEach(e => {
+      if (e.medico) {
+        if (!docStats[e.medico]) docStats[e.medico] = { total: 0, tipos: {} };
+        docStats[e.medico].total++;
+        const t = e.tipo || "Sem tipo";
+        docStats[e.medico].tipos[t] = (docStats[e.medico].tipos[t] || 0) + 1;
+      }
+    });
+
+    const docKeys = Object.keys(docStats).sort();
+    if(docKeys.length === 0){
+      docCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;text-align:center;padding:16px 0;">Nenhum atendimento médico registrado para hoje.</p>`));
+    } else {
+      const list = el(`<div style="display:flex;flex-direction:column;gap:10px;"></div>`);
+      docKeys.forEach(m => {
+        const item = el(`<div style="background:var(--paper);border-radius:8px;padding:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:13.5px;font-weight:700;color:var(--navy);">${esc(m)}</span>
+            <span class="mono" style="font-size:11px;font-weight:800;background:var(--teal);color:#fff;padding:2px 8px;border-radius:6px;" title="Total de exames clínicos">${docStats[m].total}</span>
+          </div>
+        </div>`);
+        const tiposDiv = el(`<div style="display:flex;flex-wrap:wrap;gap:6px;"></div>`);
+        Object.entries(docStats[m].tipos).forEach(([t, qtd]) => {
+          tiposDiv.appendChild(el(`<span style="font-size:11px;color:#4B5563;background:#E5E7EB;padding:4px 8px;border-radius:6px;font-weight:500;">${esc(t)}: <b>${qtd}</b></span>`));
+        });
+        item.appendChild(tiposDiv);
+        list.appendChild(item);
+      });
+      docCard.appendChild(list);
+    }
+    right.appendChild(docCard);
+
+    // 3) CARTÃO: ESCALA DA SEMANA
+    const weekday = new Date(state.date+"T12:00:00").getDay();
+    const todaySlots = SCHEDULE_BY_WEEKDAY[weekday];
+    const scheduleCard = el(`<div class="card"></div>`);
+    scheduleCard.appendChild(el(`<h2>📋 Escala de ${esc(WEEKDAY_FULL[weekday])}</h2>`));
+    if(!todaySlots || todaySlots.length===0){ scheduleCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum médico de clínico escalado neste dia.</p>`)); }
+    else {
+      const list = el(`<div style="display:flex;flex-direction:column;gap:8px;"></div>`);
+      todaySlots.forEach(s=>{ list.appendChild(el(`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--paper);border-radius:8px;padding:8px 10px;"><span class="mono" style="font-size:12px;color:var(--navy);font-weight:700;">${s.start}–${s.end}</span><span style="font-size:13px;font-weight:600;">${esc(s.medico)}</span></div>`)); });
+      scheduleCard.appendChild(list);
+    }
+    right.appendChild(scheduleCard);
+
+    // 4) CARTÃO: LISTA PSICO (COM BOTÃO IMPRIMIR)
+    const psicoEntries = sorted.filter(e => e.exams?.PSICO);
+    const psicoCard = el(`<div class="card"></div>`);
+    
+    const psicoHead = el(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h2 style="margin:0;">🧠 Lista PSICO do dia</h2>
+    </div>`);
+
+    if(psicoEntries.length > 0){
+      const printBtn = el(`<button class="btn-ghost mono" style="background:var(--navy);color:#fff;font-size:11px;padding:6px 10px;font-weight:700;">🖨️ IMPRIMIR</button>`);
+      printBtn.onclick = () => {
+        const w = window.open('', '_blank');
+        let htmlPrint = `<html><head><title>Lista PSICO - ${fmtWeekday(state.date)}</title>
+          <style>
+            body{font-family:sans-serif;padding:20px;color:#1A2B32;}
+            h1{font-size:20px;border-bottom:2px solid #1F4E5F;padding-bottom:10px;margin-bottom:20px;}
+            table{width:100%;border-collapse:collapse;font-size:14px;}
+            th,td{border:1px solid #DCD6C9;padding:12px;text-align:left;}
+            th{background:#F6F4EF;color:#1F4E5F;text-transform:uppercase;font-size:12px;}
+          </style>
+          </head><body>
+          <h1>Lista de Exames Psicológicos - ${fmtWeekday(state.date)}</h1>
+          <table>
+            <thead><tr><th>Horário</th><th>Funcionário(a)</th><th>Empresa</th><th>Tipo</th></tr></thead>
+            <tbody>`;
+        psicoEntries.forEach(e => {
+          htmlPrint += `<tr>
+            <td style="font-family:monospace;font-weight:bold;">${esc(e.horario)||'--:--'}</td>
+            <td><b>${esc(e.funcionario)||'—'}</b></td>
+            <td>${esc(e.empresa)||'—'}</td>
+            <td>${esc(e.tipo)||'—'}</td>
+          </tr>`;
+        });
+        htmlPrint += `</tbody></table>`;
+        htmlPrint += "<scr" + "ipt>window.onload = function() { window.print(); window.close(); }</scr" + "ipt>";
+        htmlPrint += `</body></html>`;
+        w.document.write(htmlPrint);
+        w.document.close();
+      };
+      psicoHead.appendChild(printBtn);
+    }
+    psicoCard.appendChild(psicoHead);
+
+    if(psicoEntries.length === 0){ 
+      psicoCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum agendamento com PSICO hoje.</p>`)); 
+    } else {
+      const list = el(`<div style="display:flex;flex-direction:column;gap:8px;"></div>`);
+      psicoEntries.forEach(e=>{ list.appendChild(el(`<div style="background:var(--paper);border-radius:8px;padding:8px 10px;"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;"><span style="font-size:13px;font-weight:700;color:var(--ink);">${esc(e.funcionario)||"—"}</span><span class="mono" style="font-size:11px;color:var(--navy);font-weight:700;">${esc(e.horario)||""}</span></div><div style="font-size:12px;color:#6B7280;margin-top:2px;">${esc(e.tipo)||"tipo não informado"} · ${esc(e.empresa)||"empresa não informada"}</div></div>`)); });
+      psicoCard.appendChild(list);
+    }
+    right.appendChild(psicoCard);
+
+    right.appendChild(el(`<div class="tips"><p class="k">como funciona</p><ul><li>• Digite o horário — o sistema ordena tudo automaticamente.</li><li>• Use as abas Mês/Ano para ver a agenda inteira de uma vez.</li><li>• Ao marcar CLÍNICO, o médico responsável é identificado sozinho.</li><li>• ☁️ Seus dados estão salvos em nuvem (Firebase).</li></ul></div>`));
+    container.append(left,right); return container;
+  }
+
+  function renderMonthView(){
+    const card = el(`<div class="card"></div>`);
+    const wkRow = el(`<div class="month-grid" style="margin-bottom:2px;"></div>`);
+    WEEKDAY_LABELS.forEach(w=> wkRow.appendChild(el(`<div class="wk-lbl">${w}</div>`))); card.appendChild(wkRow);
+    const grid = el(`<div class="month-grid"></div>`);
+    const todayStr = todayISO();
+    monthMatrix(state.monthCursor).forEach(iso=>{
+      if(!iso){ grid.appendChild(el(`<div></div>`)); return; }
+      const count = state.index[iso]||0; const isToday = iso===todayStr; const dayNum = Number(iso.slice(8,10));
+      const cell = el(`<button class="day-cell ${count>0?'has':''} ${isToday?'today':''}"><span class="day-num">${dayNum}</span>${count>0?`<span class="day-badge">${count}</span>`:""}</button>`);
+      cell.onclick = ()=>goToDay(iso); grid.appendChild(cell);
+    });
+    card.appendChild(grid); return card;
+  }
+
+  function renderYearView(){
+    const grid = el(`<div class="year-grid"></div>`);
+    MONTH_LABELS.forEach((label, mIdx)=>{
+      const ym = `${state.yearCursor}-${pad2(mIdx+1)}`;
+      const total = Object.entries(state.index).filter(([d])=>d.startsWith(ym)).reduce((s,[,c])=>s+c,0);
+      const card = el(`<button class="month-card"></button>`);
+      card.appendChild(el(`<div class="month-card-top"><span class="name">${label}</span>${total>0?`<span class="mono" style="font-size:10px;font-weight:800;background:var(--good-bg);color:var(--good-fg);padding:2px 6px;border-radius:6px;">${total}</span>`:""}</div>`));
+      const mini = el(`<div class="mini-grid"></div>`);
+      miniMonthMatrix(state.yearCursor, mIdx).forEach(iso=>{ const has = iso && state.index[iso]; mini.appendChild(el(`<div class="mini-cell" style="background:${iso?(has?'var(--teal)':'var(--line)'):'transparent'};opacity:${iso?(has?1:0.35):0};"></div>`)); });
+      card.appendChild(mini); card.onclick = ()=>openMonth(ym); grid.appendChild(card);
+    });
+    return grid;
+  }
+
+  function renderVoiceWidget(){
+    const host = document.getElementById("voice-widget"); host.innerHTML = "";
+    if(state.widgetOpen){
+      const panel = el(`<div class="chat-panel"></div>`);
+      const head = el(`<div class="chat-head"><div class="title">🎙️ Assistente de voz</div><div class="status">${state.listening?'ouvindo…':(state.aiThinking?'pensando…':(state.apiKey?'IA ativada':'modo palavras-chave'))}</div></div>`);
+      const btns = el(`<div class="chat-head-btns"></div>`);
+      const muteBtn = el(`<button title="${state.speechEnabled?'Silenciar respostas':'Ativar respostas por áudio'}">${state.speechEnabled?'🔊':'🔇'}</button>`);
+      muteBtn.onclick = ()=>{ state.speechEnabled = !state.speechEnabled; if(!state.speechEnabled) window.speechSynthesis?.cancel(); render(); };
+      const gearBtn = el(`<button title="Configurar IA">⚙️</button>`); gearBtn.onclick = ()=> setState({ showAiPanel: !state.showAiPanel });
+      const closeBtn = el(`<button title="Fechar">✕</button>`); closeBtn.onclick = toggleWidget;
+      btns.append(muteBtn, gearBtn, closeBtn); head.appendChild(btns); panel.appendChild(head);
+
+      if(state.showAiPanel){
+        const aip = el(`<div class="ai-panel" style="margin:10px 12px 0;"></div>`);
+        aip.innerHTML = `<p>Com uma chave de API da Anthropic, o áudio é interpretado por IA de verdade. A chave fica salva só neste navegador. Crie a sua em <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>. Sem chave, funciona por palavras-chave.</p>
+          <div class="ai-key-row"><input type="password" id="api-key-input" placeholder="Cole sua chave de API aqui" value="${esc(state.apiKeyDraft)}"><button class="ai-save">Salvar</button>${state.apiKey ? `<button class="ai-remove">Remover</button>` : ""}</div><p class="ai-status ${state.apiKey?'on':'off'}">${state.apiKey?'✅ IA ativada':'○ Nenhuma chave configurada'}</p>`;
+        aip.querySelector("#api-key-input").oninput = e=>{ state.apiKeyDraft = e.target.value; };
+        aip.querySelector(".ai-save").onclick = saveApiKey;
+        const rm = aip.querySelector(".ai-remove"); if(rm) rm.onclick = removeApiKey;
+        panel.appendChild(aip);
+      }
+
+      const body = el(`<div class="chat-body"></div>`);
+      if(state.chatMessages.length===0){ body.appendChild(el(`<div class="chat-empty">Toque no microfone e fale, ex.:<br>"horário 8 horas, empresa Paraty, tipo periódico, exames clínico e audiometria"</div>`)); }
+      else {
+        state.chatMessages.forEach((msg,idx)=>{
+          if(msg.role==="user"){ body.appendChild(el(`<div class="bubble-row user"><div class="bubble user">🗣️ “${esc(msg.text)}”</div></div>`)); }
+          else if(msg.role==="error"){ body.appendChild(el(`<div class="bubble-row assistant"><div class="bubble error">${esc(msg.text)}</div></div>`)); }
+          else {
+            const b = el(`<div class="bubble assistant">${esc(msg.text)}</div>`);
+            if(msg.fields && msg.fields.length){ const fw = el(`<div class="fields"></div>`); msg.fields.forEach(f=> fw.appendChild(el(`<span class="chip">${esc(f)}</span>`))); b.appendChild(fw); }
+            if(msg.confirm && idx === state.chatMessages.length-1 && state.awaitingConfirmation){
+              const actions = el(`<div style="display:flex;gap:6px;margin-top:8px;"></div>`);
+              const okBtn = el(`<button style="flex:1;border:none;border-radius:7px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;background:var(--good-fg);color:#fff;">✅ Confirmar</button>`); okBtn.onclick = confirmAppointment;
+              const noBtn = el(`<button style="flex:1;border:none;border-radius:7px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;background:#FEE2E2;color:#DC2626;">✖️ Cancelar</button>`); noBtn.onclick = cancelPendingAppointment;
+              actions.append(okBtn,noBtn); b.appendChild(actions);
+            }
+            const row = el(`<div class="bubble-row assistant"></div>`); row.appendChild(b); body.appendChild(row);
+          }
+        });
+      }
+      if(state.aiThinking){ body.appendChild(el(`<div class="bubble-row assistant"><div class="bubble assistant"><span class="thinking-dots"><span></span><span></span><span></span></span></div></div>`)); }
+      panel.appendChild(body);
+
+      const foot = el(`<div class="chat-foot"></div>`);
+      const talkBtn = el(`<button type="button" class="talk-btn ${state.listening?'listening':''}" ${state.aiThinking?'disabled':''}>${state.listening?'⏺️ Ouvindo… toque para parar':'🎙️ Toque e fale'}</button>`);
+      talkBtn.onclick = ()=> state.listening ? stopListening() : startListening(); foot.appendChild(talkBtn);
+      foot.appendChild(el(`<p class="chat-foot-hint">Funciona melhor no Chrome/Edge, com internet.</p>`)); panel.appendChild(foot);
+      host.appendChild(panel);
+      requestAnimationFrame(()=>{ const b=host.querySelector(".chat-body"); if(b) b.scrollTop = b.scrollHeight; });
+    }
+
+    const fab = el(`<button class="fab ${state.listening?'listening':''} ${state.aiThinking?'thinking':''}" title="Assistente de voz">${state.listening?'⏺️':(state.aiThinking?'🤖':'🎙️')}</button>`);
+    fab.onclick = toggleWidget; if(state.apiKey) fab.appendChild(el(`<span class="fab-dot" title="IA ativada"></span>`));
+    host.appendChild(fab);
+  }
+
+  function render(){
+    renderTabs(); renderNav();
+    const main = document.getElementById("main"); main.innerHTML = "";
+    const wrap = el(`<div class="wrap" style="padding-top:0;"></div>`);
+    if(state.viewMode==="day") wrap.appendChild(renderDayView()); else if(state.viewMode==="month") wrap.appendChild(renderMonthView()); else wrap.appendChild(renderYearView());
+    main.appendChild(wrap); renderVoiceWidget();
+  }
+
+  // Renderização inicial
+  render();
+</script>
+</body>
+</html>
