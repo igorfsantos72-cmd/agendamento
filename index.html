@@ -112,6 +112,12 @@
   .logo-badge{display:flex;align-items:center;}
   .logo-badge img{height:150px;display:block;}
 
+  /* ---- Edit Modal ---- */
+  .overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);}
+  .modal-card{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.3);position:relative;}
+  .modal-close{position:absolute;top:16px;right:16px;background:var(--paper);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-weight:bold;color:var(--ink);display:flex;align-items:center;justify-content:center;transition:transform 0.1s;}
+  .modal-close:hover{transform:scale(1.1);background:#E5E7EB;}
+
   /* ---- floating voice assistant widget ---- */
   .fab{position:fixed;left:22px;bottom:22px;width:60px;height:60px;border-radius:50%;border:none;
     background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;font-size:24px;cursor:pointer;
@@ -183,7 +189,7 @@
 <div id="voice-widget"></div>
 
 <script type="module">
-  // IMPORTAÇÃO PADRÃO (Muito mais segura e não trava no GitHub Pages)
+  // IMPORTAÇÃO PADRÃO
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
@@ -199,7 +205,7 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  window.db = db; // Salva o banco de dados na memória caso precise usar pelo F12
+  window.db = db; 
 
   // --- DADOS BÁSICOS DO SISTEMA ---
   const EXAMS = ["CLINICO","AUDIO","EEG","ECG","ACV","ESP","ISHI","RX","LAB","PSICO","CINESIO","ODONTO","TOXIC","OTOLOGICO","VOCAL"];
@@ -280,7 +286,7 @@
   function emptyExams(){ const o={}; EXAMS.forEach(k=>o[k]=false); return o; }
   
   function emptyForm(d){ 
-    return { date: d || todayISO(), horario:"", empresa:"", tipo:"", funcionario:"", exams: emptyExams() }; 
+    return { date: d || todayISO(), horario:"", empresa:"", tipo:"", funcionario:"", qtd: 1, exams: emptyExams() }; 
   }
   
   function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
@@ -295,7 +301,7 @@
     entries: [],    
     index: {},      
     form: emptyForm(todayISO()),
-    editingId: null,
+    editForm: null, // Armazena os dados do agendamento sendo editado
     formError: "",
     confirmDeleteId: null,
     error: "",
@@ -315,23 +321,25 @@
   function setState(patch){ Object.assign(state, patch); render(); }
 
   // --- ESCUTANDO O FIREBASE EM TEMPO REAL ---
-  onSnapshot(collection(db, "agendamentos"), (snapshot) => {
-    const all = [];
-    const idx = {};
-    snapshot.forEach(d => {
-      const data = d.data();
-      all.push(data);
-      idx[data.date] = (idx[data.date] || 0) + 1;
+  if(db) {
+    onSnapshot(collection(db, "agendamentos"), (snapshot) => {
+      const all = [];
+      const idx = {};
+      snapshot.forEach(d => {
+        const data = d.data();
+        all.push(data);
+        idx[data.date] = (idx[data.date] || 0) + 1;
+      });
+      state.allEntries = all;
+      state.index = idx;
+      state.entries = all.filter(e => e.date === state.date);
+      render(); 
     });
-    state.allEntries = all;
-    state.index = idx;
-    state.entries = all.filter(e => e.date === state.date);
-    render(); 
-  });
+  }
 
   // ---------- actions ----------
-  function goToDay(iso){ setState({ date: iso, viewMode:"day", entries: state.allEntries.filter(e=>e.date===iso), form: emptyForm(iso), editingId:null, formError:"" }); }
-  function changeDate(iso){ setState({ date: iso, entries: state.allEntries.filter(e=>e.date===iso), form: emptyForm(iso), editingId:null, formError:"" }); }
+  function goToDay(iso){ setState({ date: iso, viewMode:"day", entries: state.allEntries.filter(e=>e.date===iso), form: emptyForm(iso), editForm:null, formError:"" }); }
+  function changeDate(iso){ setState({ date: iso, entries: state.allEntries.filter(e=>e.date===iso), form: emptyForm(iso), editForm:null, formError:"" }); }
   function openMonth(ym){ setState({ monthCursor: ym, viewMode: "month" }); }
 
   function toggleExam(k){ state.form.exams[k] = !state.form.exams[k]; render(); }
@@ -339,7 +347,7 @@
   async function submitForm(e){
     e.preventDefault();
     const f = state.form;
-    if(!f.horario){ setState({formError:"Informe o horário do agendamento."}); return; }
+    if(!f.horario && f.exams["CLINICO"]){ setState({formError:"Informe o horário para o médico ser escalado."}); return; }
     if(!f.empresa.trim() && !f.funcionario.trim()){ setState({formError:"Informe ao menos a empresa ou o funcionário."}); return; }
     
     const cleanExams = {};
@@ -348,12 +356,18 @@
     const targetDate = f.date || state.date;
     const medico = cleanExams.CLINICO ? getMedicoForDate(targetDate, f.horario) : null;
     
-    const entryId = state.editingId || uid(); 
-    const entryData = { id: entryId, date: targetDate, horario: f.horario, empresa: f.empresa, tipo: f.tipo, funcionario: f.funcionario, exams: cleanExams, medico };
-
     try {
-      await setDoc(doc(db, "agendamentos", entryId), entryData);
-      setState({ date: targetDate, form: emptyForm(targetDate), editingId:null, formError:"" });
+      const qtd = parseInt(f.qtd) || 1;
+      const promises = [];
+      for(let i=0; i<qtd; i++){
+        const entryId = uid();
+        let fName = f.funcionario.trim();
+        if(qtd > 1 && fName) fName = `${fName} (${i+1})`;
+        const entryData = { id: entryId, date: targetDate, horario: f.horario, empresa: f.empresa, tipo: f.tipo, funcionario: fName, exams: cleanExams, medico };
+        if(db) promises.push(setDoc(doc(db, "agendamentos", entryId), entryData));
+      }
+      await Promise.all(promises);
+      setState({ date: targetDate, form: emptyForm(targetDate), formError:"" });
     } catch (err) {
       setState({ formError: "Erro ao salvar na nuvem: " + err.message });
     }
@@ -365,26 +379,22 @@
       EXAMS.forEach(k => { loadedExams[k] = !!entry.exams[k]; });
     }
     setState({
-      form: { 
+      editForm: { 
+        id: entry.id,
         date: entry.date,
         horario: entry.horario || "", 
         empresa: entry.empresa || "", 
         tipo: entry.tipo || "", 
         funcionario: entry.funcionario || "",
         exams: loadedExams 
-      },
-      editingId: entry.id, 
-      formError: ""
+      }
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-
-  function cancelEdit(){ setState({ form: emptyForm(state.date), editingId:null, formError:"" }); }
 
   async function deleteEntry(id){
     try {
-      await deleteDoc(doc(db, "agendamentos", id));
-      setState({ confirmDeleteId:null, ...(state.editingId===id?{form:emptyForm(state.date),editingId:null}:{}) });
+      if(db) await deleteDoc(doc(db, "agendamentos", id));
+      setState({ confirmDeleteId:null });
     } catch(err) {
       setState({ error: "Erro ao excluir da nuvem: " + err.message });
     }
@@ -506,7 +516,7 @@
     const entryData = { id: entryId, date: state.date, horario:p.horario, empresa:p.empresa, tipo:p.tipo, funcionario:p.funcionario, exams: cleanExams, medico };
 
     try {
-      await setDoc(doc(db, "agendamentos", entryId), entryData);
+      if(db) await setDoc(doc(db, "agendamentos", entryId), entryData);
       
       state.pendingAppointment = null;
       state.awaitingConfirmation = false;
@@ -698,34 +708,100 @@
     return t;
   }
 
+  // ------- MODAL DE EDIÇÃO --------
+  function renderEditModal(){
+    if(!state.editForm) return null;
+    const f = state.editForm;
+    const overlay = el(`<div class="overlay"></div>`);
+    const card = el(`<div class="modal-card"></div>`);
+    card.innerHTML = `<button type="button" class="modal-close">✕</button><h2 style="margin:0 0 16px;color:var(--navy);font-size:18px;font-weight:800;">✏️ Editar Agendamento</h2>`;
+    card.querySelector(".modal-close").onclick = ()=>setState({editForm:null});
+    
+    const form = el(`<form></form>`);
+    const fg = el(`<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px;"></div>`);
+    fg.innerHTML = `
+      <label class="field">📅 Data<input type="date" id="ef-data" class="mono" value="${esc(f.date)}"></label>
+      <label class="field">⏰ Horário<input type="time" id="ef-horario" class="mono" step="1800" value="${esc(f.horario)}"></label>
+      <label class="field">🏢 Empresa<input type="text" id="ef-empresa" value="${esc(f.empresa)}"></label>
+      <label class="field">📋 Tipo de exame<input type="text" id="ef-tipo" list="tipos-exame" value="${esc(f.tipo)}"></label>
+      <label class="field">👤 Funcionário(a)<input type="text" id="ef-func" value="${esc(f.funcionario)}"></label>
+    `;
+    form.appendChild(fg);
+    
+    fg.querySelector("#ef-data").onchange = e => f.date = e.target.value;
+    fg.querySelector("#ef-horario").oninput = e => f.horario = e.target.value;
+    fg.querySelector("#ef-horario").onchange = e => { if(e.target.value) f.horario = roundToHalfHour(e.target.value); setState({editForm:f}); };
+    fg.querySelector("#ef-empresa").oninput = e => f.empresa = e.target.value;
+    fg.querySelector("#ef-tipo").oninput = e => f.tipo = e.target.value;
+    fg.querySelector("#ef-func").oninput = e => f.funcionario = e.target.value;
+    
+    const examBlock = el(`<div style="margin-top:16px;"><p style="font-size:12px;font-weight:700;color:#6B7280;margin:0 0 6px;">Exames</p></div>`);
+    const eg = el(`<div class="exam-grid"></div>`);
+    EXAMS.forEach(k=>{
+      const active = !!f.exams[k];
+      const btn = el(`<button type="button" class="exam-btn ${active?'active':''}">${active?"✓":"&nbsp;"}<span>${k}</span></button>`);
+      btn.onclick = ()=>{ f.exams[k] = !f.exams[k]; setState({editForm:f}); };
+      eg.appendChild(btn);
+    });
+    examBlock.appendChild(eg); form.appendChild(examBlock);
+    
+    if(f.exams["CLINICO"]){
+      let hintHtml, hintClass;
+      if(!f.horario){ hintHtml = "🩺 Informe o horário para identificar o médico."; hintClass = "medico-hint pending"; }
+      else {
+        const medico = getMedicoForDate(f.date, f.horario);
+        if(medico){ hintHtml = `🩺 Médico responsável: <b>${esc(medico)}</b>`; hintClass = "medico-hint ok"; }
+        else { hintHtml = `⚠️ Nenhum médico escalado.`; hintClass = "medico-hint warn"; }
+      }
+      form.appendChild(el(`<div class="${hintClass}">${hintHtml}</div>`));
+    }
+
+    form.appendChild(el(`<button type="submit" class="submit-btn" style="width:100%; justify-content:center; margin-top:20px;">✓ Salvar Alterações</button>`));
+    
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const cleanExams = {};
+      EXAMS.forEach(k=>{ if(f.exams[k]) cleanExams[k]=1; });
+      const medico = cleanExams.CLINICO ? getMedicoForDate(f.date, f.horario) : null;
+      const entryData = { id: f.id, date: f.date, horario: f.horario, empresa: f.empresa, tipo: f.tipo, funcionario: f.funcionario, exams: cleanExams, medico };
+      try {
+        if(db) await setDoc(doc(db, "agendamentos", f.id), entryData);
+        setState({ editForm: null });
+      } catch(err){ alert("Erro ao salvar: "+err.message); }
+    };
+    
+    card.appendChild(form);
+    overlay.appendChild(card);
+    return overlay;
+  }
+
   function renderDayView(){
     const container = el(`<div class="grid5"></div>`);
     const left = el(`<div></div>`);
     const right = el(`<div></div>`);
 
     const form = el(`<form class="card"></form>`);
-    const formHead = el(`<div class="row" style="justify-content:space-between;margin-bottom:14px;"><h2 style="margin:0;">${state.editingId?"Editar agendamento":"Novo agendamento"}</h2></div>`);
-    if(state.editingId){
-      const cancel = el(`<button type="button" class="icon-btn mono" style="font-size:12px;">✕ cancelar edição</button>`); cancel.onclick = cancelEdit;
-      formHead.querySelector("div").appendChild(cancel);
-    }
+    const formHead = el(`<div class="row" style="justify-content:space-between;margin-bottom:14px;"><h2 style="margin:0;">✨ Novo Agendamento</h2></div>`);
     form.appendChild(formHead);
 
-    const fg = el(`<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px;"></div>`);
+    const fg = el(`<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px;"></div>`);
     fg.innerHTML = `
       <label class="field">📅 Data<input type="date" id="f-data" class="mono" value="${esc(state.form.date)}"></label>
       <label class="field">⏰ Horário<input type="time" id="f-horario" class="mono" step="1800" value="${esc(state.form.horario)}"></label>
       <label class="field">🏢 Empresa<input type="text" id="f-empresa" placeholder="ex: paraty" value="${esc(state.form.empresa)}"></label>
-      <label class="field">📋 Tipo de exame<input type="text" id="f-tipo" list="tipos-exame" placeholder="periódico…" value="${esc(state.form.tipo)}"><datalist id="tipos-exame">${TIPOS_SUGERIDOS.map(t=>`<option value="${esc(t)}">`).join("")}</datalist></label>
-      <label class="field">👤 Funcionário(a)<input type="text" id="f-func" placeholder="nome ou lote" value="${esc(state.form.funcionario)}"></label>
+      <label class="field">📋 Tipo<input type="text" id="f-tipo" list="tipos-exame" placeholder="periódico…" value="${esc(state.form.tipo)}"><datalist id="tipos-exame">${TIPOS_SUGERIDOS.map(t=>`<option value="${esc(t)}">`).join("")}</datalist></label>
+      <label class="field">👤 Func./Lote<input type="text" id="f-func" placeholder="nome..." value="${esc(state.form.funcionario)}"></label>
+      <label class="field">🔢 Quantidade<input type="number" id="f-qtd" value="${state.form.qtd||1}" min="1" max="100" style="background:#F3F4F6; border-color:var(--teal); font-weight:700;"></label>
     `;
     form.appendChild(fg);
+    
     fg.querySelector("#f-data").onchange = e => { state.form.date = e.target.value; render(); };
     fg.querySelector("#f-horario").oninput = e=>{ state.form.horario = e.target.value; render(); };
     fg.querySelector("#f-horario").onchange = e=>{ if(e.target.value){ state.form.horario = roundToHalfHour(e.target.value); render(); } };
     fg.querySelector("#f-empresa").oninput = e=>{ state.form.empresa = e.target.value; };
     fg.querySelector("#f-tipo").oninput = e=>{ state.form.tipo = e.target.value; };
     fg.querySelector("#f-func").oninput = e=>{ state.form.funcionario = e.target.value; };
+    fg.querySelector("#f-qtd").oninput = e=>{ state.form.qtd = parseInt(e.target.value)||1; };
 
     const examBlock = el(`<div style="margin-top:16px;"><p style="font-size:12px;font-weight:700;color:#6B7280;margin:0 0 6px;">Exames — clique para marcar se vai fazer</p></div>`);
     const eg = el(`<div class="exam-grid"></div>`);
@@ -748,7 +824,7 @@
       form.appendChild(el(`<div class="${hintClass}">${hintHtml}</div>`));
     }
     if(state.formError) form.appendChild(el(`<div class="err">⚠️ ${esc(state.formError)}</div>`));
-    const submitBtn = el(`<button type="submit" class="submit-btn">${state.editingId?"✓ Salvar alterações":"+ Adicionar agendamento"}</button>`);
+    const submitBtn = el(`<button type="submit" class="submit-btn">+ Adicionar Agendamento</button>`);
     form.appendChild(submitBtn); form.onsubmit = submitForm; left.appendChild(form);
 
     const tableCard = el(`<div class="card" style="padding:0;overflow:hidden;"></div>`);
@@ -791,7 +867,7 @@
     }
     left.appendChild(tableCard);
 
-    // 0) CARTÃO: BUSCA DE FUNCIONÁRIOS (Antes do Resumo)
+    // 0) CARTÃO: BUSCA DE FUNCIONÁRIOS
     const searchCard = el(`<div class="card" style="padding:14px 20px; border: 2px solid var(--teal);"></div>`);
     const searchWrap = el(`<div style="display:flex; align-items:center; gap:10px;">
       <span style="font-size:16px;">🔍</span>
@@ -799,44 +875,71 @@
     </div>`);
     searchCard.appendChild(searchWrap);
     
-    // Lógica da busca em tempo real sem recarregar a tela
     searchWrap.querySelector("input").oninput = (e) => {
       const term = stripAccents(e.target.value);
       const rows = left.querySelectorAll(".entry-row");
       let count = 0;
       rows.forEach(r => {
         const name = stripAccents(r.getAttribute("data-name") || "");
-        if (name.includes(term)) {
-          r.style.display = "";
-          count++;
-        } else {
-          r.style.display = "none";
-        }
+        if (name.includes(term)) { r.style.display = ""; count++; } 
+        else { r.style.display = "none"; }
       });
       const countSpan = left.querySelector(".entry-count");
       if (countSpan) countSpan.textContent = count + (count !== 1 ? " entradas" : " entrada");
     };
-    
     right.appendChild(searchCard);
 
-    // 1) CARTÃO: RESUMO DO DIA
+    // 1) CARTÃO: RESUMO DO DIA POR TURNOS
     const summaryCard = el(`<div class="card"></div>`);
-    summaryCard.appendChild(el(`<h2>Resumo do dia</h2>`));
-    const totals = computeTotals(state.entries);
-    const grand = Object.values(totals).reduce((a,b)=>a+b,0);
-    summaryCard.appendChild(el(`<div class="stats2">
-      <div class="stat"><p class="label">Agendamentos</p><p class="value" style="color:var(--navy);">${state.entries.length}</p></div>
-      <div class="stat"><p class="label">Exames no total</p><p class="value" style="color:var(--teal);">${grand}</p></div>
+    summaryCard.appendChild(el(`<div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0;">Resumo do Dia</h2>
+        <span class="mono" style="font-size:11px; background:var(--paper); padding:4px 8px; border-radius:6px; color:var(--navy); font-weight:700;">${state.entries.length} Agendamentos</span>
     </div>`));
-    const chartData = EXAMS.map(k=>({name:k,total:totals[k]})).filter(d=>d.total>0);
-    if(chartData.length===0){ summaryCard.appendChild(el(`<p style="text-align:center;color:#9CA3AF;font-size:14px;padding:32px 0;">Sem exames marcados ainda.</p>`)); }
-    else {
-      const max = Math.max(...chartData.map(d=>d.total)); const chart = el(`<div></div>`);
-      chartData.forEach(d=>{
-        const pct = Math.max(6, Math.round((d.total/max)*100));
-        chart.appendChild(el(`<div class="bar-row"><span class="bar-label">${d.name}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%;"></div></div><span class="bar-val">${d.total}</span></div>`));
-      });
-      summaryCard.appendChild(chart);
+
+    const turnos = ["1º Turno (Manhã)", "2º Turno (Almoço)", "3º Turno (Tarde)", "Sem Horário"];
+    const byTurno = { "1º Turno (Manhã)":[], "2º Turno (Almoço)":[], "3º Turno (Tarde)":[], "Sem Horário":[] };
+    
+    state.entries.forEach(e => {
+      let t = "Sem Horário";
+      if(e.horario){
+        const m = timeToMin(e.horario);
+        if(m < timeToMin("11:00")) t = "1º Turno (Manhã)";
+        else if(m < timeToMin("13:00")) t = "2º Turno (Almoço)";
+        else t = "3º Turno (Tarde)";
+      }
+      byTurno[t].push(e);
+    });
+
+    let hasData = false;
+    turnos.forEach(t => {
+      if(byTurno[t].length === 0) return;
+      hasData = true;
+      const totals = computeTotals(byTurno[t]);
+      const grand = Object.values(totals).reduce((a,b)=>a+b,0);
+      
+      const sec = el(`<div style="margin-top:16px; border:1px solid var(--line); border-radius:10px; padding:12px;"></div>`);
+      sec.appendChild(el(`<div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #E5E7EB; padding-bottom:6px;">
+        <span style="font-size:12.5px; font-weight:800; color:var(--teal);">${t}</span>
+        <span style="font-size:11px; color:#6B7280; font-weight:600;">${byTurno[t].length} agend. / ${grand} exames</span>
+      </div>`));
+
+      const chartData = EXAMS.map(k=>({name:k,total:totals[k]})).filter(d=>d.total>0);
+      if(chartData.length > 0){
+         const chart = el(`<div></div>`);
+         const max = Math.max(...chartData.map(d=>d.total));
+         chartData.forEach(d=>{
+            const pct = Math.max(6, Math.round((d.total/max)*100));
+            chart.appendChild(el(`<div class="bar-row" style="margin-bottom:4px;"><span class="bar-label" style="font-size:10px;">${d.name}</span><div class="bar-track" style="height:12px;"><div class="bar-fill" style="width:${pct}%;"></div></div><span class="bar-val" style="font-size:10px;">${d.total}</span></div>`));
+         });
+         sec.appendChild(chart);
+      } else {
+         sec.appendChild(el(`<p style="font-size:11px; color:#9CA3AF; margin:0;">Nenhum exame marcado.</p>`));
+      }
+      summaryCard.appendChild(sec);
+    });
+
+    if(!hasData) {
+      summaryCard.appendChild(el(`<p style="text-align:center;color:#9CA3AF;font-size:14px;padding:32px 0;">Sem exames marcados ainda.</p>`));
     }
     right.appendChild(summaryCard);
 
@@ -1037,6 +1140,10 @@
     const wrap = el(`<div class="wrap" style="padding-top:0;"></div>`);
     if(state.viewMode==="day") wrap.appendChild(renderDayView()); else if(state.viewMode==="month") wrap.appendChild(renderMonthView()); else wrap.appendChild(renderYearView());
     main.appendChild(wrap); renderVoiceWidget();
+    
+    // Renderiza a janela suspensa de edição se necessário
+    const modal = renderEditModal();
+    if(modal) main.appendChild(modal);
   }
 
   // Renderização inicial
