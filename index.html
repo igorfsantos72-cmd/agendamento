@@ -214,13 +214,6 @@
   const MONTH_LABELS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
   function pad2(n){ return String(n).padStart(2,"0"); }
-  function roundToHalfHour(hhmm){
-    const [h,m] = hhmm.split(":").map(Number);
-    let totalMin = h*60 + m;
-    totalMin = Math.round(totalMin/30)*30;
-    totalMin = ((totalMin % 1440) + 1440) % 1440;
-    return `${pad2(Math.floor(totalMin/60))}:${pad2(totalMin%60)}`;
-  }
 
   const SCHEDULE_BY_WEEKDAY = {
     1: [ { start:"06:30", end:"10:30", medico:"Dra. Gizelle" }, { start:"11:00", end:"13:00", medico:"Dr. Luiz" }, { start:"16:00", end:"17:00", medico:"Dra. Nadia" } ],
@@ -328,7 +321,8 @@
       snapshot.forEach(d => {
         const data = d.data();
         all.push(data);
-        idx[data.date] = (idx[data.date] || 0) + 1;
+        const q = data.qtd || 1;
+        idx[data.date] = (idx[data.date] || 0) + q;
       });
       state.allEntries = all;
       state.index = idx;
@@ -357,16 +351,11 @@
     const medico = cleanExams.CLINICO ? getMedicoForDate(targetDate, f.horario) : null;
     
     try {
-      const qtd = parseInt(f.qtd) || 1;
-      const promises = [];
-      for(let i=0; i<qtd; i++){
-        const entryId = uid();
-        let fName = f.funcionario.trim();
-        if(qtd > 1 && fName) fName = `${fName} (${i+1})`;
-        const entryData = { id: entryId, date: targetDate, horario: f.horario, empresa: f.empresa, tipo: f.tipo, funcionario: fName, exams: cleanExams, medico };
-        if(db) promises.push(setDoc(doc(db, "agendamentos", entryId), entryData));
-      }
-      await Promise.all(promises);
+      const entryId = uid(); 
+      // Agora salvamos um bloco unico com a propriedade 'qtd'
+      const entryData = { id: entryId, date: targetDate, horario: f.horario, empresa: f.empresa, tipo: f.tipo, funcionario: f.funcionario, exams: cleanExams, medico, qtd: parseInt(f.qtd) || 1 };
+      
+      if(db) await setDoc(doc(db, "agendamentos", entryId), entryData);
       setState({ date: targetDate, form: emptyForm(targetDate), formError:"" });
     } catch (err) {
       setState({ formError: "Erro ao salvar na nuvem: " + err.message });
@@ -386,6 +375,7 @@
         empresa: entry.empresa || "", 
         tipo: entry.tipo || "", 
         funcionario: entry.funcionario || "",
+        qtd: entry.qtd || 1,
         exams: loadedExams 
       }
     });
@@ -418,15 +408,23 @@
 
   const TIME_WORDS = { "meio dia":"12:00", "meio-dia":"12:00", "meia noite":"00:00", "meia-noite":"00:00" };
 
+  function roundToHalfHourVoice(hhmm){
+    const [h,m] = hhmm.split(":").map(Number);
+    let totalMin = h*60 + m;
+    totalMin = Math.round(totalMin/30)*30;
+    totalMin = ((totalMin % 1440) + 1440) % 1440;
+    return `${pad2(Math.floor(totalMin/60))}:${pad2(totalMin%60)}`;
+  }
+
   function extractHorario(norm){
     for(const [word,val] of Object.entries(TIME_WORDS)){
-      if(norm.includes(word)) return roundToHalfHour(val);
+      if(norm.includes(word)) return roundToHalfHourVoice(val);
     }
     const m = norm.match(/(\d{1,2})\s*(?:h|:|horas?)\s*(\d{1,2})?/);
     if(m){
       let hh = Math.min(23, parseInt(m[1],10));
       let mm = m[2] ? Math.min(59, parseInt(m[2],10)) : 0;
-      return roundToHalfHour(`${pad2(hh)}:${pad2(mm)}`);
+      return roundToHalfHourVoice(`${pad2(hh)}:${pad2(mm)}`);
     }
     return null;
   }
@@ -513,7 +511,7 @@
     const medico = cleanExams.CLINICO ? getMedicoForDate(state.date, p.horario) : null;
     
     const entryId = uid();
-    const entryData = { id: entryId, date: state.date, horario:p.horario, empresa:p.empresa, tipo:p.tipo, funcionario:p.funcionario, exams: cleanExams, medico };
+    const entryData = { id: entryId, date: state.date, horario:p.horario, empresa:p.empresa, tipo:p.tipo, funcionario:p.funcionario, exams: cleanExams, medico, qtd: 1 };
 
     try {
       if(db) await setDoc(doc(db, "agendamentos", entryId), entryData);
@@ -585,7 +583,7 @@
       const textOut = (data.content||[]).map(b=>b.text||"").join("").trim();
       const clean = textOut.replace(/```json|```/g,"").trim();
       const parsed = JSON.parse(clean);
-      if(parsed.horario) parsed.horario = roundToHalfHour(parsed.horario);
+      if(parsed.horario) parsed.horario = roundToHalfHourVoice(parsed.horario);
       const fields = [];
       if(parsed.horario) fields.push("horário "+parsed.horario);
       if(parsed.empresa) fields.push("empresa: "+parsed.empresa);
@@ -687,6 +685,7 @@
       const next = el(`<button class="btn-ghost">›</button>`); next.onclick=()=>setState({monthCursor:shiftMonth(state.monthCursor,1)});
       const today = el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Mês atual</button>`);
       today.onclick = ()=>setState({monthCursor: todayISO().slice(0,7)});
+      
       const total = Object.entries(state.index).filter(([d])=>d.startsWith(state.monthCursor)).reduce((s,[,c])=>s+c,0);
       const info = el(`<span class="mono" style="color:rgba(255,255,255,.8);font-size:13px;">${total} agendamento${total!==1?"s":""} no mês</span>`);
       nav.append(prev,label,next,today,info);
@@ -696,6 +695,7 @@
       const next = el(`<button class="btn-ghost">›</button>`); next.onclick=()=>setState({yearCursor:state.yearCursor+1});
       const today = el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Ano atual</button>`);
       today.onclick = ()=>setState({yearCursor: Number(todayISO().slice(0,4))});
+      
       const total = Object.entries(state.index).filter(([d])=>d.startsWith(String(state.yearCursor))).reduce((s,[,c])=>s+c,0);
       const info = el(`<span class="mono" style="color:rgba(255,255,255,.8);font-size:13px;">${total} agendamento${total!==1?"s":""} no ano</span>`);
       nav.append(prev,label,next,today,info);
@@ -704,7 +704,10 @@
 
   function computeTotals(entries){
     const t = emptyExams(); EXAMS.forEach(k=>t[k]=0);
-    entries.forEach(e=>{ EXAMS.forEach(k=>{ const v=e.exams?.[k]; if(v) t[k]+=Number(v); }); });
+    entries.forEach(e=>{ 
+      const q = e.qtd || 1;
+      EXAMS.forEach(k=>{ const v=e.exams?.[k]; if(v) t[k]+=Number(v)*q; }); 
+    });
     return t;
   }
 
@@ -718,22 +721,27 @@
     card.querySelector(".modal-close").onclick = ()=>setState({editForm:null});
     
     const form = el(`<form></form>`);
-    const fg = el(`<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px;"></div>`);
+    const fg = el(`<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px;"></div>`);
     fg.innerHTML = `
       <label class="field">📅 Data<input type="date" id="ef-data" class="mono" value="${esc(f.date)}"></label>
-      <label class="field">⏰ Horário<input type="time" id="ef-horario" class="mono" step="1800" value="${esc(f.horario)}"></label>
+      <label class="field">⏰ Horário<input type="time" id="ef-horario" class="mono" value="${esc(f.horario)}"></label>
       <label class="field">🏢 Empresa<input type="text" id="ef-empresa" value="${esc(f.empresa)}"></label>
       <label class="field">📋 Tipo de exame<input type="text" id="ef-tipo" list="tipos-exame" value="${esc(f.tipo)}"></label>
       <label class="field">👤 Funcionário(a)<input type="text" id="ef-func" value="${esc(f.funcionario)}"></label>
+      <label class="field">🔢 Quantidade<input type="number" id="ef-qtd" value="${f.qtd||1}" min="1" max="100" style="background:#F3F4F6; border-color:var(--teal); font-weight:700;"></label>
     `;
     form.appendChild(fg);
     
     fg.querySelector("#ef-data").onchange = e => f.date = e.target.value;
-    fg.querySelector("#ef-horario").oninput = e => f.horario = e.target.value;
-    fg.querySelector("#ef-horario").onchange = e => { if(e.target.value) f.horario = roundToHalfHour(e.target.value); setState({editForm:f}); };
+    
+    // Agora o horário atualiza silenciosamente e não renderiza a tela enquanto digita!
+    fg.querySelector("#ef-horario").oninput = e => { f.horario = e.target.value; };
+    fg.querySelector("#ef-horario").onchange = e => { f.horario = e.target.value; setState({editForm:f}); };
+    
     fg.querySelector("#ef-empresa").oninput = e => f.empresa = e.target.value;
     fg.querySelector("#ef-tipo").oninput = e => f.tipo = e.target.value;
     fg.querySelector("#ef-func").oninput = e => f.funcionario = e.target.value;
+    fg.querySelector("#ef-qtd").oninput = e => f.qtd = parseInt(e.target.value) || 1;
     
     const examBlock = el(`<div style="margin-top:16px;"><p style="font-size:12px;font-weight:700;color:#6B7280;margin:0 0 6px;">Exames</p></div>`);
     const eg = el(`<div class="exam-grid"></div>`);
@@ -763,7 +771,7 @@
       const cleanExams = {};
       EXAMS.forEach(k=>{ if(f.exams[k]) cleanExams[k]=1; });
       const medico = cleanExams.CLINICO ? getMedicoForDate(f.date, f.horario) : null;
-      const entryData = { id: f.id, date: f.date, horario: f.horario, empresa: f.empresa, tipo: f.tipo, funcionario: f.funcionario, exams: cleanExams, medico };
+      const entryData = { id: f.id, date: f.date, horario: f.horario, empresa: f.empresa, tipo: f.tipo, funcionario: f.funcionario, exams: cleanExams, medico, qtd: f.qtd };
       try {
         if(db) await setDoc(doc(db, "agendamentos", f.id), entryData);
         setState({ editForm: null });
@@ -787,7 +795,7 @@
     const fg = el(`<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px;"></div>`);
     fg.innerHTML = `
       <label class="field">📅 Data<input type="date" id="f-data" class="mono" value="${esc(state.form.date)}"></label>
-      <label class="field">⏰ Horário<input type="time" id="f-horario" class="mono" step="1800" value="${esc(state.form.horario)}"></label>
+      <label class="field">⏰ Horário<input type="time" id="f-horario" class="mono" value="${esc(state.form.horario)}"></label>
       <label class="field">🏢 Empresa<input type="text" id="f-empresa" placeholder="ex: paraty" value="${esc(state.form.empresa)}"></label>
       <label class="field">📋 Tipo<input type="text" id="f-tipo" list="tipos-exame" placeholder="periódico…" value="${esc(state.form.tipo)}"><datalist id="tipos-exame">${TIPOS_SUGERIDOS.map(t=>`<option value="${esc(t)}">`).join("")}</datalist></label>
       <label class="field">👤 Func./Lote<input type="text" id="f-func" placeholder="nome..." value="${esc(state.form.funcionario)}"></label>
@@ -796,8 +804,11 @@
     form.appendChild(fg);
     
     fg.querySelector("#f-data").onchange = e => { state.form.date = e.target.value; render(); };
-    fg.querySelector("#f-horario").oninput = e=>{ state.form.horario = e.target.value; render(); };
-    fg.querySelector("#f-horario").onchange = e=>{ if(e.target.value){ state.form.horario = roundToHalfHour(e.target.value); render(); } };
+    
+    // Agora o horário atualiza silenciosamente sem roubar o foco enquanto digita!
+    fg.querySelector("#f-horario").oninput = e => { state.form.horario = e.target.value; };
+    fg.querySelector("#f-horario").onchange = e => { state.form.horario = e.target.value; render(); };
+    
     fg.querySelector("#f-empresa").oninput = e=>{ state.form.empresa = e.target.value; };
     fg.querySelector("#f-tipo").oninput = e=>{ state.form.tipo = e.target.value; };
     fg.querySelector("#f-func").oninput = e=>{ state.form.funcionario = e.target.value; };
@@ -827,9 +838,11 @@
     const submitBtn = el(`<button type="submit" class="submit-btn">+ Adicionar Agendamento</button>`);
     form.appendChild(submitBtn); form.onsubmit = submitForm; left.appendChild(form);
 
+    const totalAgendamentos = state.entries.reduce((sum, e) => sum + (e.qtd || 1), 0);
+
     const tableCard = el(`<div class="card" style="padding:0;overflow:hidden;"></div>`);
     tableCard.appendChild(el(`<div style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
-      <h2 style="margin:0;">Agendamentos do dia</h2><span class="mono entry-count" style="font-size:12px;color:#9CA3AF;">${state.entries.length} entrada${state.entries.length!==1?"s":""}</span></div>`));
+      <h2 style="margin:0;">Agendamentos do dia</h2><span class="mono entry-count" style="font-size:12px;color:#9CA3AF;">${totalAgendamentos} exames no total</span></div>`));
 
     const sorted = [...state.entries].sort((a,b)=>{
       if(!a.horario) return 1; if(!b.horario) return -1; return a.horario.localeCompare(b.horario);
@@ -842,11 +855,17 @@
       const table = el(`<table><thead><tr><th>Hora</th><th>Empresa</th><th>Tipo</th><th>Funcionário(a)</th><th>Exames</th><th></th></tr></thead><tbody></tbody></table>`);
       const tbody = table.querySelector("tbody");
       sorted.forEach((entry,i)=>{
-        const tr = el(`<tr class="entry-row" data-name="${esc(entry.funcionario).toLowerCase()}" style="background:${i%2?'#FBFAF7':'white'};"></tr>`);
+        const tr = el(`<tr class="entry-row" data-name="${esc(entry.funcionario).toLowerCase()}" data-qtd="${entry.qtd || 1}" style="background:${i%2?'#FBFAF7':'white'};"></tr>`);
         tr.appendChild(el(`<td class="mono" style="font-weight:700;color:var(--navy);">${esc(entry.horario)||"—"}${entry.medico?`<div style="font-family:'Inter',sans-serif;font-weight:600;font-size:10.5px;color:var(--good-fg);margin-top:2px;">🩺 ${esc(entry.medico)}</div>`:""}</td>`));
         tr.appendChild(el(`<td>${esc(entry.empresa)||"—"}</td>`));
         tr.appendChild(el(`<td style="color:#6B7280;">${esc(entry.tipo)||"—"}</td>`));
-        tr.appendChild(el(`<td>${esc(entry.funcionario)||"—"}</td>`));
+        
+        let funcText = esc(entry.funcionario) || "—";
+        if (entry.qtd > 1) {
+            funcText += ` <span style="font-size:10px; background:var(--teal); color:white; padding:2px 6px; border-radius:10px; font-weight:bold; margin-left:6px;">LOTE: ${entry.qtd}</span>`;
+        }
+        tr.appendChild(el(`<td>${funcText}</td>`));
+        
         const examsTd = el(`<td></td>`);
         const marked = EXAMS.filter(k=>entry.exams?.[k]);
         if(marked.length===0){ examsTd.innerHTML = `<span style="color:#D1D5DB;font-size:12px;">—</span>`; } else { marked.forEach(k=> examsTd.appendChild(el(`<span class="chip">${k}</span>`))); }
@@ -887,14 +906,18 @@
     searchWrap.querySelector("input").oninput = (e) => {
       const term = stripAccents(e.target.value);
       const rows = left.querySelectorAll(".entry-row");
-      let count = 0;
+      let countExames = 0;
       rows.forEach(r => {
         const name = stripAccents(r.getAttribute("data-name") || "");
-        if (name.includes(term)) { r.style.display = ""; count++; } 
-        else { r.style.display = "none"; }
+        if (name.includes(term)) { 
+            r.style.display = ""; 
+            countExames += parseInt(r.getAttribute("data-qtd") || 1);
+        } else { 
+            r.style.display = "none"; 
+        }
       });
       const countSpan = left.querySelector(".entry-count");
-      if (countSpan) countSpan.textContent = count + (count !== 1 ? " entradas" : " entrada");
+      if (countSpan) countSpan.textContent = countExames + (countExames !== 1 ? " exames no total" : " exame no total");
     };
     right.appendChild(searchCard);
 
@@ -902,7 +925,7 @@
     const summaryCard = el(`<div class="card"></div>`);
     summaryCard.appendChild(el(`<div style="display:flex; justify-content:space-between; align-items:center;">
         <h2 style="margin:0;">Resumo do Dia</h2>
-        <span class="mono" style="font-size:11px; background:var(--paper); padding:4px 8px; border-radius:6px; color:var(--navy); font-weight:700;">${state.entries.length} Agendamentos</span>
+        <span class="mono" style="font-size:11px; background:var(--paper); padding:4px 8px; border-radius:6px; color:var(--navy); font-weight:700;">${totalAgendamentos} exames</span>
     </div>`));
 
     const turnos = [lbl1, lbl2, lbl3, "Sem Horário"];
@@ -925,11 +948,12 @@
       hasData = true;
       const totals = computeTotals(byTurno[t]);
       const grand = Object.values(totals).reduce((a,b)=>a+b,0);
+      const pessoasTurno = byTurno[t].reduce((sum, e) => sum + (e.qtd || 1), 0);
       
       const sec = el(`<div style="margin-top:16px; border:1px solid var(--line); border-radius:10px; padding:12px;"></div>`);
       sec.appendChild(el(`<div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #E5E7EB; padding-bottom:6px;">
         <span style="font-size:12.5px; font-weight:800; color:var(--teal);">${t}</span>
-        <span style="font-size:11px; color:#6B7280; font-weight:600;">${byTurno[t].length} agend. / ${grand} exames</span>
+        <span style="font-size:11px; color:#6B7280; font-weight:600;">${pessoasTurno} pes. / ${grand} exames</span>
       </div>`));
 
       const chartData = EXAMS.map(k=>({name:k,total:totals[k]})).filter(d=>d.total>0);
@@ -957,11 +981,12 @@
     docCard.appendChild(el(`<h2>🩺 Atendimentos por Médico</h2>`));
     const docStats = {};
     sorted.forEach(e => {
+      const q = e.qtd || 1;
       if (e.medico) {
         if (!docStats[e.medico]) docStats[e.medico] = { total: 0, tipos: {} };
-        docStats[e.medico].total++;
+        docStats[e.medico].total += q;
         const t = e.tipo || "Sem tipo";
-        docStats[e.medico].tipos[t] = (docStats[e.medico].tipos[t] || 0) + 1;
+        docStats[e.medico].tipos[t] = (docStats[e.medico].tipos[t] || 0) + q;
       }
     });
 
@@ -1037,9 +1062,10 @@
             <thead><tr><th>Horário</th><th>Funcionário(a)</th><th>Empresa</th><th>Tipo</th></tr></thead>
             <tbody>`;
         psicoEntries.forEach(e => {
+          const badge = e.qtd > 1 ? ` (LOTE: ${e.qtd})` : "";
           htmlPrint += `<tr>
             <td style="font-family:monospace;font-weight:bold;">${esc(e.horario)||'--:--'}</td>
-            <td><b>${esc(e.funcionario)||'—'}</b></td>
+            <td><b>${esc(e.funcionario)||'—'}</b>${badge}</td>
             <td>${esc(e.empresa)||'—'}</td>
             <td>${esc(e.tipo)||'—'}</td>
           </tr>`;
@@ -1058,7 +1084,10 @@
       psicoCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum agendamento com PSICO hoje.</p>`)); 
     } else {
       const list = el(`<div style="display:flex;flex-direction:column;gap:8px;"></div>`);
-      psicoEntries.forEach(e=>{ list.appendChild(el(`<div style="background:var(--paper);border-radius:8px;padding:8px 10px;"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;"><span style="font-size:13px;font-weight:700;color:var(--ink);">${esc(e.funcionario)||"—"}</span><span class="mono" style="font-size:11px;color:var(--navy);font-weight:700;">${esc(e.horario)||""}</span></div><div style="font-size:12px;color:#6B7280;margin-top:2px;">${esc(e.tipo)||"tipo não informado"} · ${esc(e.empresa)||"empresa não informada"}</div></div>`)); });
+      psicoEntries.forEach(e=>{ 
+        const badge = e.qtd > 1 ? ` <span style="font-size:10px;background:var(--teal);color:white;padding:2px 6px;border-radius:10px;">LOTE: ${e.qtd}</span>` : "";
+        list.appendChild(el(`<div style="background:var(--paper);border-radius:8px;padding:8px 10px;"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;"><span style="font-size:13px;font-weight:700;color:var(--ink);">${esc(e.funcionario)||"—"}${badge}</span><span class="mono" style="font-size:11px;color:var(--navy);font-weight:700;">${esc(e.horario)||""}</span></div><div style="font-size:12px;color:#6B7280;margin-top:2px;">${esc(e.tipo)||"tipo não informado"} · ${esc(e.empresa)||"empresa não informada"}</div></div>`)); 
+      });
       psicoCard.appendChild(list);
     }
     right.appendChild(psicoCard);
