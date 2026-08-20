@@ -109,8 +109,14 @@
   .ai-status{margin-top:8px;font-size:12px;font-weight:700;}
   .ai-status.on{color:var(--good-fg);}
   .ai-status.off{color:#9CA3AF;}
-  .logo-badge{display:flex;align-items:center;}
-  .logo-badge img{height:150px;display:block;}
+
+  /* --- LOGO ATUALIZADA --- */
+  .logo-badge{display:flex;align-items:center;justify-content:center;}
+  .logo-badge img{
+    height: 200px; /* Logo maior */
+    display: block;
+    filter: brightness(0) invert(1); /* Aplica o branco total */
+  }
 
   /* ---- Edit Modal ---- */
   .overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);}
@@ -205,7 +211,6 @@
   const db = getFirestore(app);
   window.db = db; 
 
-  // --- DADOS BÁSICOS DO SISTEMA ---
   const EXAMS = ["CLINICO","AUDIO","EEG","ECG","ACV","ESP","ISHI","RX","LAB","PSICO","CINESIO","ODONTO","TOXIC","OTOLOGICO","VOCAL","PERICIA","PERICIA DOM"];
   const TIPOS_SUGERIDOS = ["Admissional","Periódico","Demissional","Mudança de Função","Mudança de Risco","Retorno","Revalidação","Perícia","Perícia Domiciliar"];
   const WEEKDAY_LABELS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
