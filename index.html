@@ -110,12 +110,12 @@
   .ai-status.on{color:var(--good-fg);}
   .ai-status.off{color:#9CA3AF;}
 
-  /* --- LOGO ATUALIZADA --- */
+  /* --- LOGO AUMENTADA E COR ORIGINAL --- */
   .logo-badge{display:flex;align-items:center;justify-content:center;}
   .logo-badge img{
-    height: 200px; /* Logo maior */
+    height: 240px; /* Logo maior ainda */
     display: block;
-    filter: brightness(0) invert(1); /* Aplica o branco total */
+    /* O filtro foi removido para mostrar as cores originais da sua imagem */
   }
 
   /* ---- Edit Modal ---- */
@@ -211,7 +211,8 @@
   const db = getFirestore(app);
   window.db = db; 
 
-  const EXAMS = ["CLINICO","AUDIO","EEG","ECG","ACV","ESP","ISHI","RX","LAB","PSICO","CINESIO","ODONTO","TOXIC","OTOLOGICO","VOCAL","PERICIA","PERICIA DOM"];
+  // --- DADOS BÁSICOS DO SISTEMA COM NOVO EXAME ---
+  const EXAMS = ["CLINICO","AUDIO","EEG","ECG","ACV","ESP","ISHI","RX","LAB","PSICO","CINESIO","ODONTO","TOXIC","OTOLOGICO","VOCAL","PERICIA","PERICIA DOM", "T. SONO"];
   const TIPOS_SUGERIDOS = ["Admissional","Periódico","Demissional","Mudança de Função","Mudança de Risco","Retorno","Revalidação","Perícia","Perícia Domiciliar"];
   const WEEKDAY_LABELS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
   const MONTH_LABELS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -406,7 +407,7 @@
     PSICO: ["psico","psicotecnico"], CINESIO: ["cinesio","cinesioteste","cinesiologico"],
     ODONTO: ["odonto","odontologico","dental"], TOXIC: ["toxic","toxicologico"], OTOLOGICO: ["otologico","otologia"],
     VOCAL: ["triagem vocal","vocal","fonoaudiologia"],
-    PERICIA: ["pericia"], "PERICIA DOM": ["pericia domiciliar", "domiciliar"]
+    PERICIA: ["pericia"], "PERICIA DOM": ["pericia domiciliar", "domiciliar"], "T. SONO": ["teste do sono", "sono"]
   };
 
   const TIME_WORDS = { "meio dia":"12:00", "meio-dia":"12:00", "meia noite":"00:00", "meia-noite":"00:00" };
