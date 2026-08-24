@@ -50,6 +50,16 @@
     border:none;padding:11px 18px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;}
   .submit-btn:hover{opacity:.9;}
   .err{margin-top:10px;background:var(--amber-bg);color:var(--amber-fg);padding:9px 12px;border-radius:8px;font-size:13px;}
+  
+  /* ABAS RETRÁTEIS DOS TURNOS */
+  .turno-details{margin-bottom:12px;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden;}
+  .turno-summary{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;cursor:pointer;background:var(--paper);font-weight:800;color:var(--navy);font-size:13px;list-style:none;user-select:none;}
+  .turno-summary::-webkit-details-marker{display:none;}
+  .turno-summary::after{content:'▼';font-size:10px;color:var(--teal);transition:transform 0.2s;}
+  .turno-details[open] .turno-summary::after{transform:rotate(180deg);}
+  .turno-summary:hover{background:#E5E7EB;}
+  .turno-content{padding:0;border-top:1px solid var(--line);overflow-x:auto;}
+
   table{width:100%;border-collapse:collapse;font-size:14px;}
   th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#9CA3AF;
      padding:8px 12px;border-bottom:1px solid var(--line);}
@@ -109,14 +119,9 @@
   .ai-status{margin-top:8px;font-size:12px;font-weight:700;}
   .ai-status.on{color:var(--good-fg);}
   .ai-status.off{color:#9CA3AF;}
-
-  /* --- LOGO AUMENTADA E COR ORIGINAL --- */
+  
   .logo-badge{display:flex;align-items:center;justify-content:center;}
-  .logo-badge img{
-    height: 240px; /* Logo maior ainda */
-    display: block;
-    /* O filtro foi removido para mostrar as cores originais da sua imagem */
-  }
+  .logo-badge img{height: 240px; display: block;}
 
   /* ---- Edit Modal ---- */
   .overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);}
@@ -211,7 +216,6 @@
   const db = getFirestore(app);
   window.db = db; 
 
-  // --- DADOS BÁSICOS DO SISTEMA COM NOVO EXAME ---
   const EXAMS = ["CLINICO","AUDIO","EEG","ECG","ACV","ESP","ISHI","RX","LAB","PSICO","CINESIO","ODONTO","TOXIC","OTOLOGICO","VOCAL","PERICIA","PERICIA DOM", "T. SONO"];
   const TIPOS_SUGERIDOS = ["Admissional","Periódico","Demissional","Mudança de Função","Mudança de Risco","Retorno","Revalidação","Perícia","Perícia Domiciliar"];
   const WEEKDAY_LABELS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
@@ -846,60 +850,88 @@
 
     const totalAgendamentos = state.entries.reduce((sum, e) => sum + (e.qtd || 1), 0);
 
-    const tableCard = el(`<div class="card" style="padding:0;overflow:hidden;"></div>`);
-    tableCard.appendChild(el(`<div style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
-      <h2 style="margin:0;">Agendamentos do dia</h2><span class="mono entry-count" style="font-size:12px;color:#9CA3AF;">${totalAgendamentos} exames no total</span></div>`));
+    // --- CÁLCULO DOS TURNOS PARA A TABELA ---
+    const weekday = new Date(state.date+"T12:00:00").getDay();
+    const todaySlots = SCHEDULE_BY_WEEKDAY[weekday] || [];
+    
+    const lbl1 = `1º Turno (${todaySlots[0] ? todaySlots[0].medico : "Manhã"})`;
+    const lbl2 = `2º Turno (${todaySlots[1] ? todaySlots[1].medico : "Almoço"})`;
+    const lbl3 = `3º Turno (${todaySlots[2] ? todaySlots[2].medico : "Tarde"})`;
+
+    const turnos = [lbl1, lbl2, lbl3, "Sem Horário"];
+    const byTurno = { [lbl1]:[], [lbl2]:[], [lbl3]:[], "Sem Horário":[] };
 
     const sorted = [...state.entries].sort((a,b)=>{
       if(!a.horario) return 1; if(!b.horario) return -1; return a.horario.localeCompare(b.horario);
     });
 
+    sorted.forEach(e => {
+      let t = "Sem Horário";
+      if(e.horario){
+        const m = timeToMin(e.horario);
+        if(m < timeToMin("11:00")) t = lbl1;
+        else if(m < timeToMin("13:30")) t = lbl2;
+        else t = lbl3;
+      }
+      byTurno[t].push(e);
+    });
+
+    const tableCard = el(`<div class="card" style="padding:0;overflow:hidden;"></div>`);
+    tableCard.appendChild(el(`<div style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
+      <h2 style="margin:0;">Agendamentos do dia</h2><span class="mono entry-count" style="font-size:12px;color:#9CA3AF;">${totalAgendamentos} exames no total</span></div>`));
+
     if(state.error) tableCard.appendChild(el(`<div class="empty" style="color:var(--amber-fg);">⚠️ ${esc(state.error)}</div>`));
     else if(sorted.length===0) tableCard.appendChild(el(`<div class="empty">Nenhum agendamento para ${esc(fmtWeekday(state.date).toLowerCase())}. Use o formulário acima para adicionar.</div>`));
     else {
-      const wrap = el(`<div style="overflow-x:auto;"></div>`);
-      const table = el(`<table><thead><tr><th>Hora</th><th>Empresa</th><th>Tipo</th><th>Funcionário(a)</th><th>Exames</th><th></th></tr></thead><tbody></tbody></table>`);
-      const tbody = table.querySelector("tbody");
-      sorted.forEach((entry,i)=>{
-        const tr = el(`<tr class="entry-row" data-name="${esc(entry.funcionario).toLowerCase()}" data-qtd="${entry.qtd || 1}" style="background:${i%2?'#FBFAF7':'white'};"></tr>`);
-        tr.appendChild(el(`<td class="mono" style="font-weight:700;color:var(--navy);">${esc(entry.horario)||"—"}${entry.medico?`<div style="font-family:'Inter',sans-serif;font-weight:600;font-size:10.5px;color:var(--good-fg);margin-top:2px;">🩺 ${esc(entry.medico)}</div>`:""}</td>`));
-        tr.appendChild(el(`<td>${esc(entry.empresa)||"—"}</td>`));
-        tr.appendChild(el(`<td style="color:#6B7280;">${esc(entry.tipo)||"—"}</td>`));
-        
-        let funcText = esc(entry.funcionario) || "—";
-        if (entry.qtd > 1) {
-            funcText += ` <span style="font-size:10px; background:var(--teal); color:white; padding:2px 6px; border-radius:10px; font-weight:bold; margin-left:6px;">LOTE: ${entry.qtd}</span>`;
-        }
-        tr.appendChild(el(`<td>${funcText}</td>`));
-        
-        const examsTd = el(`<td></td>`);
-        const marked = EXAMS.filter(k=>entry.exams?.[k]);
-        if(marked.length===0){ examsTd.innerHTML = `<span style="color:#D1D5DB;font-size:12px;">—</span>`; } else { marked.forEach(k=> examsTd.appendChild(el(`<span class="chip">${k}</span>`))); }
-        tr.appendChild(examsTd);
-        const actionsTd = el(`<td></td>`);
-        const actionsRow = el(`<div style="display:flex;gap:4px;justify-content:flex-end;"></div>`);
-        const editBtn = el(`<button class="icon-btn">✏️</button>`); editBtn.onclick=()=>startEdit(entry); actionsRow.appendChild(editBtn);
-        if(state.confirmDeleteId===entry.id){
-          const conf = el(`<button class="mono" style="font-size:11px;font-weight:700;padding:5px 8px;border:none;border-radius:6px;background:#FEE2E2;color:#DC2626;cursor:pointer;">confirmar</button>`); conf.onclick=()=>deleteEntry(entry.id);
-          const cancelDel = el(`<button class="icon-btn">✕</button>`); cancelDel.onclick=()=>setState({confirmDeleteId:null});
-          actionsRow.append(conf,cancelDel);
-        } else {
-          const delBtn = el(`<button class="icon-btn">🗑️</button>`); delBtn.onclick=()=>setState({confirmDeleteId:entry.id}); actionsRow.appendChild(delBtn);
-        }
-        actionsTd.appendChild(actionsRow); tr.appendChild(actionsTd); tbody.appendChild(tr);
+      const listWrap = el(`<div style="padding:16px 20px; background:var(--paper);"></div>`);
+
+      turnos.forEach(t => {
+        const tEntries = byTurno[t];
+        if (tEntries.length === 0) return;
+
+        const det = el(`<details class="turno-details"></details>`);
+        const sum = el(`<summary class="turno-summary"><span>${esc(t)}</span><span class="mono" style="font-weight:700; color:#6B7280; font-size:11px; background:#E5E7EB; padding:3px 8px; border-radius:6px;">${tEntries.length} agend.</span></summary>`);
+        det.appendChild(sum);
+
+        const content = el(`<div class="turno-content"></div>`);
+        const table = el(`<table><thead><tr><th>Hora</th><th>Empresa</th><th>Tipo</th><th>Funcionário(a)</th><th>Exames</th><th></th></tr></thead><tbody></tbody></table>`);
+        const tbody = table.querySelector("tbody");
+
+        tEntries.forEach((entry,i)=>{
+          const tr = el(`<tr class="entry-row" data-name="${esc(entry.funcionario).toLowerCase()}" data-qtd="${entry.qtd || 1}" style="background:${i%2?'#FBFAF7':'white'};"></tr>`);
+          tr.appendChild(el(`<td class="mono" style="font-weight:700;color:var(--navy);">${esc(entry.horario)||"—"}${entry.medico?`<div style="font-family:'Inter',sans-serif;font-weight:600;font-size:10.5px;color:var(--good-fg);margin-top:2px;">🩺 ${esc(entry.medico)}</div>`:""}</td>`));
+          tr.appendChild(el(`<td>${esc(entry.empresa)||"—"}</td>`));
+          tr.appendChild(el(`<td style="color:#6B7280;">${esc(entry.tipo)||"—"}</td>`));
+          
+          let funcText = esc(entry.funcionario) || "—";
+          if (entry.qtd > 1) {
+              funcText += ` <span style="font-size:10px; background:var(--teal); color:white; padding:2px 6px; border-radius:10px; font-weight:bold; margin-left:6px;">LOTE: ${entry.qtd}</span>`;
+          }
+          tr.appendChild(el(`<td>${funcText}</td>`));
+          
+          const examsTd = el(`<td></td>`);
+          const marked = EXAMS.filter(k=>entry.exams?.[k]);
+          if(marked.length===0){ examsTd.innerHTML = `<span style="color:#D1D5DB;font-size:12px;">—</span>`; } else { marked.forEach(k=> examsTd.appendChild(el(`<span class="chip">${k}</span>`))); }
+          tr.appendChild(examsTd);
+          const actionsTd = el(`<td></td>`);
+          const actionsRow = el(`<div style="display:flex;gap:4px;justify-content:flex-end;"></div>`);
+          const editBtn = el(`<button class="icon-btn">✏️</button>`); editBtn.onclick=()=>startEdit(entry); actionsRow.appendChild(editBtn);
+          if(state.confirmDeleteId===entry.id){
+            const conf = el(`<button class="mono" style="font-size:11px;font-weight:700;padding:5px 8px;border:none;border-radius:6px;background:#FEE2E2;color:#DC2626;cursor:pointer;">confirmar</button>`); conf.onclick=()=>deleteEntry(entry.id);
+            const cancelDel = el(`<button class="icon-btn">✕</button>`); cancelDel.onclick=()=>setState({confirmDeleteId:null});
+            actionsRow.append(conf,cancelDel);
+          } else {
+            const delBtn = el(`<button class="icon-btn">🗑️</button>`); delBtn.onclick=()=>setState({confirmDeleteId:entry.id}); actionsRow.appendChild(delBtn);
+          }
+          actionsTd.appendChild(actionsRow); tr.appendChild(actionsTd); tbody.appendChild(tr);
+        });
+        content.appendChild(table);
+        det.appendChild(content);
+        listWrap.appendChild(det);
       });
-      wrap.appendChild(table); tableCard.appendChild(wrap);
+      tableCard.appendChild(listWrap);
     }
     left.appendChild(tableCard);
-
-    // --- CARREGA DADOS DO DIA PARA OS CARTÕES DA DIREITA ---
-    const weekday = new Date(state.date+"T12:00:00").getDay();
-    const todaySlots = SCHEDULE_BY_WEEKDAY[weekday] || [];
-    
-    // Nomes dos médicos do dia para os Turnos
-    const lbl1 = `1º Turno (${todaySlots[0] ? todaySlots[0].medico : "Manhã"})`;
-    const lbl2 = `2º Turno (${todaySlots[1] ? todaySlots[1].medico : "Almoço"})`;
-    const lbl3 = `3º Turno (${todaySlots[2] ? todaySlots[2].medico : "Tarde"})`;
 
     // 0) CARTÃO: BUSCA DE FUNCIONÁRIOS
     const searchCard = el(`<div class="card" style="padding:14px 20px; border: 2px solid var(--teal);"></div>`);
@@ -918,6 +950,10 @@
         if (name.includes(term)) { 
             r.style.display = ""; 
             countExames += parseInt(r.getAttribute("data-qtd") || 1);
+            if (term.trim() !== "") {
+               const det = r.closest("details");
+               if (det) det.open = true; // Abre a aba automaticamente na pesquisa
+            }
         } else { 
             r.style.display = "none"; 
         }
@@ -933,20 +969,6 @@
         <h2 style="margin:0;">Resumo do Dia</h2>
         <span class="mono" style="font-size:11px; background:var(--paper); padding:4px 8px; border-radius:6px; color:var(--navy); font-weight:700;">${totalAgendamentos} exames</span>
     </div>`));
-
-    const turnos = [lbl1, lbl2, lbl3, "Sem Horário"];
-    const byTurno = { [lbl1]:[], [lbl2]:[], [lbl3]:[], "Sem Horário":[] };
-    
-    state.entries.forEach(e => {
-      let t = "Sem Horário";
-      if(e.horario){
-        const m = timeToMin(e.horario);
-        if(m < timeToMin("11:00")) t = lbl1;
-        else if(m < timeToMin("13:30")) t = lbl2;
-        else t = lbl3;
-      }
-      byTurno[t].push(e);
-    });
 
     let hasData = false;
     turnos.forEach(t => {
@@ -996,7 +1018,6 @@
       }
     });
 
-    // Pega a ordem dos médicos baseada na escala do dia
     const docOrder = {};
     todaySlots.forEach((s, idx) => {
         if (!(s.medico in docOrder)) docOrder[s.medico] = idx;
@@ -1006,7 +1027,7 @@
       const orderA = a in docOrder ? docOrder[a] : 999;
       const orderB = b in docOrder ? docOrder[b] : 999;
       if (orderA !== orderB) return orderA - orderB;
-      return a.localeCompare(b); // Desempate por ordem alfabética
+      return a.localeCompare(b); 
     });
 
     if(docKeys.length === 0){
