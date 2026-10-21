@@ -22,27 +22,32 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
     body { background-color: var(--bg-light); color: var(--primary); min-height: 100vh; }
 
-    /* LAYOUT BASEADO NO DESIGN CORPORATIVO */
-    .top-header {
-      background: var(--white);
-      padding: 1.25rem 5%;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-    }
-    .logo-img { height: 65px; width: auto; object-fit: contain; }
-
+    /* FAIXA AZUL COM O LOGO GRANDE ALINHADO À DIREITA */
     .blue-band {
       background: var(--primary);
       color: var(--white);
-      padding: 3rem 5% 8rem 5%;
+      padding: 3.5rem 5% 8.5rem 5%;
     }
     .band-content {
       max-width: 1100px;
       margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2rem;
     }
-    .band-content p { font-size: 0.95rem; color: #CBD5E1; margin-bottom: 0.2rem; }
-    .band-content h1 { font-size: 2.4rem; font-weight: 700; }
+    .band-text p { font-size: 0.95rem; color: #CBD5E1; margin-bottom: 0.2rem; }
+    .band-text h1 { font-size: 2.4rem; font-weight: 700; }
+
+    .logo-img-large {
+      height: 130px; /* Tamanho do logo bem maior */
+      max-width: 350px;
+      object-fit: contain;
+      background: var(--white); /* Fundo branco para destacar no azul */
+      padding: 15px 25px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
 
     .main-container {
       margin-top: -5.5rem;
@@ -57,7 +62,7 @@
     .form-card {
       background: var(--white);
       width: 100%;
-      max-width: 1100px; /* Expandido */
+      max-width: 1100px; 
       border-radius: 20px;
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
       padding: 3rem;
@@ -65,7 +70,7 @@
 
     .card-title { font-size: 1.6rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; }
 
-    /* GRID REFORMULADO (Agora com 4 colunas em telas grandes) */
+    /* GRID REFORMULADO */
     .form-grid { 
       display: grid; 
       grid-template-columns: 1fr 1fr; 
@@ -76,8 +81,10 @@
     @media (max-width: 768px) {
       .form-grid { grid-template-columns: 1fr; }
       .form-card { padding: 1.8rem; }
-      .blue-band { padding: 2rem 5% 6rem 5%; }
-      .band-content h1 { font-size: 1.8rem; }
+      .band-content { flex-direction: column-reverse; text-align: center; }
+      .blue-band { padding: 2.5rem 5% 6.5rem 5%; }
+      .band-text h1 { font-size: 1.8rem; }
+      .logo-img-large { height: 100px; }
     }
 
     /* INPUTS */
@@ -120,14 +127,15 @@
 </head>
 <body>
 
-  <header class="top-header">
-    <img src="ALPALE LOGO-01.jpg" alt="Alpale Saúde Ocupacional" class="logo-img" onerror="this.src='logo.png'">
-  </header>
-
+  <!-- FAIXA AZUL COM LOGO -->
   <div class="blue-band">
     <div class="band-content">
-      <p>Agendamento de Clientes</p>
-      <h1>Solicitar Agendamento</h1>
+      <div class="band-text">
+        <p>Agendamento de Clientes</p>
+        <h1>Solicitar Agendamento</h1>
+      </div>
+      <!-- Logo movido para a marcação vermelha e aumentado -->
+      <img src="ALPALE LOGO-01.jpg" alt="Alpale Saúde Ocupacional" class="logo-img-large" onerror="this.src='logo.png'">
     </div>
   </div>
 
@@ -256,9 +264,7 @@
     const statusMsg = document.getElementById('statusMsg');
     const alertBanner = document.getElementById('psicoAlert');
 
-    // =========================================================================
-    // ESCALA MÉDICA FIXA (Manhã travada em 08:30)
-    // =========================================================================
+    // ESCALA MÉDICA FIXA
     const escalaSemanal = {
       1: [ // Segunda
         { nome: "Dra. Gizelle", horarioInicio: "08:30" },
@@ -286,7 +292,6 @@
       ]
     };
 
-    // FUNÇÃO QUE ATUALIZA O HORÁRIO COM BASE NO MÉDICO E NO PSICOSSOCIAL
     function atualizarHorario() {
       const chipPsico = document.querySelector('.exam-chip[data-exam="PSICO"]');
       const isPsico = chipPsico && chipPsico.classList.contains('active');
@@ -339,9 +344,7 @@
 
     medicoSelect.addEventListener('change', atualizarHorario);
 
-    // =========================================================================
     // EXAMES E UPLOAD
-    // =========================================================================
     let regrasVagas = { exames: { CLINICO: { ativo: true, nome: "Clínico" } } };
     
     async function carregarExamesLiberados() {
@@ -364,7 +367,7 @@
           if (codigo === 'PSICO') {
             alertBanner.style.display = chip.classList.contains('active') ? 'flex' : 'none';
           }
-          atualizarHorario(); // Atualiza o horário imediatamente ao clicar em um exame
+          atualizarHorario();
         });
         examsGrid.appendChild(chip);
       });
@@ -426,7 +429,6 @@
       docPdf.text(`Por favor, compareça à clínica Alpale às ${dados.horario} com documento de`, 20, 183);
       docPdf.text("identidade com foto e guia de encaminhamento (quando aplicável).", 20, 190);
 
-      // Salva usando o nome do colaborador já que o CPF foi removido
       docPdf.save(`Comprovante_Alpale_${dados.funcionario.replace(/\s+/g, '_')}.pdf`);
     }
 
