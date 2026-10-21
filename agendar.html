@@ -22,7 +22,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
     body { background-color: var(--bg-light); color: var(--primary); display: flex; flex-direction: column; min-height: 100vh; }
 
-    /* CABEÇALHO CENTRALIZADO */
+    /* CABEÇALHO CENTRALIZADO COM LOGO MAIOR */
     header {
       background: var(--white);
       padding: 2rem 1rem;
@@ -33,17 +33,14 @@
       max-width: 1200px;
       margin: 0 auto;
       display: flex;
-      flex-direction: column; /* Coloca os itens um abaixo do outro */
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      text-align: center; /* Centraliza os textos */
+      text-align: center;
       gap: 0.8rem;
     }
-    
-    /* Logo BEM MAIOR e centralizada */
-    .logo-img { height: 130px; width: auto; object-fit: contain; }
-    
-    .brand-section h1 { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+    .logo-img { height: 140px; width: auto; object-fit: contain; } /* Logo Bem Maior */
+    .brand-section h1 { font-size: 1.6rem; font-weight: 700; color: var(--primary); margin-top: 10px; }
     .brand-section p { font-size: 0.95rem; color: #6C7A89; }
 
     main { flex: 1; padding: 2rem 1rem; display: flex; justify-content: center; align-items: center; }
@@ -63,7 +60,7 @@
     @media (max-width: 640px) {
       .form-grid { grid-template-columns: 1fr; }
       .form-card { padding: 1.5rem; }
-      .logo-img { height: 100px; } /* Mantém a logo grande mas ajustada no celular */
+      .logo-img { height: 110px; } 
     }
 
     .input-group { display: flex; flex-direction: column; }
@@ -83,10 +80,6 @@
     .exam-chip:hover { border-color: var(--secondary); background: rgba(0, 140, 180, 0.04); }
     .exam-chip.active { background: var(--primary); border-color: var(--primary); color: var(--white); }
 
-    .alert-banner {
-      background: #E0F2FE; border-left: 4px solid var(--secondary); color: #0369A1; padding: 0.85rem 1.25rem; border-radius: 10px; font-size: 0.825rem; margin-bottom: 1.5rem; display: none; align-items: center; gap: 0.65rem;
-    }
-
     .upload-area {
       border: 2px dashed var(--border-color); background: var(--bg-light); border-radius: 12px; padding: 1.75rem; text-align: center; cursor: pointer; position: relative; margin-bottom: 2rem;
     }
@@ -96,7 +89,7 @@
     .file-preview { display: none; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.85rem; color: var(--success); font-weight: 600; margin-top: 0.5rem; }
 
     .btn-submit {
-      width: 100%; background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%); color: var(--white); border: none; padding: 1.1rem; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 18px rgba(30, 58, 95, 0.25);
+      width: 100%; background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%); color: var(--white); border: none; padding: 1.1rem; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 18px rgba(30, 58, 95, 0.25); margin-top: 1rem;
     }
     .btn-submit:disabled { background: #CBD5E1; cursor: not-allowed; box-shadow: none; }
     .status-msg { text-align: center; margin-top: 1.25rem; font-size: 0.9rem; font-weight: 600; }
@@ -106,7 +99,6 @@
 
   <header>
     <div class="header-container">
-      <!-- O logo agora vem primeiro para ficar acima do texto -->
       <img src="ALPALE LOGO-01.jpg" alt="Alpale Saúde Ocupacional" class="logo-img" onerror="this.src='logo.png'">
       <div class="brand-section">
         <h1>Solicitar Agendamento</h1>
@@ -147,14 +139,6 @@
           </div>
 
           <div class="input-group">
-            <label for="data">Data Pretendida *</label>
-            <div class="input-wrapper">
-              <i class="fa-solid fa-calendar-day"></i>
-              <input type="date" id="data" required>
-            </div>
-          </div>
-
-          <div class="input-group" style="grid-column: span 2;">
             <label for="tipo">Tipo de Exame (ASO) *</label>
             <div class="input-wrapper">
               <i class="fa-solid fa-notes-medical"></i>
@@ -168,16 +152,40 @@
               </select>
             </div>
           </div>
+
+          <div class="input-group" style="grid-column: span 2;">
+            <label for="data">Data Pretendida *</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-calendar-day"></i>
+              <input type="date" id="data" required>
+            </div>
+          </div>
+
+          <!-- NOVOS CAMPOS DINÂMICOS (Ficam ocultos até escolher a data) -->
+          <div class="input-group" id="divMedico" style="display: none;">
+            <label for="medico">Médico Disponível *</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-user-doctor"></i>
+              <select id="medico" required>
+                <option value="" disabled selected>Selecione a data primeiro...</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="input-group" id="divHorario" style="display: none;">
+            <label for="horario">Horários Livres *</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-clock"></i>
+              <select id="horario" required>
+                <option value="" disabled selected>Selecione o médico primeiro...</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <h3 class="exams-title">Exames solicitados:</h3>
         <div class="exams-grid" id="examsGrid">
           <!-- Renderizado dinamicamente pelo banco (padrão só Clínico ativo) -->
-        </div>
-
-        <div class="alert-banner" id="psicoAlert">
-          <i class="fa-solid fa-circle-info"></i>
-          <span><strong>Atenção:</strong> Exame Psicossocial exige horário às <strong>06:30</strong> (Demais exames: 07:30).</span>
         </div>
 
         <div class="input-group">
@@ -203,10 +211,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
-    // Suas credenciais oficiais da Alpale Ocupacional
     const firebaseConfig = {
       apiKey: "AIzaSyAL2xXqo83pWKhyCta4Nk0gockDstxtJY4",
       authDomain: "agendamento-alpale.firebaseapp.com",
@@ -220,25 +227,15 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    let regrasVagas = {
-      exames: {
-        CLINICO: { ativo: true, nome: "Clínico" },
-        AUDIO:   { ativo: false, nome: "Audiometria" },
-        ACV:     { ativo: false, nome: "Acuidade Visual" },
-        LAB:     { ativo: false, nome: "Laboratório (Sangue)" },
-        RX:      { ativo: false, nome: "Raio-X" },
-        PSICO:   { ativo: false, nome: "Psicossocial" },
-        ECG:     { ativo: false, nome: "ECG" },
-        EEG:     { ativo: false, nome: "EEG" },
-        ESP:     { ativo: false, nome: "Espirometria" },
-        ISHI:    { ativo: false, nome: "Ishihara" }
-      }
-    };
-
+    // Variáveis da Interface
     const form = document.getElementById('agendamentoForm');
     const examsGrid = document.getElementById('examsGrid');
     const cpfInput = document.getElementById('cpf');
     const dataInput = document.getElementById('data');
+    const medicoSelect = document.getElementById('medico');
+    const horarioSelect = document.getElementById('horario');
+    const divMedico = document.getElementById('divMedico');
+    const divHorario = document.getElementById('divHorario');
     const arquivoInput = document.getElementById('arquivoKit');
     const uploadArea = document.getElementById('uploadArea');
     const uploadText = document.getElementById('uploadText');
@@ -246,52 +243,8 @@
     const fileNameSpan = document.getElementById('fileName');
     const btnSubmit = document.getElementById('btnSubmit');
     const statusMsg = document.getElementById('statusMsg');
-    const alertBanner = document.getElementById('psicoAlert');
 
-    async function carregarExamesLiberados() {
-      try {
-        const snap = await getDoc(doc(db, "configuracoes", "limites_agendamento"));
-        if (snap.exists() && snap.data().exames) {
-          regrasVagas.exames = snap.data().exames;
-        }
-      } catch (err) {
-        console.warn("Usando exames padrão locais.");
-      }
-      renderizarChipsExames();
-    }
-
-    function renderizarChipsExames() {
-      examsGrid.innerHTML = '';
-      Object.keys(regrasVagas.exames).forEach(codigo => {
-        const ex = regrasVagas.exames[codigo];
-        if (!ex || !ex.ativo) return;
-
-        const chip = document.createElement('div');
-        chip.className = 'exam-chip' + (codigo === 'CLINICO' ? ' active' : '');
-        chip.setAttribute('data-exam', codigo);
-        chip.textContent = ex.nome;
-
-        chip.addEventListener('click', () => {
-          if (codigo === 'CLINICO') return;
-          chip.classList.toggle('active');
-          if (codigo === 'PSICO') {
-            alertBanner.style.display = chip.classList.contains('active') ? 'flex' : 'none';
-          }
-        });
-        examsGrid.appendChild(chip);
-      });
-    }
-
-    carregarExamesLiberados();
-
-    dataInput.addEventListener('input', (e) => {
-      const dia = new Date(e.target.value).getUTCDay();
-      if (dia === 0 || dia === 6) {
-        alert('A clínica atende apenas de segunda a sexta-feira.');
-        e.target.value = '';
-      }
-    });
-
+    // MÁSCARA CPF
     cpfInput.addEventListener('input', (e) => {
       let v = e.target.value.replace(/\D/g, "");
       if (v.length <= 11) {
@@ -302,6 +255,132 @@
       e.target.value = v;
     });
 
+    // CARREGAR EXAMES LIBERADOS
+    let regrasVagas = { exames: { CLINICO: { ativo: true, nome: "Clínico" } } };
+    async function carregarExamesLiberados() {
+      try {
+        const snap = await getDoc(doc(db, "configuracoes", "limites_agendamento"));
+        if (snap.exists() && snap.data().exames) regrasVagas.exames = snap.data().exames;
+      } catch (err) {}
+      examsGrid.innerHTML = '';
+      Object.keys(regrasVagas.exames).forEach(codigo => {
+        const ex = regrasVagas.exames[codigo];
+        if (!ex || !ex.ativo) return;
+        const chip = document.createElement('div');
+        chip.className = 'exam-chip' + (codigo === 'CLINICO' ? ' active' : '');
+        chip.setAttribute('data-exam', codigo);
+        chip.textContent = ex.nome;
+        chip.addEventListener('click', () => {
+          if (codigo === 'CLINICO') return;
+          chip.classList.toggle('active');
+        });
+        examsGrid.appendChild(chip);
+      });
+    }
+    carregarExamesLiberados();
+
+    // =========================================================================
+    // LÓGICA DE MÉDICOS E HORÁRIOS
+    // =========================================================================
+    
+    // Quando escolhe a Data: Busca médicos disponíveis no banco
+    dataInput.addEventListener('change', async (e) => {
+      const dataSelecionada = e.target.value;
+      const diaSemana = new Date(dataSelecionada).getUTCDay();
+      
+      if (diaSemana === 0 || diaSemana === 6) {
+        alert('A clínica atende apenas de segunda a sexta-feira.');
+        e.target.value = '';
+        divMedico.style.display = 'none';
+        divHorario.style.display = 'none';
+        return;
+      }
+
+      // Mostra o campo de médico carregando
+      divMedico.style.display = 'flex';
+      divHorario.style.display = 'none';
+      medicoSelect.innerHTML = '<option value="" disabled selected>Buscando médicos no banco...</option>';
+
+      try {
+        /*
+          ATENÇÃO: Aqui o sistema consulta a coleção onde você cadastra os médicos.
+          Estou assumindo que a coleção chama "medicos". 
+          Se o nome for diferente, eu preciso que você me avise para eu ajustar!
+        */
+        const snapshot = await getDocs(collection(db, "medicos"));
+        medicoSelect.innerHTML = '<option value="" disabled selected>Selecione um médico...</option>';
+        
+        let encontrouMedicos = false;
+        snapshot.forEach(docMedico => {
+          const medicoData = docMedico.data();
+          // Simula que achou um médico (Você precisará me confirmar como eles estão salvos)
+          const option = document.createElement('option');
+          option.value = medicoData.nome || docMedico.id;
+          option.textContent = medicoData.nome || "Dr(a). " + docMedico.id;
+          // Salva os horários do médico no elemento para usar depois
+          option.dataset.horarios = JSON.stringify(medicoData.horarios || ["07:30", "08:00", "08:30", "09:00", "09:30", "10:00"]);
+          medicoSelect.appendChild(option);
+          encontrouMedicos = true;
+        });
+
+        if (!encontrouMedicos) {
+          // Fallback caso você ainda não tenha a coleção "medicos" criada no Firebase
+          medicoSelect.innerHTML = `
+            <option value="" disabled selected>Selecione um médico...</option>
+            <option value="Dr. Atendimento Padrão" data-horarios='["07:30", "08:00", "08:30", "09:00", "09:30", "10:00"]'>Dr. Atendimento Padrão</option>
+          `;
+        }
+      } catch (err) {
+        console.error("Erro ao buscar médicos:", err);
+      }
+    });
+
+    // Quando escolhe o Médico: Busca os horários e remove os ocupados
+    medicoSelect.addEventListener('change', async (e) => {
+      divHorario.style.display = 'flex';
+      horarioSelect.innerHTML = '<option value="" disabled selected>Calculando horários livres...</option>';
+      
+      const dataSelecionada = dataInput.value;
+      const nomeMedico = e.target.value;
+      const opcaoSelecionada = e.target.options[e.target.selectedIndex];
+      const horariosDoMedico = JSON.parse(opcaoSelecionada.dataset.horarios || "[]");
+
+      try {
+        // Busca todos os agendamentos já marcados para essa data com esse médico
+        const q = query(collection(db, "agendamentos"), 
+          where("date", "==", dataSelecionada), 
+          where("medico", "==", nomeMedico)
+        );
+        const agendamentosSnap = await getDocs(q);
+        
+        const horariosOcupados = [];
+        agendamentosSnap.forEach(docAgendado => {
+          horariosOcupados.push(docAgendado.data().horario);
+        });
+
+        // Filtra os horários removendo os que já estão ocupados
+        horarioSelect.innerHTML = '<option value="" disabled selected>Selecione o horário...</option>';
+        horariosDoMedico.forEach(horario => {
+          const option = document.createElement('option');
+          option.value = horario;
+          
+          if (horariosOcupados.includes(horario)) {
+            option.textContent = `${horario} (Ocupado)`;
+            option.disabled = true;
+          } else {
+            option.textContent = horario;
+          }
+          horarioSelect.appendChild(option);
+        });
+
+      } catch (err) {
+        console.error("Erro ao verificar horários ocupados:", err);
+      }
+    });
+
+    // =========================================================================
+
+    // UPLOAD PREVIEW
     arquivoInput.addEventListener('change', (e) => {
       if (e.target.files.length > 0) {
         fileNameSpan.textContent = e.target.files[0].name;
@@ -311,6 +390,7 @@
       }
     });
 
+    // PDF COMPROVANTE
     function gerarPdfComprovante(dados) {
       if (!window.jspdf) return;
       const { jsPDF } = window.jspdf;
@@ -318,7 +398,6 @@
 
       docPdf.setFillColor(30, 58, 95);
       docPdf.rect(0, 0, 210, 35, "F");
-
       docPdf.setTextColor(255, 255, 255);
       docPdf.setFont("helvetica", "bold");
       docPdf.setFontSize(16);
@@ -331,44 +410,42 @@
       docPdf.setFontSize(11);
       docPdf.setFont("helvetica", "normal");
       docPdf.text(`Emitido em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 15, 58);
-
       docPdf.setDrawColor(200, 200, 200);
       docPdf.line(15, 65, 195, 65);
 
       docPdf.setFont("helvetica", "bold");
       docPdf.text("Dados do Atendimento:", 15, 78);
-      
       docPdf.setFont("helvetica", "normal");
-      docPdf.text(`• Empresa Solicitante: ${dados.empresa}`, 15, 88);
+      docPdf.text(`• Empresa: ${dados.empresa}`, 15, 88);
       docPdf.text(`• Colaborador: ${dados.funcionario}`, 15, 98);
       docPdf.text(`• CPF: ${dados.cpf}`, 15, 108);
-      docPdf.text(`• Tipo de Exame (ASO): ${dados.tipo}`, 15, 118);
-      docPdf.text(`• Data Marcada: ${dados.date.split('-').reverse().join('/')}`, 15, 128);
-      docPdf.text(`• Horário de Comparecimento: ${dados.horario}`, 15, 138);
+      docPdf.text(`• Médico Selecionado: ${dados.medico}`, 15, 118);
+      docPdf.text(`• Data: ${dados.date.split('-').reverse().join('/')} às ${dados.horario}`, 15, 128);
 
       const listaExamesStr = Object.keys(dados.exams).join(", ");
-      docPdf.text(`• Exames Solicitados: ${listaExamesStr}`, 15, 148);
+      docPdf.text(`• Exames: ${listaExamesStr}`, 15, 138);
 
       docPdf.setFillColor(240, 244, 248);
-      docPdf.roundedRect(15, 165, 180, 30, 3, 3, "F");
+      docPdf.roundedRect(15, 155, 180, 30, 3, 3, "F");
       docPdf.setFont("helvetica", "bold");
       docPdf.setTextColor(30, 58, 95);
-      docPdf.text("Instruções Importantes:", 20, 175);
+      docPdf.text("Instruções Importantes:", 20, 165);
       docPdf.setFont("helvetica", "normal");
       docPdf.setFontSize(10);
-      docPdf.text("Por favor, compareça à clínica Alpale com documento de identidade com foto", 20, 183);
-      docPdf.text("e guia de encaminhamento (quando aplicável) com 10 minutos de antecedência.", 20, 190);
+      docPdf.text("Por favor, compareça à clínica Alpale com documento de identidade com foto", 20, 173);
+      docPdf.text("e guia de encaminhamento (quando aplicável) com 10 minutos de antecedência.", 20, 180);
 
       docPdf.save(`Comprovante_Alpale_${dados.cpf.replace(/\D/g, '')}.pdf`);
     }
 
+    // ENVIO FINAL
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       btnSubmit.disabled = true;
       btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> PROCESSANDO AGENDAMENTO...`;
       statusMsg.style.color = 'var(--primary)';
-      statusMsg.textContent = 'A registar agendamento e a gerar comprovante...';
+      statusMsg.textContent = 'A registar agendamento e a gerar comprovativo...';
 
       try {
         let urlArquivo = "";
@@ -387,20 +464,19 @@
           examesSelecionados[chip.getAttribute('data-exam')] = true;
         });
 
-        const horarioDefinido = examesSelecionados['PSICO'] ? '06:30' : '07:30';
         const entryId = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
         const entryData = {
           id: entryId,
           date: dataInput.value,
-          horario: horarioDefinido,
+          horario: horarioSelect.value, // Pega o horário escolhido
+          medico: medicoSelect.value,   // Pega o médico escolhido
           empresa: document.getElementById('empresa').value.trim(),
           tipo: document.getElementById('tipo').value,
           funcionario: document.getElementById('funcionario').value.trim(),
           cpf: cpfVal,
           exams: examesSelecionados,
           qtd: 1,
-          medico: null,
           kitUrl: urlArquivo,
           criadoEm: new Date().toISOString()
         };
@@ -416,11 +492,12 @@
         statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> Agendamento confirmado com sucesso!`;
         
         form.reset();
-        alertBanner.style.display = 'none';
+        divMedico.style.display = 'none';
+        divHorario.style.display = 'none';
         filePreview.style.display = 'none';
         uploadText.style.display = 'block';
         uploadArea.style.borderColor = 'var(--border-color)';
-        renderizarChipsExames();
+        carregarExamesLiberados();
 
       } catch (err) {
         console.error(err);
