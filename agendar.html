@@ -6,6 +6,8 @@
   <title>Solicitar Agendamento - Alpale Saúde Ocupacional</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Biblioteca jsPDF para gerar o comprovante em PDF na hora -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   
   <style>
     :root {
@@ -23,7 +25,7 @@
 
     header {
       background: var(--white);
-      padding: 1.25rem 2rem;
+      padding: 1.5rem 2rem;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
       border-bottom: 4px solid var(--secondary);
     }
@@ -36,9 +38,11 @@
       flex-wrap: wrap;
       gap: 1rem;
     }
-    .brand-section h1 { font-size: 1.35rem; font-weight: 700; color: var(--primary); }
-    .brand-section p { font-size: 0.85rem; color: #6C7A89; }
-    .logo-img { height: 55px; width: auto; object-fit: contain; }
+    .brand-section h1 { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+    .brand-section p { font-size: 0.9rem; color: #6C7A89; }
+    
+    /* Logo aumentada conforme solicitado */
+    .logo-img { height: 85px; width: auto; object-fit: contain; }
 
     main { flex: 1; padding: 2rem 1rem; display: flex; justify-content: center; align-items: center; }
     .form-card {
@@ -56,6 +60,7 @@
     @media (max-width: 640px) {
       .form-grid { grid-template-columns: 1fr; }
       .form-card { padding: 1.5rem; }
+      .logo-img { height: 65px; }
     }
 
     .input-group { display: flex; flex-direction: column; }
@@ -102,6 +107,7 @@
         <h1>Solicitar Agendamento</h1>
         <p>Alpale Saúde Ocupacional</p>
       </div>
+      <!-- Logo ampliada -->
       <img src="ALPALE LOGO-01.jpg" alt="Alpale" class="logo-img" onerror="this.src='logo.png'">
     </div>
   </header>
@@ -109,7 +115,7 @@
   <main>
     <div class="form-card">
       <h2 class="card-title">Agendar Exame Ocupacional</h2>
-      <p class="card-subtitle">Preencha os dados e anexe a guia encaminhada pela empresa.</p>
+      <p class="card-subtitle">Preencha os dados e opcionalmente anexe a guia encaminhada pela empresa.</p>
 
       <form id="agendamentoForm">
         <div class="form-grid">
@@ -161,17 +167,9 @@
           </div>
         </div>
 
-        <h3 class="exams-title">Exames solicitados na guia:</h3>
+        <h3 class="exams-title">Exames solicitados:</h3>
         <div class="exams-grid" id="examsGrid">
-          <div class="exam-chip active" data-exam="CLINICO">Clínico</div>
-          <div class="exam-chip" data-exam="AUDIO">Audiometria</div>
-          <div class="exam-chip" data-exam="ACV">Acuidade Visual</div>
-          <div class="exam-chip" data-exam="LAB">Laboratório (Sangue)</div>
-          <div class="exam-chip" data-exam="RX">Raio-X</div>
-          <div class="exam-chip" data-exam="PSICO">Psicossocial</div>
-          <div class="exam-chip" data-exam="ECG">ECG</div>
-          <div class="exam-chip" data-exam="EEG">EEG</div>
-          <div class="exam-chip" data-exam="ESP">Espirometria</div>
+          <!-- Renderizado dinamicamente: apenas o que estiver liberado no painel (Clínico padrão) -->
         </div>
 
         <div class="alert-banner" id="psicoAlert">
@@ -180,11 +178,11 @@
         </div>
 
         <div class="input-group">
-          <label>Anexar Guia / Kit de Atendimento (ASO) *</label>
+          <label>Anexar Guia / Kit de Atendimento (Opcional)</label>
           <div class="upload-area" id="uploadArea">
-            <input type="file" id="arquivoKit" accept=".pdf, .png, .jpg, .jpeg" required>
+            <input type="file" id="arquivoKit" accept=".pdf, .png, .jpg, .jpeg">
             <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-            <div class="upload-text" id="uploadText">Clique ou arraste para anexar a Guia (PDF, PNG, JPG)</div>
+            <div class="upload-text" id="uploadText">Clique ou arraste para anexar a Guia se houver (PDF, PNG, JPG)</div>
             <div class="file-preview" id="filePreview">
               <i class="fa-solid fa-circle-check"></i> <span id="fileName">arquivo.pdf</span>
             </div>
@@ -192,7 +190,7 @@
         </div>
 
         <button type="submit" class="btn-submit" id="btnSubmit">
-          <i class="fa-solid fa-check"></i> CONFIRMAR AGENDAMENTO
+          <i class="fa-solid fa-check"></i> CONFIRMAR AGENDAMENTO & GERAR COMPROVANTE
         </button>
 
         <div class="status-msg" id="statusMsg"></div>
@@ -200,13 +198,12 @@
     </div>
   </main>
 
-  <!-- LIGAÇÃO COM O FIREBASE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
-    // ATENÇÃO: Insira aqui as mesmas chaves do Firebase do seu index.html
+    // Insira aqui suas credenciais do Firebase
     const firebaseConfig = {
       apiKey: "SUA_API_KEY",
       authDomain: "SEU_PROJETO.firebaseapp.com",
@@ -220,8 +217,24 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
+    // Regras padrão iniciais (mostra apenas Clínico por padrão até que libere outros no painel)
+    let regrasVagas = {
+      exames: {
+        CLINICO: { ativo: true, nome: "Clínico" },
+        AUDIO:   { ativo: false, nome: "Audiometria" },
+        ACV:     { ativo: false, nome: "Acuidade Visual" },
+        LAB:     { ativo: false, nome: "Laboratório (Sangue)" },
+        RX:      { ativo: false, nome: "Raio-X" },
+        PSICO:   { ativo: false, nome: "Psicossocial" },
+        ECG:     { ativo: false, nome: "ECG" },
+        EEG:     { ativo: false, nome: "EEG" },
+        ESP:     { ativo: false, nome: "Espirometria" },
+        ISHI:    { ativo: false, nome: "Ishihara" }
+      }
+    };
+
     const form = document.getElementById('agendamentoForm');
-    const examChips = document.querySelectorAll('.exam-chip');
+    const examsGrid = document.getElementById('examsGrid');
     const cpfInput = document.getElementById('cpf');
     const dataInput = document.getElementById('data');
     const arquivoInput = document.getElementById('arquivoKit');
@@ -233,6 +246,43 @@
     const statusMsg = document.getElementById('statusMsg');
     const alertBanner = document.getElementById('psicoAlert');
 
+    // Carregar exames ativos configurados no painel
+    async function carregarExamesLiberados() {
+      try {
+        const snap = await getDoc(doc(db, "configuracoes", "limites_agendamento"));
+        if (snap.exists() && snap.data().exames) {
+          regrasVagas.exames = snap.data().exames;
+        }
+      } catch (err) {
+        console.warn("Usando exames padrão locais.");
+      }
+      renderizarChipsExames();
+    }
+
+    function renderizarChipsExames() {
+      examsGrid.innerHTML = '';
+      Object.keys(regrasVagas.exames).forEach(codigo => {
+        const ex = regrasVagas.exames[codigo];
+        if (!ex || !ex.ativo) return; // Só mostra se estiver ativo no painel
+
+        const chip = document.createElement('div');
+        chip.className = 'exam-chip' + (codigo === 'CLINICO' ? ' active' : '');
+        chip.setAttribute('data-exam', codigo);
+        chip.textContent = ex.nome;
+
+        chip.addEventListener('click', () => {
+          if (codigo === 'CLINICO') return;
+          chip.classList.toggle('active');
+          if (codigo === 'PSICO') {
+            alertBanner.style.display = chip.classList.contains('active') ? 'flex' : 'none';
+          }
+        });
+        examsGrid.appendChild(chip);
+      });
+    }
+
+    carregarExamesLiberados();
+
     // Bloquear finais de semana
     dataInput.addEventListener('input', (e) => {
       const dia = new Date(e.target.value).getUTCDay();
@@ -240,17 +290,6 @@
         alert('A clínica atende apenas de segunda a sexta-feira.');
         e.target.value = '';
       }
-    });
-
-    // Seleção de exames
-    examChips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        if (chip.getAttribute('data-exam') === 'CLINICO') return;
-        chip.classList.toggle('active');
-        if (chip.getAttribute('data-exam') === 'PSICO') {
-          alertBanner.style.display = chip.classList.contains('active') ? 'flex' : 'none';
-        }
-      });
     });
 
     // Máscara CPF
@@ -264,7 +303,7 @@
       e.target.value = v;
     });
 
-    // Preview do arquivo
+    // Preview do arquivo opcional
     arquivoInput.addEventListener('change', (e) => {
       if (e.target.files.length > 0) {
         fileNameSpan.textContent = e.target.files[0].name;
@@ -274,22 +313,77 @@
       }
     });
 
+    // Função para gerar o PDF de comprovante automaticamente
+    function gerarPdfComprovante(dados) {
+      const { jsPDF } = window.jspdf;
+      const docPdf = new jsPDF();
+
+      docPdf.setFillColor(30, 58, 95);
+      docPdf.rect(0, 0, 210, 35, "F");
+
+      docPdf.setTextColor(255, 255, 255);
+      docPdf.setFont("helvetica", "bold");
+      docPdf.setFontSize(16);
+      docPdf.text("ALPALE SAÚDE OCUPACIONAL", 15, 22);
+
+      docPdf.setTextColor(44, 62, 80);
+      docPdf.setFontSize(18);
+      docPdf.text("Comprovante de Agendamento", 15, 50);
+
+      docPdf.setFontSize(11);
+      docPdf.setFont("helvetica", "normal");
+      docPdf.text(`Emitido em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 15, 58);
+
+      docPdf.setDrawColor(200, 200, 200);
+      docPdf.line(15, 65, 195, 65);
+
+      docPdf.setFont("helvetica", "bold");
+      docPdf.text("Dados do Atendimento:", 15, 78);
+      
+      docPdf.setFont("helvetica", "normal");
+      docPdf.text(`• Empresa Solicitante: ${dados.empresa}`, 15, 88);
+      docPdf.text(`• Colaborador: ${dados.funcionario}`, 15, 98);
+      docPdf.text(`• CPF: ${dados.cpf}`, 15, 108);
+      docPdf.text(`• Tipo de Exame (ASO): ${dados.tipo}`, 15, 118);
+      docPdf.text(`• Data Marcada: ${dados.date.split('-').reverse().join('/')}`, 15, 128);
+      docPdf.text(`• Horário: ${dados.horario}`, 15, 138);
+
+      const listaExamesStr = Object.keys(dados.exams).join(", ");
+      docPdf.text(`• Exames Solicitados: ${listaExamesStr}`, 15, 148);
+
+      docPdf.setFillColor(240, 244, 248);
+      docPdf.roundedRect(15, 165, 180, 30, 3, 3, "F");
+      docPdf.setFont("helvetica", "bold");
+      docPdf.setTextColor(30, 58, 95);
+      docPdf.text("Instruções Importantes:", 20, 175);
+      docPdf.setFont("helvetica", "normal");
+      docPdf.setFontSize(10);
+      docPdf.text("Por favor, comparecer à clínica Alpale com documento de identidade com foto", 20, 183);
+      docPdf.text("e guia de encaminhamento (quando aplicável) com 10 minutos de antecedência.", 20, 190);
+
+      docPdf.save(`Comprovante_Agendamento_${dados.funcionario.replace(/\s+/g, '_')}.pdf`);
+    }
+
     // Envio do formulário
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       btnSubmit.disabled = true;
-      btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ENVIANDO...`;
+      btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> PROCESSANDO AGENDAMENTO...`;
       statusMsg.style.color = 'var(--primary)';
-      statusMsg.textContent = 'Enviando documento e registrando...';
+      statusMsg.textContent = 'Registrando agendamento e gerando comprovante...';
 
       try {
+        let urlArquivo = "";
         const arquivo = arquivoInput.files[0];
         const cpfVal = cpfInput.value;
-        const ext = arquivo.name.split('.').pop();
-        const refArquivo = storageRef(storage, `kits/${Date.now()}_${cpfVal.replace(/\D/g, '')}.${ext}`);
 
-        await uploadBytes(refArquivo, arquivo);
-        const urlArquivo = await getDownloadURL(refArquivo);
+        // Se anexou documento opcional, faz o upload no Storage
+        if (arquivo) {
+          const ext = arquivo.name.split('.').pop();
+          const refArquivo = storageRef(storage, `kits/${Date.now()}_${cpfVal.replace(/\D/g, '')}.${ext}`);
+          await uploadBytes(refArquivo, arquivo);
+          urlArquivo = await getDownloadURL(refArquivo);
+        }
 
         const examesSelecionados = {};
         document.querySelectorAll('.exam-chip.active').forEach(chip => {
@@ -310,26 +404,33 @@
           exams: examesSelecionados,
           qtd: 1,
           medico: null,
-          kitUrl: urlArquivo,
+          kitUrl: urlArquivo, // Fica vazio se nenhum arquivo foi anexado
           criadoEm: new Date().toISOString()
         };
 
+        // Salva no Firestore
         await setDoc(doc(db, "agendamentos", entryId), entryData);
 
+        // Gera e baixa o PDF de comprovante automaticamente para o colaborador
+        gerarPdfComprovante(entryData);
+
         statusMsg.style.color = 'var(--success)';
-        statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> Agendamento realizado com sucesso!`;
+        statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> Agendamento realizado com sucesso! O PDF do comprovante foi baixado.`;
+        
         form.reset();
         alertBanner.style.display = 'none';
         filePreview.style.display = 'none';
         uploadText.style.display = 'block';
         uploadArea.style.borderColor = 'var(--border-color)';
+        renderizarChipsExames();
+
       } catch (err) {
         console.error(err);
         statusMsg.style.color = 'var(--danger)';
         statusMsg.textContent = 'Erro ao registrar agendamento. Tente novamente.';
       } finally {
         btnSubmit.disabled = false;
-        btnSubmit.innerHTML = `<i class="fa-solid fa-check"></i> CONFIRMAR AGENDAMENTO`;
+        btnSubmit.innerHTML = `<i class="fa-solid fa-check"></i> CONFIRMAR AGENDAMENTO & GERAR COMPROVANTE`;
       }
     });
   </script>
