@@ -22,9 +22,10 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
     body { background-color: var(--bg-light); color: var(--primary); display: flex; flex-direction: column; min-height: 100vh; }
 
+    /* CABEÇALHO CENTRALIZADO */
     header {
       background: var(--white);
-      padding: 1.5rem 2rem;
+      padding: 2rem 1rem;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
       border-bottom: 4px solid var(--secondary);
     }
@@ -32,15 +33,18 @@
       max-width: 1200px;
       margin: 0 auto;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column; /* Coloca os itens um abaixo do outro */
+      justify-content: center;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
+      text-align: center; /* Centraliza os textos */
+      gap: 0.8rem;
     }
-    .brand-section h1 { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
-    .brand-section p { font-size: 0.9rem; color: #6C7A89; }
     
-    .logo-img { height: 90px; width: auto; object-fit: contain; }
+    /* Logo BEM MAIOR e centralizada */
+    .logo-img { height: 130px; width: auto; object-fit: contain; }
+    
+    .brand-section h1 { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+    .brand-section p { font-size: 0.95rem; color: #6C7A89; }
 
     main { flex: 1; padding: 2rem 1rem; display: flex; justify-content: center; align-items: center; }
     .form-card {
@@ -59,8 +63,7 @@
     @media (max-width: 640px) {
       .form-grid { grid-template-columns: 1fr; }
       .form-card { padding: 1.5rem; }
-      .logo-img { height: 80px; } 
-      .header-container { justify-content: center; text-align: center; }
+      .logo-img { height: 100px; } /* Mantém a logo grande mas ajustada no celular */
     }
 
     .input-group { display: flex; flex-direction: column; }
@@ -103,11 +106,12 @@
 
   <header>
     <div class="header-container">
+      <!-- O logo agora vem primeiro para ficar acima do texto -->
+      <img src="ALPALE LOGO-01.jpg" alt="Alpale Saúde Ocupacional" class="logo-img" onerror="this.src='logo.png'">
       <div class="brand-section">
         <h1>Solicitar Agendamento</h1>
         <p>Alpale Saúde Ocupacional</p>
       </div>
-      <img src="ALPALE LOGO-01.jpg" alt="Alpale" class="logo-img" onerror="this.src='logo.png'">
     </div>
   </header>
 
@@ -202,7 +206,7 @@
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
-    // Credenciais oficiais da Alpale Ocupacional
+    // Suas credenciais oficiais da Alpale Ocupacional
     const firebaseConfig = {
       apiKey: "AIzaSyAL2xXqo83pWKhyCta4Nk0gockDstxtJY4",
       authDomain: "agendamento-alpale.firebaseapp.com",
@@ -364,7 +368,7 @@
       btnSubmit.disabled = true;
       btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> PROCESSANDO AGENDAMENTO...`;
       statusMsg.style.color = 'var(--primary)';
-      statusMsg.textContent = 'A registar agendamento e a gerar comprovativo...';
+      statusMsg.textContent = 'A registar agendamento e a gerar comprovante...';
 
       try {
         let urlArquivo = "";
