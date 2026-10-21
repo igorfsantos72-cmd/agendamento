@@ -20,121 +20,135 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body { background-color: var(--bg-light); color: var(--primary); display: flex; flex-direction: column; min-height: 100vh; }
+    body { background-color: var(--bg-light); color: var(--primary); min-height: 100vh; }
 
-    /* CABEÇALHO CENTRALIZADO */
-    header {
+    /* LAYOUT BASEADO NA IMAGEM DE REFERÊNCIA */
+    .top-header {
       background: var(--white);
-      padding: 2rem 1rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-      border-bottom: 4px solid var(--secondary);
-    }
-    .header-container {
-      max-width: 1200px;
-      margin: 0 auto;
+      padding: 1.25rem 5%;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
       align-items: center;
-      text-align: center;
-      gap: 0.8rem;
+      justify-content: flex-start;
     }
-    .logo-img { height: 130px; width: auto; object-fit: contain; }
-    .brand-section h1 { font-size: 1.6rem; font-weight: 700; color: var(--primary); margin-top: 5px; }
-    .brand-section p { font-size: 0.95rem; color: #6C7A89; }
+    .logo-img { height: 65px; width: auto; object-fit: contain; }
 
-    main { flex: 1; padding: 2rem 1rem; display: flex; justify-content: center; align-items: center; }
+    .blue-band {
+      background: var(--primary);
+      color: var(--white);
+      padding: 2.5rem 5% 7rem 5%; /* Espaço extra na base para o overlap do card */
+    }
+    .band-content {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .band-content p { font-size: 0.95rem; color: #CBD5E1; margin-bottom: 0.2rem; }
+    .band-content h1 { font-size: 2.2rem; font-weight: 700; }
+
+    .main-container {
+      margin-top: -4.5rem; /* Puxa o card para cima da faixa azul */
+      padding: 0 5% 3rem 5%;
+      display: flex;
+      justify-content: center;
+      position: relative;
+      z-index: 10;
+    }
+
     .form-card {
       background: var(--white);
       width: 100%;
-      max-width: 760px;
-      border-radius: 16px;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
-      padding: 2.5rem;
+      max-width: 860px;
+      border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+      padding: 3rem 2.5rem;
     }
-    .card-title { font-size: 1.75rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; text-align: center; }
-    .card-subtitle { font-size: 0.9rem; color: #6C7A89; text-align: center; margin-bottom: 2.25rem; }
 
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem; }
+    .card-title { font-size: 1.6rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
     
     @media (max-width: 640px) {
       .form-grid { grid-template-columns: 1fr; }
       .form-card { padding: 1.5rem; }
-      .logo-img { height: 100px; } 
+      .blue-band { padding: 2rem 5% 5rem 5%; }
+      .band-content h1 { font-size: 1.8rem; }
     }
 
+    /* INPUTS */
     .input-group { display: flex; flex-direction: column; }
     .input-group label { font-size: 0.85rem; font-weight: 600; color: var(--primary); margin-bottom: 0.5rem; }
     .input-wrapper { position: relative; }
     .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #6C7A89; }
     .input-wrapper input, .input-wrapper select {
-      width: 100%; padding: 0.8rem 1rem 0.8rem 2.6rem; border: 1.5px solid var(--border-color); border-radius: 10px; font-size: 0.9rem; background: var(--white);
+      width: 100%; padding: 0.9rem 1rem 0.9rem 2.6rem; border: 1.5px solid var(--border-color); border-radius: 12px; font-size: 0.95rem; color: #333; background: var(--white); transition: all 0.3s;
     }
     .input-wrapper input:focus, .input-wrapper select:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px rgba(0, 140, 180, 0.15); }
     
-    /* Input de horário bloqueado visualmente */
-    .input-wrapper input[readonly] { background-color: #F8FAFC; color: #1E3A5F; font-weight: 700; border-color: #CBD5E1; cursor: not-allowed; }
+    /* CAMPO DE HORÁRIO BLOQUEADO */
+    .input-wrapper input[readonly] { background-color: #F8FAFC; color: #1E3A5F; font-weight: 700; cursor: not-allowed; }
 
-    .exams-title { font-size: 0.9rem; font-weight: 700; color: var(--primary); margin-bottom: 0.85rem; }
-    .exams-grid { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-bottom: 1.5rem; }
+    /* CHIPS DOS EXAMES */
+    .exams-title { font-size: 0.95rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem; }
+    .exams-grid { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-bottom: 2rem; }
     .exam-chip {
-      background: var(--white); border: 1.5px solid var(--border-color); padding: 0.55rem 1.15rem; border-radius: 50px; font-size: 0.825rem; font-weight: 600; color: var(--primary); cursor: pointer; user-select: none; transition: all 0.25s ease;
+      background: var(--white); border: 1.5px solid var(--border-color); padding: 0.65rem 1.25rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; color: var(--primary); cursor: pointer; user-select: none; transition: all 0.2s ease;
     }
     .exam-chip:hover { border-color: var(--secondary); background: rgba(0, 140, 180, 0.04); }
     .exam-chip.active { background: var(--primary); border-color: var(--primary); color: var(--white); }
 
-    .upload-area {
-      border: 2px dashed var(--border-color); background: var(--bg-light); border-radius: 12px; padding: 1.75rem; text-align: center; cursor: pointer; position: relative; margin-bottom: 2rem;
-    }
+    .alert-banner { background: #E0F2FE; border-left: 4px solid var(--secondary); color: #0369A1; padding: 1rem; border-radius: 10px; font-size: 0.85rem; margin-bottom: 1.5rem; display: none; align-items: center; gap: 0.65rem; }
+
+    /* UPLOAD */
+    .upload-area { border: 2px dashed var(--border-color); background: var(--bg-light); border-radius: 16px; padding: 2rem; text-align: center; cursor: pointer; position: relative; margin-bottom: 2rem; transition: all 0.3s; }
+    .upload-area:hover { border-color: var(--secondary); background: rgba(0, 140, 180, 0.03); }
     .upload-area input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
     .upload-icon { font-size: 2.2rem; color: var(--secondary); margin-bottom: 0.5rem; }
-    .upload-text { font-size: 0.85rem; font-weight: 600; color: var(--primary); }
+    .upload-text { font-size: 0.9rem; font-weight: 600; color: var(--primary); }
     .file-preview { display: none; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.85rem; color: var(--success); font-weight: 600; margin-top: 0.5rem; }
 
-    .btn-submit {
-      width: 100%; background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%); color: var(--white); border: none; padding: 1.1rem; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 18px rgba(30, 58, 95, 0.25); margin-top: 1rem;
-    }
-    .btn-submit:disabled { background: #CBD5E1; cursor: not-allowed; box-shadow: none; }
+    /* BOTÃO GRADIENTE */
+    .btn-submit { width: 100%; background: linear-gradient(135deg, var(--accent-cyan, #00B4D8) 0%, var(--secondary) 100%); color: var(--white); border: none; padding: 1.25rem; border-radius: 50px; font-size: 1.05rem; font-weight: 600; cursor: pointer; box-shadow: 0 8px 20px rgba(0, 140, 180, 0.25); transition: all 0.3s ease; }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 140, 180, 0.35); }
+    .btn-submit:disabled { background: #CBD5E1; cursor: not-allowed; box-shadow: none; transform: none; }
     .status-msg { text-align: center; margin-top: 1.25rem; font-size: 0.9rem; font-weight: 600; }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="header-container">
-      <img src="ALPALE LOGO-01.jpg" alt="Alpale Saúde Ocupacional" class="logo-img" onerror="this.src='logo.png'">
-      <div class="brand-section">
-        <h1>Solicitar Agendamento</h1>
-        <p>Alpale Saúde Ocupacional</p>
-      </div>
-    </div>
+  <header class="top-header">
+    <img src="ALPALE LOGO-01.jpg" alt="Alpale Saúde Ocupacional" class="logo-img" onerror="this.src='logo.png'">
   </header>
 
-  <main>
+  <div class="blue-band">
+    <div class="band-content">
+      <p>Agendamento de Clientes</p>
+      <h1>Solicitar Agendamento</h1>
+    </div>
+  </div>
+
+  <main class="main-container">
     <div class="form-card">
       <h2 class="card-title">Agendar Exame Ocupacional</h2>
-      <p class="card-subtitle">Preencha os dados e opcionalmente anexe a guia encaminhada pela empresa.</p>
 
       <form id="agendamentoForm">
         <div class="form-grid">
           <div class="input-group">
-            <label for="empresa">Empresa Solicitante *</label>
+            <label for="empresa">Buscar empresa *</label>
             <div class="input-wrapper">
-              <i class="fa-solid fa-building"></i>
+              <i class="fa-solid fa-magnifying-glass"></i>
               <input type="text" id="empresa" placeholder="Nome da empresa" required>
             </div>
           </div>
 
           <div class="input-group">
-            <label for="funcionario">Nome do Colaborador *</label>
+            <label for="funcionario">Nome do colaborador *</label>
             <div class="input-wrapper">
-              <i class="fa-solid fa-user"></i>
-              <input type="text" id="funcionario" placeholder="Nome completo" required>
+              <i class="fa-regular fa-user"></i>
+              <input type="text" id="funcionario" placeholder="Nome do colaborador" required>
             </div>
           </div>
 
           <div class="input-group">
-            <label for="cpf">CPF do Colaborador *</label>
+            <label for="cpf">CPF do colaborador *</label>
             <div class="input-wrapper">
               <i class="fa-solid fa-id-card"></i>
               <input type="text" id="cpf" placeholder="000.000.000-00" required>
@@ -157,16 +171,16 @@
           </div>
 
           <div class="input-group" style="grid-column: span 2;">
-            <label for="data">Data Pretendida *</label>
+            <label for="data">Data pretendida *</label>
             <div class="input-wrapper">
-              <i class="fa-solid fa-calendar-day"></i>
+              <i class="fa-regular fa-calendar"></i>
               <input type="date" id="data" required>
             </div>
           </div>
 
           <!-- SELEÇÃO DE MÉDICO E HORÁRIO (Aparecem após escolher a data) -->
           <div class="input-group" id="divMedico" style="display: none;">
-            <label for="medico">Médico Disponível *</label>
+            <label for="medico">Médico Disponível na Data *</label>
             <div class="input-wrapper">
               <i class="fa-solid fa-user-doctor"></i>
               <select id="medico" required>
@@ -176,34 +190,35 @@
           </div>
 
           <div class="input-group" id="divHorario" style="display: none;">
-            <label for="horario">Horário de Chegada *</label>
+            <label for="horario">Horário de Início do Turno *</label>
             <div class="input-wrapper">
-              <i class="fa-solid fa-clock"></i>
-              <!-- O horário é definido pelo início do plantão do médico e bloqueado -->
+              <i class="fa-regular fa-clock"></i>
               <input type="text" id="horario" value="" readonly required>
             </div>
           </div>
         </div>
 
-        <h3 class="exams-title">Exames solicitados:</h3>
+        <h3 class="exams-title">Exames ocupacionais solicitados</h3>
         <div class="exams-grid" id="examsGrid"></div>
 
+        <div class="alert-banner" id="psicoAlert">
+          <i class="fa-solid fa-circle-info"></i>
+          <span><strong>Atenção:</strong> Exame Psicossocial exige horário às <strong>06:30</strong> (Demais exames: 07:30).</span>
+        </div>
+
         <div class="input-group">
-          <label>Anexar Guia / Kit de Atendimento (Opcional)</label>
+          <label style="margin-top: 1rem;">Anexar arquivos</label>
           <div class="upload-area" id="uploadArea">
             <input type="file" id="arquivoKit" accept=".pdf, .png, .jpg, .jpeg">
-            <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-            <div class="upload-text" id="uploadText">Clique ou arraste para anexar a Guia se houver (PDF, PNG, JPG)</div>
+            <div class="upload-icon"><i class="fa-solid fa-paperclip"></i></div>
+            <div class="upload-text" id="uploadText">Anexar Guia / Kit de Atendimento (PDF, PNG, JPG)</div>
             <div class="file-preview" id="filePreview">
               <i class="fa-solid fa-circle-check"></i> <span id="fileName">arquivo.pdf</span>
             </div>
           </div>
         </div>
 
-        <button type="submit" class="btn-submit" id="btnSubmit">
-          <i class="fa-solid fa-check"></i> CONFIRMAR AGENDAMENTO E GERAR COMPROVANTE
-        </button>
-
+        <button type="submit" class="btn-submit" id="btnSubmit">CONFIRMAR AGENDAMENTO</button>
         <div class="status-msg" id="statusMsg"></div>
       </form>
     </div>
@@ -244,43 +259,41 @@
     const statusMsg = document.getElementById('statusMsg');
 
     // =========================================================================
-    // BANCO DE HORÁRIOS DA CLÍNICA (Baseado nas suas imagens de escala)
+    // ESCALA MÉDICA FIXA (Baseada nas imagens enviadas)
     // =========================================================================
     const escalaSemanal = {
-      1: [ // Segunda-feira
+      1: [ // Segunda
         { nome: "Dra. Gizelle", horarioInicio: "06:30" },
         { nome: "Dr. Luiz", horarioInicio: "11:00" },
         { nome: "Dra. Nadia", horarioInicio: "16:00" }
       ],
-      2: [ // Terça-feira
+      2: [ // Terça
         { nome: "Dra. Gizelle", horarioInicio: "06:30" },
         { nome: "Dra. Nadia", horarioInicio: "11:00" },
         { nome: "Dr. Luiz", horarioInicio: "14:30" }
       ],
-      3: [ // Quarta-feira
+      3: [ // Quarta
         { nome: "Dra. Gizelle", horarioInicio: "06:30" },
         { nome: "Dr. Luiz", horarioInicio: "11:00" }
       ],
-      4: [ // Quinta-feira
+      4: [ // Quinta
         { nome: "Dra. Louane", horarioInicio: "06:30" },
         { nome: "Dra. Nadia", horarioInicio: "11:00" },
         { nome: "Dra. Gizelle", horarioInicio: "13:30" }
       ],
-      5: [ // Sexta-feira
+      5: [ // Sexta
         { nome: "Dra. Louane", horarioInicio: "06:30" },
         { nome: "Dra. Nadia", horarioInicio: "11:00" },
         { nome: "Dr. Guilherme", horarioInicio: "13:30" }
       ]
     };
 
-    // Controle da Data -> Libera os Médicos daquele dia
     dataInput.addEventListener('change', (e) => {
       const dataSelecionada = e.target.value;
       if (!dataSelecionada) return;
 
       const diaSemana = new Date(dataSelecionada).getUTCDay();
       
-      // Bloqueia fim de semana
       if (diaSemana === 0 || diaSemana === 6) {
         alert('A clínica atende apenas de segunda a sexta-feira.');
         e.target.value = '';
@@ -289,31 +302,31 @@
         return;
       }
 
-      // Puxa a lista de médicos do dia escolhido
       const medicosDoDia = escalaSemanal[diaSemana];
 
       divMedico.style.display = 'flex';
-      divHorario.style.display = 'none';
+      divHorario.style.display = 'flex';
       medicoSelect.innerHTML = '<option value="" disabled selected>Selecione um médico...</option>';
 
       medicosDoDia.forEach(medico => {
         const option = document.createElement('option');
         option.value = medico.nome;
         option.textContent = medico.nome;
-        option.dataset.horario = medico.horarioInicio; // Guarda o horário de início escondido
+        option.dataset.horario = medico.horarioInicio;
         medicoSelect.appendChild(option);
       });
+
+      // Seleciona automaticamente o primeiro médico do dia e preenche o horário
+      if(medicosDoDia.length > 0) {
+        medicoSelect.selectedIndex = 1;
+        horarioInput.value = medicosDoDia[0].horarioInicio;
+      }
     });
 
-    // Controle do Médico -> Preenche e trava o Horário com o Início do turno
     medicoSelect.addEventListener('change', (e) => {
       const opcaoSelecionada = e.target.options[e.target.selectedIndex];
-      const horarioDoMedico = opcaoSelecionada.dataset.horario;
-
-      divHorario.style.display = 'flex';
-      horarioInput.value = horarioDoMedico; // Define sempre o INÍCIO do horário
+      horarioInput.value = opcaoSelecionada.dataset.horario;
     });
-
 
     // =========================================================================
     // EXAMES, MÁSCARAS E ARQUIVOS
@@ -362,9 +375,6 @@
       }
     });
 
-    // =========================================================================
-    // GERAÇÃO DO COMPROVANTE EM PDF
-    // =========================================================================
     function gerarPdfComprovante(dados) {
       if (!window.jspdf) return;
       const { jsPDF } = window.jspdf;
@@ -372,26 +382,20 @@
 
       docPdf.setFillColor(30, 58, 95);
       docPdf.rect(0, 0, 210, 35, "F");
-
       docPdf.setTextColor(255, 255, 255);
       docPdf.setFont("helvetica", "bold");
       docPdf.setFontSize(16);
       docPdf.text("ALPALE SAÚDE OCUPACIONAL", 15, 22);
-
       docPdf.setTextColor(44, 62, 80);
       docPdf.setFontSize(18);
       docPdf.text("Comprovante de Agendamento", 15, 50);
-
       docPdf.setFontSize(11);
       docPdf.setFont("helvetica", "normal");
       docPdf.text(`Emitido em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 15, 58);
-
       docPdf.setDrawColor(200, 200, 200);
       docPdf.line(15, 65, 195, 65);
-
       docPdf.setFont("helvetica", "bold");
       docPdf.text("Dados do Atendimento:", 15, 78);
-      
       docPdf.setFont("helvetica", "normal");
       docPdf.text(`• Empresa: ${dados.empresa}`, 15, 88);
       docPdf.text(`• Colaborador: ${dados.funcionario}`, 15, 98);
@@ -416,23 +420,19 @@
       docPdf.save(`Comprovante_Alpale_${dados.cpf.replace(/\D/g, '')}.pdf`);
     }
 
-    // =========================================================================
-    // ENVIO DO AGENDAMENTO PARA O BANCO
-    // =========================================================================
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       btnSubmit.disabled = true;
       btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> PROCESSANDO AGENDAMENTO...`;
       statusMsg.style.color = 'var(--primary)';
-      statusMsg.textContent = 'A registar agendamento e a gerar comprovativo...';
+      statusMsg.textContent = 'A registar agendamento e a gerar comprovante...';
 
       try {
         let urlArquivo = "";
         const arquivo = arquivoInput.files[0];
         const cpfVal = cpfInput.value;
 
-        // Se houver arquivo anexado
         if (arquivo) {
           const ext = arquivo.name.split('.').pop();
           const refArquivo = storageRef(storage, `kits/${Date.now()}_${cpfVal.replace(/\D/g, '')}.${ext}`);
@@ -450,8 +450,8 @@
         const entryData = {
           id: entryId,
           date: dataInput.value,
-          horario: horarioInput.value,  // Usa o horário bloqueado da tela
-          medico: medicoSelect.value,   // Usa o médico escolhido
+          horario: horarioInput.value,
+          medico: medicoSelect.value,
           empresa: document.getElementById('empresa').value.trim(),
           tipo: document.getElementById('tipo').value,
           funcionario: document.getElementById('funcionario').value.trim(),
@@ -490,7 +490,7 @@
         }
       } finally {
         btnSubmit.disabled = false;
-        btnSubmit.innerHTML = `<i class="fa-solid fa-check"></i> CONFIRMAR AGENDAMENTO E GERAR COMPROVANTE`;
+        btnSubmit.innerHTML = `CONFIRMAR AGENDAMENTO`;
       }
     });
   </script>
