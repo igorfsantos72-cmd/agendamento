@@ -1239,5 +1239,373 @@
   // Renderização inicial
   render();
 </script>
+  <!-- ================= MÓDULO COMPLETO DE CONTROLE DE VAGAS E GUIAS ANEXADAS ================= -->
+<style>
+  #btnAbrirConfigVagas {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #1E3A5F;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 50px;
+    font-family: sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(30, 58, 95, 0.35);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 9998;
+    transition: transform 0.2s, background 0.2s;
+  }
+  #btnAbrirConfigVagas:hover {
+    background: #008CB4;
+    transform: translateY(-2px);
+  }
+
+  #modalConfigVagas {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(10, 37, 64, 0.65);
+    backdrop-filter: blur(3px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+  }
+
+  .modal-vagas-card {
+    background: #fff;
+    width: 100%;
+    max-width: 720px;
+    max-height: 90vh;
+    border-radius: 14px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: sans-serif;
+  }
+
+  .modal-vagas-header {
+    background: #1E3A5F;
+    color: #fff;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-vagas-header h3 { margin: 0; font-size: 17px; }
+  
+  .header-actions-vagas {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .btn-copiar-link {
+    background: #008CB4;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-copiar-link:hover { background: #00B4D8; }
+
+  .btn-fechar-vagas {
+    background: transparent; border: none; color: #fff;
+    font-size: 24px; cursor: pointer; line-height: 1;
+  }
+
+  .modal-vagas-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    color: #2C3E50;
+  }
+
+  .config-grid-top {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  @media (max-width: 600px) {
+    .config-grid-top { grid-template-columns: 1fr; }
+  }
+
+  .config-section {
+    background: #F4F7FA;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+  }
+  .config-section label {
+    display: block;
+    font-weight: 700;
+    font-size: 13px;
+    color: #1E3A5F;
+    margin-bottom: 6px;
+  }
+  .config-section input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+
+  .tabela-exames-config {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .tabela-exames-config th {
+    text-align: left;
+    padding: 10px 8px;
+    border-bottom: 2px solid #1E3A5F;
+    color: #1E3A5F;
+    font-size: 13px;
+  }
+  .tabela-exames-config td {
+    padding: 8px;
+    border-bottom: 1px solid #E2E8F0;
+    vertical-align: middle;
+  }
+  .tabela-exames-config input[type="number"] {
+    width: 85px;
+    padding: 6px;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 600;
+  }
+  .switch-ativo {
+    transform: scale(1.25);
+    cursor: pointer;
+  }
+
+  .modal-vagas-footer {
+    padding: 14px 24px;
+    background: #F8FAFC;
+    border-top: 1px solid #E2E8F0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .btn-salvar-vagas {
+    background: #008CB4;
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .btn-salvar-vagas:hover { background: #1E3A5F; }
+</style>
+
+<!-- Botão Flutuante na Tela Principal -->
+<button id="btnAbrirConfigVagas" type="button">
+  ⚙️ Configurar Vagas Online
+</button>
+
+<!-- Modal de Controle -->
+<div id="modalConfigVagas">
+  <div class="modal-vagas-card">
+    <div class="modal-vagas-header">
+      <h3>⚙️ Controle de Vagas e Exames (Site do Cliente)</h3>
+      <div class="header-actions-vagas">
+        <button class="btn-copiar-link" id="btnCopiarLinkCliente" type="button">🔗 Copiar Link do Cliente</button>
+        <button class="btn-fechar-vagas" id="btnFecharConfigVagas">&times;</button>
+      </div>
+    </div>
+
+    <div class="modal-vagas-body">
+      <div class="config-grid-top">
+        <div class="config-section">
+          <label for="cfgLimiteTotal">Limite Geral / Dia:</label>
+          <input type="number" id="cfgLimiteTotal" min="1" max="300" value="35">
+          <small style="color:#6C7A89; font-size:11px; display:block; margin-top:4px;">Total máximo de pacientes por dia.</small>
+        </div>
+
+        <div class="config-section">
+          <label for="cfgDatasBloqueadas">Feriados / Datas Bloqueadas (AAAA-MM-DD):</label>
+          <input type="text" id="cfgDatasBloqueadas" placeholder="Ex: 2026-11-02, 2026-11-15, 2026-12-25">
+          <small style="color:#6C7A89; font-size:11px; display:block; margin-top:4px;">Separe por vírgula. Sábados e domingos já são bloqueados.</small>
+        </div>
+      </div>
+
+      <table class="tabela-exames-config">
+        <thead>
+          <tr>
+            <th style="text-align:center; width:130px;">Liberado no Site?</th>
+            <th>Exame Ocupacional</th>
+            <th style="width:160px;">Limite Diário de Vagas</th>
+          </tr>
+        </thead>
+        <tbody id="listaExamesConfig"></tbody>
+      </table>
+    </div>
+
+    <div class="modal-vagas-footer">
+      <span id="statusConfigVagas" style="font-size:13px; font-weight:600;"></span>
+      <button class="btn-salvar-vagas" id="btnSalvarConfigVagas">💾 Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  const catalogoPadrao = {
+    CLINICO:       { ativo: true,  limiteDia: 35, nome: "Clínico" },
+    AUDIO:         { ativo: true,  limiteDia: 25, nome: "Audiometria" },
+    ACV:           { ativo: true,  limiteDia: 30, nome: "Acuidade Visual" },
+    LAB:           { ativo: true,  limiteDia: 25, nome: "Laboratório (Sangue)" },
+    RX:            { ativo: true,  limiteDia: 20, nome: "Raio-X" },
+    PSICO:         { ativo: true,  limiteDia: 8,  nome: "Psicossocial" },
+    ECG:           { ativo: true,  limiteDia: 15, nome: "ECG" },
+    EEG:           { ativo: true,  limiteDia: 10, nome: "EEG" },
+    ESP:           { ativo: true,  limiteDia: 20, nome: "Espirometria" },
+    ISHI:          { ativo: true,  limiteDia: 30, nome: "Ishihara" },
+    CINESIO:       { ativo: false, limiteDia: 10, nome: "Cinesiológico" },
+    ODONTO:        { ativo: false, limiteDia: 10, nome: "Odontológico" },
+    TOXIC:         { ativo: false, limiteDia: 10, nome: "Toxicológico" },
+    OTOLOGICO:     { ativo: false, limiteDia: 15, nome: "Otológico" },
+    VOCAL:         { ativo: false, limiteDia: 10, nome: "Avaliação Vocal" },
+    "T. SONO":     { ativo: false, limiteDia: 15, nome: "Teste do Sono" },
+    PERICIA:       { ativo: false, limiteDia: 5,  nome: "Perícia" },
+    "PERICIA DOM": { ativo: false, limiteDia: 2,  nome: "Perícia Domiciliar" }
+  };
+
+  const modal = document.getElementById("modalConfigVagas");
+  const btnAbrir = document.getElementById("btnAbrirConfigVagas");
+  const btnFechar = document.getElementById("btnFecharConfigVagas");
+  const btnSalvar = document.getElementById("btnSalvarConfigVagas");
+  const btnCopiar = document.getElementById("btnCopiarLinkCliente");
+  const tbody = document.getElementById("listaExamesConfig");
+  const inputTotal = document.getElementById("cfgLimiteTotal");
+  const inputDatas = document.getElementById("cfgDatasBloqueadas");
+  const statusEl = document.getElementById("statusConfigVagas");
+
+  let configAtual = {
+    limiteTotalDia: 35,
+    datasBloqueadas: [],
+    exames: JSON.parse(JSON.stringify(catalogoPadrao))
+  };
+
+  // Botão para copiar link do cliente facilmente
+  btnCopiar.addEventListener("click", () => {
+    const urlCliente = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '') + "/agendar.html";
+    navigator.clipboard.writeText(urlCliente);
+    btnCopiar.textContent = "✅ Link Copiado!";
+    setTimeout(() => { btnCopiar.textContent = "🔗 Copiar Link do Cliente"; }, 2000);
+  });
+
+  function renderizarTabela() {
+    tbody.innerHTML = "";
+    Object.keys(catalogoPadrao).forEach(chave => {
+      const item = configAtual.exames[chave] || catalogoPadrao[chave];
+      const tr = document.createElement("tr");
+      const travado = chave === "CLINICO" ? "disabled checked" : (item.ativo ? "checked" : "");
+
+      tr.innerHTML = `
+        <td style="text-align:center;">
+          <input type="checkbox" class="switch-ativo" data-key="${chave}" ${travado}>
+        </td>
+        <td><strong>${item.nome}</strong> <small style="color:#6C7A89;">(${chave})</small></td>
+        <td>
+          <input type="number" class="input-limite-exame" data-key="${chave}" min="0" max="300" value="${item.limiteDia}">
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function carregarDoFirebase() {
+    statusEl.style.color = "#008CB4";
+    statusEl.textContent = "Carregando configurações do banco...";
+    try {
+      const db = window.db;
+      const snap = await getDoc(doc(db, "configuracoes", "limites_agendamento"));
+      if (snap.exists()) {
+        const dados = snap.data();
+        configAtual.limiteTotalDia = dados.limiteTotalDia ?? 35;
+        configAtual.datasBloqueadas = dados.datasBloqueadas ?? [];
+        configAtual.exames = { ...JSON.parse(JSON.stringify(catalogoPadrao)), ...(dados.exames || {}) };
+      }
+      inputTotal.value = configAtual.limiteTotalDia;
+      inputDatas.value = (configAtual.datasBloqueadas || []).join(", ");
+      renderizarTabela();
+      statusEl.textContent = "";
+    } catch (e) {
+      console.error(e);
+      renderizarTabela();
+      statusEl.style.color = "#EF4444";
+      statusEl.textContent = "Padrão local carregado.";
+    }
+  }
+
+  btnAbrir.addEventListener("click", () => {
+    modal.style.display = "flex";
+    carregarDoFirebase();
+  });
+
+  btnFechar.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  btnSalvar.addEventListener("click", async () => {
+    btnSalvar.disabled = true;
+    statusEl.style.color = "#1E3A5F";
+    statusEl.textContent = "Salvando no banco...";
+
+    const novoLimiteTotal = parseInt(inputTotal.value, 10) || 35;
+    const novasDatas = inputDatas.value
+      .split(",")
+      .map(d => d.trim())
+      .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
+
+    const novosExames = JSON.parse(JSON.stringify(catalogoPadrao));
+
+    document.querySelectorAll(".switch-ativo").forEach(chk => {
+      const k = chk.getAttribute("data-key");
+      novosExames[k].ativo = k === "CLINICO" ? true : chk.checked;
+    });
+
+    document.querySelectorAll(".input-limite-exame").forEach(inp => {
+      const k = inp.getAttribute("data-key");
+      novosExames[k].limiteDia = parseInt(inp.value, 10) || 0;
+    });
+
+    try {
+      const db = window.db;
+      await setDoc(doc(db, "configuracoes", "limites_agendamento"), {
+        limiteTotalDia: novoLimiteTotal,
+        datasBloqueadas: novasDatas,
+        exames: novosExames,
+        atualizadoEm: new Date().toISOString()
+      });
+      statusEl.style.color = "#2EC4B6";
+      statusEl.textContent = "✅ Configurações salvas e ativas no site do cliente!";
+      setTimeout(() => { modal.style.display = "none"; }, 1200);
+    } catch (err) {
+      console.error(err);
+      statusEl.style.color = "#EF4444";
+      statusEl.textContent = "❌ Erro ao salvar. Verifique se window.db está disponível.";
+    } finally {
+      btnSalvar.disabled = false;
+    }
+  });
+</script>
+
 </body>
 </html>
