@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solicitar Agendamento - Alpale Saúde Ocupacional</title>
+  <!-- Fontes e Ícones -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary: #1E3A5F;        /* Azul Escuro da Cruz do Logo */
+      --secondary: #008CB4;      /* Azul de Destaque da Faixa/Saúde */
+      --accent-cyan: #00B4D8;    /* Tom de transição visual */
+      --dark-gray: #555555;      /* Texto Alpale Cinza */
+      --light-gray: #6C7A89;     
+      --bg-light: #F4F7FA;
+      --border-color: #CBD5E1;
+      --white: #FFFFFF;
+      --success: #2EC4B6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-light);
+      color: var(--primary);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header elegante alinhado com o Logotipo */
+    header {
+      background: var(--white);
+      padding: 1.25rem 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border-bottom: 4px solid var(--secondary);
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand-section h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-section p {
+      font-size: 0.85rem;
+      color: var(--light-gray);
+    }
+
+    .logo-img {
+      height: 55px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    /* Conteúdo Principal */
+    main {
+      flex: 1;
+      padding: 2rem 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .form-card {
+      background: var(--white);
+      width: 100%;
+      max-width: 760px;
+      border-radius: 16px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
+      padding: 2.5rem;
+      position: relative;
+    }
+
+    .card-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .card-subtitle {
+      font-size: 0.9rem;
+      color: var(--light-gray);
+      text-align: center;
+      margin-bottom: 2.25rem;
+    }
+
+    /* Grid de Campos */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 640px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .form-card {
+        padding: 1.5rem;
+      }
+      .header-container {
+        justify-content: center;
+        text-align: center;
+      }
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--light-gray);
+      font-size: 0.95rem;
+    }
+
+    .input-wrapper input,
+    .input-wrapper select {
+      width: 100%;
+      padding: 0.8rem 1rem 0.8rem 2.6rem;
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      color: #333;
+      background-color: var(--white);
+      transition: all 0.3s ease;
+    }
+
+    .input-wrapper input:focus,
+    .input-wrapper select:focus {
+      border-color: var(--secondary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 140, 180, 0.15);
+    }
+
+    /* Estilização dos Exames (Chips) */
+    .exams-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.85rem;
+    }
+
+    .exams-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .exam-chip {
+      background: var(--white);
+      border: 1.5px solid var(--border-color);
+      padding: 0.55rem 1.15rem;
+      border-radius: 50px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: var(--primary);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .exam-chip:hover {
+      border-color: var(--secondary);
+      background-color: rgba(0, 140, 180, 0.04);
+    }
+
+    /* Ativado */
+    .exam-chip.active {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: var(--white);
+    }
+
+    /* Clínico travado como Ativo */
+    .exam-chip[data-exam="CLINICO"] {
+      cursor: default;
+    }
+
+    /* Alerta Inteligente de Horário */
+    .alert-banner {
+      background: #E0F2FE;
+      border-left: 4px solid var(--secondary);
+      color: #0369A1;
+      padding: 0.85rem 1.25rem;
+      border-radius: 10px;
+      font-size: 0.825rem;
+      margin-bottom: 1.5rem;
+      display: none; /* Ativa via JavaScript */
+      align-items: center;
+      gap: 0.65rem;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Áerea de Anexar / Upload moderno */
+    .upload-area {
+      border: 2px dashed var(--border-color);
+      background-color: var(--bg-light);
+      border-radius: 12px;
+      padding: 1.75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .upload-area:hover {
+      border-color: var(--secondary);
+      background-color: rgba(0, 140, 180, 0.02);
+    }
+
+    .upload-area input[type="file"] {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .upload-icon {
+      font-size: 2.2rem;
+      color: var(--secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-text {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .upload-subtext {
+      font-size: 0.75rem;
+      color: var(--light-gray);
+      margin-top: 0.25rem;
+    }
+
+    .file-preview {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--success);
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+
+    /* Botão de Envio Imponente */
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+      color: var(--white);
+      border: none;
+      padding: 1.1rem;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(30, 58, 95, 0.25);
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(30, 58, 95, 0.35);
+    }
+
+    .btn-submit:disabled {
+      background: #CBD5E1;
+      color: #94A3B8;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .status-msg {
+      text-align: center;
+      margin-top: 1.25rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-container">
+      <div class="brand-section">
+        <h1>Solicitar Agendamento</h1>
+        <p>Alpale Saúde Ocupacional</p>
+      </div>
+      <!-- Logo do seu projeto (image_1.png do GitHub) -->
+      <img src="logo.png" alt="Alpale Saúde Ocupacional" class="logo-img" id="logo">
+    </div>
+  </header>
+
+  <main>
+    <div class="form-card">
+      <h2 class="card-title">Agendar Exame Ocupacional</h2>
+      <p class="card-subtitle">Insira as informações básicas do colaborador e anexe a guia enviada pela empresa.</p>
+
+      <form id="agendamentoForm">
+        <div class="form-grid">
+          <div class="input-group">
+            <label for="empresa">Empresa Solicitante *</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-building"></i>
+              <input type="text" id="empresa" placeholder="Nome da empresa" required>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="funcionario">Nome do Colaborador *</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-user"></i>
+              <input type="text" id="funcionario" placeholder="Nome completo" required>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="cpf">CPF do Colaborador *</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-id-card"></i>
+              <input type="text" id="cpf" placeholder="000.000.000-00" required>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="data">Data Pretendida *</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-calendar-day"></i>
+              <input type="date" id="data" required>
+            </div>
+          </div>
+
+          <div class="input-group" style="grid-column: span 2;">
+            <label for="tipo">Tipo de Exame (ASO) *</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-notes-medical"></i>
+              <select id="tipo" required>
+                <option value="" disabled selected>Selecione o tipo do ASO...</option>
+                <option value="Admissional">Admissional</option>
+                <option value="Periódico">Periódico</option>
+                <option value="Demissional">Demissional</option>
+                <option value="Mudança de Função">Mudança de Função</option>
+                <option value="Retorno ao Trabalho">Retorno ao Trabalho</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="exams-title">Exames solicitados na guia:</h3>
+        <div class="exams-grid" id="examsGrid">
+          <div class="exam-chip active" data-exam="CLINICO">Clínico</div>
+          <div class="exam-chip" data-exam="AUDIO">Audiometria</div>
+          <div class="exam-chip" data-exam="ACV">Acuidade Visual</div>
+          <div class="exam-chip" data-exam="LAB">Laboratório (Sangue)</div>
+          <div class="exam-chip" data-exam="RX">Raio-X</div>
+          <div class="exam-chip" data-exam="PSICO">Psicossocial</div>
+          <div class="exam-chip" data-exam="ECG">ECG</div>
+          <div class="exam-chip" data-exam="EEG">EEG</div>
+          <div class="exam-chip" data-exam="ESP">Espirometria</div>
+        </div>
+
+        <!-- Mensagem Dinâmica do Psicossocial -->
+        <div class="alert-banner" id="psicoAlert">
+          <i class="fa-solid fa-circle-info"></i>
+          <span><strong>Atenção:</strong> Devido ao exame Psicossocial, o horário para atendimento será obrigatoriamente às <strong>06:30</strong>.</span>
+        </div>
+
+        <div class="input-group">
+          <label>Anexar Guia / Kit de Atendimento *</label>
+          <div class="upload-area">
+            <input type="file" id="arquivoKit" accept=".pdf, .png, .jpg, .jpeg" required>
+            <div class="upload-icon">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <div class="upload-text" id="uploadText">Arrastar & soltar ou Clique para Anexar a Guia (PDF, PNG, JPG)</div>
+            <div class="upload-subtext">Envie a guia de encaminhamento ou documento ASO</div>
+            <div class="file-preview" id="filePreview">
+              <i class="fa-solid fa-circle-check"></i> <span id="fileName">arquivo.pdf</span>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSubmit">
+          <i class="fa-solid fa-check"></i> CONFIRMAR AGENDAMENTO
+        </button>
+
+        <div class="status-msg" id="statusMsg"></div>
+      </form>
+    </div>
+  </main>
+
+  <!-- LIGAÇÃO COM O SEU FIRESTORE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+
+    // Configuração do Firebase
+    // ATENÇÃO: Substitua pelos dados do Firebase que você já usa no painel principal!
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "agendamento-alpale.firebaseapp.com",
+      projectId: "agendamento-alpale",
+      storageBucket: "agendamento-alpale.appspot.com",
+      messagingSenderId: "SEU_SENDER_ID",
+      appId: "SEU_APP_ID"
+    };
+
+    // Inicialização
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // DOM Elements
+    const form = document.getElementById('agendamentoForm');
+    const examChips = document.querySelectorAll('.exam-chip');
+    const cpfInput = document.getElementById('cpf');
+    const dataInput = document.getElementById('data');
+    const arquivoInput = document.getElementById('arquivoKit');
+    const uploadArea = document.querySelector('.upload-area');
+    const uploadText = document.getElementById('uploadText');
+    const filePreview = document.getElementById('filePreview');
+    const fileNameSpan = document.getElementById('fileName');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const statusMsg = document.getElementById('statusMsg');
+    const alertBanner = document.getElementById('psicoAlert');
+
+    // Bloquear agendamento para sábado e domingo
+    dataInput.addEventListener('input', (e) => {
+      const dataSelecionada = new Date(e.target.value);
+      const diaDaSemana = dataSelecionada.getUTCDay(); // 0 = Domingo, 6 = Sábado
+      
+      if (diaDaSemana === 0 || diaDaSemana === 6) {
+        alert('A clínica Alpale atende apenas de segunda a sexta-feira. Por favor, selecione um dia útil.');
+        e.target.value = '';
+      }
+    });
+
+    // Toggle de Seleção de Exames
+    examChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        if (chip.getAttribute('data-exam') === 'CLINICO') return; // Clínico é obrigatório
+        
+        chip.classList.toggle('active');
+
+        // Lógica dinâmica para o Psicossocial (06:30)
+        if (chip.getAttribute('data-exam') === 'PSICO') {
+          if (chip.classList.contains('active')) {
+            alertBanner.style.display = 'flex';
+          } else {
+            alertBanner.style.display = 'none';
+          }
+        }
+      });
+    });
+
+    // Máscara de CPF automática
+    cpfInput.addEventListener('input', (e) => {
+      let v = e.target.value.replace(/\D/g,"");
+      if (v.length <= 11) {
+        v = v.replace(/(\d{3})(\d)/,"$1.$2");
+        v = v.replace(/(\d{3})(\d)/,"$1.$2");
+        v = v.replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+      }
+      e.target.value = v;
+    });
+
+    // Estilização do arquivo adicionado
+    arquivoInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        const file = e.target.files[0];
+        fileNameSpan.textContent = file.name;
+        filePreview.style.display = 'flex';
+        uploadText.style.display = 'none';
+        uploadArea.style.borderColor = 'var(--success)';
+      } else {
+        filePreview.style.display = 'none';
+        uploadText.style.display = 'block';
+        uploadArea.style.borderColor = 'var(--border-color)';
+      }
+    });
+
+    // Envio para o Banco do Sistema
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ENVIANDO AGENDAMENTO...`;
+      statusMsg.style.color = 'var(--primary)';
+      statusMsg.textContent = 'Aguarde... Enviando a guia e registrando o agendamento no banco.';
+
+      const empresa = document.getElementById('empresa').value;
+      const funcionario = document.getElementById('funcionario').value;
+      const cpf = cpfInput.value;
+      const data = dataInput.value;
+      const tipo = document.getElementById('tipo').value;
+      const arquivo = arquivoInput.files[0];
+
+      // Pegando exames ativos
+      const examesAtivos = {};
+      examChips.forEach(c => {
+        if (c.classList.contains('active')) {
+          examesAtivos[c.getAttribute('data-exam')] = true;
+        }
+      });
+
+      // Se psicossocial estiver ativo, 06:30, senão 07:30
+      const horarioFinal = examesAtivos['PSICO'] ? '06:30' : '07:30';
+
+      try {
+        // 1. Upload do Arquivo no Storage
+        const ext = arquivo.name.split('.').pop();
+        const path = `kits/${Date.now()}_${cpf.replace(/\D/g,'')}.${ext}`;
+        const fileRef = storageRef(storage, path);
+        
+        await uploadBytes(fileRef, arquivo);
+        const urlDownload = await getDownloadURL(fileRef);
+
+        // 2. Registro no Firestore da coleção agendamentos
+        const payload = {
+          date: data,
+          horario: horarioFinal,
+          empresa: empresa,
+          tipo: tipo,
+          funcionario: funcionario,
+          cpf: cpf,
+          exams: examesAtivos,
+          qtd: 1,
+          kitUrl: urlDownload, // link do arquivo de consulta
+          medico: null,
+          status: "Pendente", // Para sinalizar triagem do time interno
+          criadoEm: new Date().toISOString()
+        };
+
+        await addDoc(collection(db, "agendamentos"), payload);
+
+        // Sucesso
+        statusMsg.style.color = 'var(--success)';
+        statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> Agendamento de ${payload.funcionario} enviado com sucesso!`;
+        
+        // Reset do formulário de forma amigável
+        form.reset();
+        examChips.forEach(c => {
+          if (c.getAttribute('data-exam') !== 'CLINICO') {
+            c.classList.remove('active');
+          }
+        });
+        alertBanner.style.display = 'none';
+        filePreview.style.display = 'none';
+        uploadText.style.display = 'block';
+        uploadArea.style.borderColor = 'var(--border-color)';
+
+      } catch (err) {
+        console.error("Erro no processamento de envio: ", err);
+        statusMsg.style.color = '#EF4444';
+        statusMsg.textContent = 'Erro ao agendar. Verifique sua conexão e tente novamente.';
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `<i class="fa-solid fa-check"></i> CONFIRMAR AGENDAMENTO`;
+      }
+    });
+  </script>
+</body>
+</html>
