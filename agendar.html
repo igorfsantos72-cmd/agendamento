@@ -22,7 +22,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
     body { background-color: var(--bg-light); color: var(--primary); display: flex; flex-direction: column; min-height: 100vh; }
 
-    /* CABEÇALHO CENTRALIZADO COM LOGO MAIOR */
+    /* CABEÇALHO CENTRALIZADO */
     header {
       background: var(--white);
       padding: 2rem 1rem;
@@ -39,8 +39,8 @@
       text-align: center;
       gap: 0.8rem;
     }
-    .logo-img { height: 140px; width: auto; object-fit: contain; } /* Logo Bem Maior */
-    .brand-section h1 { font-size: 1.6rem; font-weight: 700; color: var(--primary); margin-top: 10px; }
+    .logo-img { height: 130px; width: auto; object-fit: contain; }
+    .brand-section h1 { font-size: 1.6rem; font-weight: 700; color: var(--primary); margin-top: 5px; }
     .brand-section p { font-size: 0.95rem; color: #6C7A89; }
 
     main { flex: 1; padding: 2rem 1rem; display: flex; justify-content: center; align-items: center; }
@@ -60,7 +60,7 @@
     @media (max-width: 640px) {
       .form-grid { grid-template-columns: 1fr; }
       .form-card { padding: 1.5rem; }
-      .logo-img { height: 110px; } 
+      .logo-img { height: 100px; } 
     }
 
     .input-group { display: flex; flex-direction: column; }
@@ -71,6 +71,9 @@
       width: 100%; padding: 0.8rem 1rem 0.8rem 2.6rem; border: 1.5px solid var(--border-color); border-radius: 10px; font-size: 0.9rem; background: var(--white);
     }
     .input-wrapper input:focus, .input-wrapper select:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px rgba(0, 140, 180, 0.15); }
+    
+    /* Input de horário bloqueado visualmente */
+    .input-wrapper input[readonly] { background-color: #F8FAFC; color: #1E3A5F; font-weight: 700; border-color: #CBD5E1; cursor: not-allowed; }
 
     .exams-title { font-size: 0.9rem; font-weight: 700; color: var(--primary); margin-bottom: 0.85rem; }
     .exams-grid { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-bottom: 1.5rem; }
@@ -161,7 +164,7 @@
             </div>
           </div>
 
-          <!-- NOVOS CAMPOS DINÂMICOS (Ficam ocultos até escolher a data) -->
+          <!-- SELEÇÃO DE MÉDICO E HORÁRIO (Aparecem após escolher a data) -->
           <div class="input-group" id="divMedico" style="display: none;">
             <label for="medico">Médico Disponível *</label>
             <div class="input-wrapper">
@@ -173,20 +176,17 @@
           </div>
 
           <div class="input-group" id="divHorario" style="display: none;">
-            <label for="horario">Horários Livres *</label>
+            <label for="horario">Horário de Chegada *</label>
             <div class="input-wrapper">
               <i class="fa-solid fa-clock"></i>
-              <select id="horario" required>
-                <option value="" disabled selected>Selecione o médico primeiro...</option>
-              </select>
+              <!-- O horário é definido pelo início do plantão do médico e bloqueado -->
+              <input type="text" id="horario" value="" readonly required>
             </div>
           </div>
         </div>
 
         <h3 class="exams-title">Exames solicitados:</h3>
-        <div class="exams-grid" id="examsGrid">
-          <!-- Renderizado dinamicamente pelo banco (padrão só Clínico ativo) -->
-        </div>
+        <div class="exams-grid" id="examsGrid"></div>
 
         <div class="input-group">
           <label>Anexar Guia / Kit de Atendimento (Opcional)</label>
@@ -211,7 +211,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
     const firebaseConfig = {
@@ -227,13 +227,12 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    // Variáveis da Interface
     const form = document.getElementById('agendamentoForm');
     const examsGrid = document.getElementById('examsGrid');
     const cpfInput = document.getElementById('cpf');
     const dataInput = document.getElementById('data');
     const medicoSelect = document.getElementById('medico');
-    const horarioSelect = document.getElementById('horario');
+    const horarioInput = document.getElementById('horario');
     const divMedico = document.getElementById('divMedico');
     const divHorario = document.getElementById('divHorario');
     const arquivoInput = document.getElementById('arquivoKit');
@@ -244,19 +243,83 @@
     const btnSubmit = document.getElementById('btnSubmit');
     const statusMsg = document.getElementById('statusMsg');
 
-    // MÁSCARA CPF
-    cpfInput.addEventListener('input', (e) => {
-      let v = e.target.value.replace(/\D/g, "");
-      if (v.length <= 11) {
-        v = v.replace(/(\d{3})(\d)/, "$1.$2");
-        v = v.replace(/(\d{3})(\d)/, "$1.$2");
-        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    // =========================================================================
+    // BANCO DE HORÁRIOS DA CLÍNICA (Baseado nas suas imagens de escala)
+    // =========================================================================
+    const escalaSemanal = {
+      1: [ // Segunda-feira
+        { nome: "Dra. Gizelle", horarioInicio: "06:30" },
+        { nome: "Dr. Luiz", horarioInicio: "11:00" },
+        { nome: "Dra. Nadia", horarioInicio: "16:00" }
+      ],
+      2: [ // Terça-feira
+        { nome: "Dra. Gizelle", horarioInicio: "06:30" },
+        { nome: "Dra. Nadia", horarioInicio: "11:00" },
+        { nome: "Dr. Luiz", horarioInicio: "14:30" }
+      ],
+      3: [ // Quarta-feira
+        { nome: "Dra. Gizelle", horarioInicio: "06:30" },
+        { nome: "Dr. Luiz", horarioInicio: "11:00" }
+      ],
+      4: [ // Quinta-feira
+        { nome: "Dra. Louane", horarioInicio: "06:30" },
+        { nome: "Dra. Nadia", horarioInicio: "11:00" },
+        { nome: "Dra. Gizelle", horarioInicio: "13:30" }
+      ],
+      5: [ // Sexta-feira
+        { nome: "Dra. Louane", horarioInicio: "06:30" },
+        { nome: "Dra. Nadia", horarioInicio: "11:00" },
+        { nome: "Dr. Guilherme", horarioInicio: "13:30" }
+      ]
+    };
+
+    // Controle da Data -> Libera os Médicos daquele dia
+    dataInput.addEventListener('change', (e) => {
+      const dataSelecionada = e.target.value;
+      if (!dataSelecionada) return;
+
+      const diaSemana = new Date(dataSelecionada).getUTCDay();
+      
+      // Bloqueia fim de semana
+      if (diaSemana === 0 || diaSemana === 6) {
+        alert('A clínica atende apenas de segunda a sexta-feira.');
+        e.target.value = '';
+        divMedico.style.display = 'none';
+        divHorario.style.display = 'none';
+        return;
       }
-      e.target.value = v;
+
+      // Puxa a lista de médicos do dia escolhido
+      const medicosDoDia = escalaSemanal[diaSemana];
+
+      divMedico.style.display = 'flex';
+      divHorario.style.display = 'none';
+      medicoSelect.innerHTML = '<option value="" disabled selected>Selecione um médico...</option>';
+
+      medicosDoDia.forEach(medico => {
+        const option = document.createElement('option');
+        option.value = medico.nome;
+        option.textContent = medico.nome;
+        option.dataset.horario = medico.horarioInicio; // Guarda o horário de início escondido
+        medicoSelect.appendChild(option);
+      });
     });
 
-    // CARREGAR EXAMES LIBERADOS
+    // Controle do Médico -> Preenche e trava o Horário com o Início do turno
+    medicoSelect.addEventListener('change', (e) => {
+      const opcaoSelecionada = e.target.options[e.target.selectedIndex];
+      const horarioDoMedico = opcaoSelecionada.dataset.horario;
+
+      divHorario.style.display = 'flex';
+      horarioInput.value = horarioDoMedico; // Define sempre o INÍCIO do horário
+    });
+
+
+    // =========================================================================
+    // EXAMES, MÁSCARAS E ARQUIVOS
+    // =========================================================================
     let regrasVagas = { exames: { CLINICO: { ativo: true, nome: "Clínico" } } };
+    
     async function carregarExamesLiberados() {
       try {
         const snap = await getDoc(doc(db, "configuracoes", "limites_agendamento"));
@@ -266,6 +329,7 @@
       Object.keys(regrasVagas.exames).forEach(codigo => {
         const ex = regrasVagas.exames[codigo];
         if (!ex || !ex.ativo) return;
+
         const chip = document.createElement('div');
         chip.className = 'exam-chip' + (codigo === 'CLINICO' ? ' active' : '');
         chip.setAttribute('data-exam', codigo);
@@ -279,108 +343,16 @@
     }
     carregarExamesLiberados();
 
-    // =========================================================================
-    // LÓGICA DE MÉDICOS E HORÁRIOS
-    // =========================================================================
-    
-    // Quando escolhe a Data: Busca médicos disponíveis no banco
-    dataInput.addEventListener('change', async (e) => {
-      const dataSelecionada = e.target.value;
-      const diaSemana = new Date(dataSelecionada).getUTCDay();
-      
-      if (diaSemana === 0 || diaSemana === 6) {
-        alert('A clínica atende apenas de segunda a sexta-feira.');
-        e.target.value = '';
-        divMedico.style.display = 'none';
-        divHorario.style.display = 'none';
-        return;
+    cpfInput.addEventListener('input', (e) => {
+      let v = e.target.value.replace(/\D/g, "");
+      if (v.length <= 11) {
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
       }
-
-      // Mostra o campo de médico carregando
-      divMedico.style.display = 'flex';
-      divHorario.style.display = 'none';
-      medicoSelect.innerHTML = '<option value="" disabled selected>Buscando médicos no banco...</option>';
-
-      try {
-        /*
-          ATENÇÃO: Aqui o sistema consulta a coleção onde você cadastra os médicos.
-          Estou assumindo que a coleção chama "medicos". 
-          Se o nome for diferente, eu preciso que você me avise para eu ajustar!
-        */
-        const snapshot = await getDocs(collection(db, "medicos"));
-        medicoSelect.innerHTML = '<option value="" disabled selected>Selecione um médico...</option>';
-        
-        let encontrouMedicos = false;
-        snapshot.forEach(docMedico => {
-          const medicoData = docMedico.data();
-          // Simula que achou um médico (Você precisará me confirmar como eles estão salvos)
-          const option = document.createElement('option');
-          option.value = medicoData.nome || docMedico.id;
-          option.textContent = medicoData.nome || "Dr(a). " + docMedico.id;
-          // Salva os horários do médico no elemento para usar depois
-          option.dataset.horarios = JSON.stringify(medicoData.horarios || ["07:30", "08:00", "08:30", "09:00", "09:30", "10:00"]);
-          medicoSelect.appendChild(option);
-          encontrouMedicos = true;
-        });
-
-        if (!encontrouMedicos) {
-          // Fallback caso você ainda não tenha a coleção "medicos" criada no Firebase
-          medicoSelect.innerHTML = `
-            <option value="" disabled selected>Selecione um médico...</option>
-            <option value="Dr. Atendimento Padrão" data-horarios='["07:30", "08:00", "08:30", "09:00", "09:30", "10:00"]'>Dr. Atendimento Padrão</option>
-          `;
-        }
-      } catch (err) {
-        console.error("Erro ao buscar médicos:", err);
-      }
+      e.target.value = v;
     });
 
-    // Quando escolhe o Médico: Busca os horários e remove os ocupados
-    medicoSelect.addEventListener('change', async (e) => {
-      divHorario.style.display = 'flex';
-      horarioSelect.innerHTML = '<option value="" disabled selected>Calculando horários livres...</option>';
-      
-      const dataSelecionada = dataInput.value;
-      const nomeMedico = e.target.value;
-      const opcaoSelecionada = e.target.options[e.target.selectedIndex];
-      const horariosDoMedico = JSON.parse(opcaoSelecionada.dataset.horarios || "[]");
-
-      try {
-        // Busca todos os agendamentos já marcados para essa data com esse médico
-        const q = query(collection(db, "agendamentos"), 
-          where("date", "==", dataSelecionada), 
-          where("medico", "==", nomeMedico)
-        );
-        const agendamentosSnap = await getDocs(q);
-        
-        const horariosOcupados = [];
-        agendamentosSnap.forEach(docAgendado => {
-          horariosOcupados.push(docAgendado.data().horario);
-        });
-
-        // Filtra os horários removendo os que já estão ocupados
-        horarioSelect.innerHTML = '<option value="" disabled selected>Selecione o horário...</option>';
-        horariosDoMedico.forEach(horario => {
-          const option = document.createElement('option');
-          option.value = horario;
-          
-          if (horariosOcupados.includes(horario)) {
-            option.textContent = `${horario} (Ocupado)`;
-            option.disabled = true;
-          } else {
-            option.textContent = horario;
-          }
-          horarioSelect.appendChild(option);
-        });
-
-      } catch (err) {
-        console.error("Erro ao verificar horários ocupados:", err);
-      }
-    });
-
-    // =========================================================================
-
-    // UPLOAD PREVIEW
     arquivoInput.addEventListener('change', (e) => {
       if (e.target.files.length > 0) {
         fileNameSpan.textContent = e.target.files[0].name;
@@ -390,7 +362,9 @@
       }
     });
 
-    // PDF COMPROVANTE
+    // =========================================================================
+    // GERAÇÃO DO COMPROVANTE EM PDF
+    // =========================================================================
     function gerarPdfComprovante(dados) {
       if (!window.jspdf) return;
       const { jsPDF } = window.jspdf;
@@ -398,6 +372,7 @@
 
       docPdf.setFillColor(30, 58, 95);
       docPdf.rect(0, 0, 210, 35, "F");
+
       docPdf.setTextColor(255, 255, 255);
       docPdf.setFont("helvetica", "bold");
       docPdf.setFontSize(16);
@@ -410,35 +385,40 @@
       docPdf.setFontSize(11);
       docPdf.setFont("helvetica", "normal");
       docPdf.text(`Emitido em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 15, 58);
+
       docPdf.setDrawColor(200, 200, 200);
       docPdf.line(15, 65, 195, 65);
 
       docPdf.setFont("helvetica", "bold");
       docPdf.text("Dados do Atendimento:", 15, 78);
+      
       docPdf.setFont("helvetica", "normal");
       docPdf.text(`• Empresa: ${dados.empresa}`, 15, 88);
       docPdf.text(`• Colaborador: ${dados.funcionario}`, 15, 98);
       docPdf.text(`• CPF: ${dados.cpf}`, 15, 108);
-      docPdf.text(`• Médico Selecionado: ${dados.medico}`, 15, 118);
-      docPdf.text(`• Data: ${dados.date.split('-').reverse().join('/')} às ${dados.horario}`, 15, 128);
+      docPdf.text(`• Médico: ${dados.medico}`, 15, 118);
+      docPdf.text(`• Data Marcada: ${dados.date.split('-').reverse().join('/')}`, 15, 128);
+      docPdf.text(`• Horário de Chegada: ${dados.horario}`, 15, 138);
 
       const listaExamesStr = Object.keys(dados.exams).join(", ");
-      docPdf.text(`• Exames: ${listaExamesStr}`, 15, 138);
+      docPdf.text(`• Exames Solicitados: ${listaExamesStr}`, 15, 148);
 
       docPdf.setFillColor(240, 244, 248);
-      docPdf.roundedRect(15, 155, 180, 30, 3, 3, "F");
+      docPdf.roundedRect(15, 165, 180, 30, 3, 3, "F");
       docPdf.setFont("helvetica", "bold");
       docPdf.setTextColor(30, 58, 95);
-      docPdf.text("Instruções Importantes:", 20, 165);
+      docPdf.text("Instruções Importantes:", 20, 175);
       docPdf.setFont("helvetica", "normal");
       docPdf.setFontSize(10);
-      docPdf.text("Por favor, compareça à clínica Alpale com documento de identidade com foto", 20, 173);
-      docPdf.text("e guia de encaminhamento (quando aplicável) com 10 minutos de antecedência.", 20, 180);
+      docPdf.text(`Por favor, compareça à clínica Alpale às ${dados.horario} com documento de`, 20, 183);
+      docPdf.text("identidade com foto e guia de encaminhamento (quando aplicável).", 20, 190);
 
       docPdf.save(`Comprovante_Alpale_${dados.cpf.replace(/\D/g, '')}.pdf`);
     }
 
-    // ENVIO FINAL
+    // =========================================================================
+    // ENVIO DO AGENDAMENTO PARA O BANCO
+    // =========================================================================
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -452,6 +432,7 @@
         const arquivo = arquivoInput.files[0];
         const cpfVal = cpfInput.value;
 
+        // Se houver arquivo anexado
         if (arquivo) {
           const ext = arquivo.name.split('.').pop();
           const refArquivo = storageRef(storage, `kits/${Date.now()}_${cpfVal.replace(/\D/g, '')}.${ext}`);
@@ -469,8 +450,8 @@
         const entryData = {
           id: entryId,
           date: dataInput.value,
-          horario: horarioSelect.value, // Pega o horário escolhido
-          medico: medicoSelect.value,   // Pega o médico escolhido
+          horario: horarioInput.value,  // Usa o horário bloqueado da tela
+          medico: medicoSelect.value,   // Usa o médico escolhido
           empresa: document.getElementById('empresa').value.trim(),
           tipo: document.getElementById('tipo').value,
           funcionario: document.getElementById('funcionario').value.trim(),
