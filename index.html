@@ -6,10 +6,7 @@
 <title>Agenda de Exames Ocupacionais</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
-  :root{
-    --navy:#1F4E5F; --teal:#2E86AB; --ink:#1A2B32; --paper:#F6F4EF; --line:#DCD6C9;
-    --good-bg:#E4F5EC; --good-fg:#1F8A55; --amber-bg:#FEF3C7; --amber-fg:#92400E;
-  }
+  :root{--navy:#1F4E5F;--teal:#2E86AB;--ink:#1A2B32;--paper:#F6F4EF;--line:#DCD6C9;--good-bg:#E4F5EC;--good-fg:#1F8A55;--amber-bg:#FEF3C7;--amber-fg:#92400E;}
   *{box-sizing:border-box;}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;}
   .mono{font-family:'JetBrains Mono',monospace;}
@@ -20,8 +17,7 @@
   .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   .top{justify-content:space-between;}
   .tabs{display:flex;background:rgba(255,255,255,.1);border-radius:10px;padding:4px;gap:4px;}
-  .tab{border:none;background:transparent;color:rgba(255,255,255,.8);font-weight:600;font-size:12px;
-       padding:7px 12px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:6px;}
+  .tab{border:none;background:transparent;color:rgba(255,255,255,.8);font-weight:600;font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;}
   .tab.active{background:#fff;color:var(--navy);}
   .nav{margin-top:18px;}
   .btn-ghost{background:rgba(255,255,255,.1);border:none;color:#fff;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:14px;}
@@ -33,84 +29,78 @@
   @media (max-width:900px){.grid5{grid-template-columns:1fr;}}
   .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px;}
   .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--navy);font-weight:800;margin:0 0 14px;}
-  .form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-  @media (max-width:640px){.form-grid{grid-template-columns:1fr 1fr;}}
+  .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;}
   label.field{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700;color:#6B7280;}
-  input[type=text],input[type=time],input[type=date],input[type=number]{
-    border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;
-  }
+  input[type=text],input[type=time],input[type=date],input[type=number],select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;}
   .exam-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:8px;}
   @media (max-width:640px){.exam-grid{grid-template-columns:repeat(4,1fr);}}
-  .exam-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-    border:1px solid var(--line);background:#fff;color:#6B7280;border-radius:10px;padding:9px 4px;cursor:pointer;
-    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;transition:transform .12s; text-align:center;}
-  .exam-btn:hover{transform:translateY(-1px);}
+  .exam-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid var(--line);background:#fff;color:#6B7280;border-radius:10px;padding:9px 4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;}
   .exam-btn.active{background:var(--good-fg);border-color:var(--good-fg);color:#fff;}
-  .submit-btn{margin-top:16px;display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;
-    border:none;padding:11px 18px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;}
-  .submit-btn:hover{opacity:.9;}
+  .submit-btn{margin-top:16px;display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;border:none;padding:11px 18px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;}
   .err{margin-top:10px;background:var(--amber-bg);color:var(--amber-fg);padding:9px 12px;border-radius:8px;font-size:13px;}
-  
-  /* ABAS RETRÁTEIS DOS TURNOS */
   .turno-details{margin-bottom:12px;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden;}
-  .turno-summary{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;cursor:pointer;background:var(--paper);font-weight:800;color:var(--navy);font-size:13px;list-style:none;user-select:none;}
+  .turno-summary{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;cursor:pointer;background:var(--paper);font-weight:800;color:var(--navy);font-size:13px;list-style:none;}
   .turno-summary::-webkit-details-marker{display:none;}
-  .turno-summary::after{content:'▼';font-size:10px;color:var(--teal);transition:transform 0.2s;}
+  .turno-summary::after{content:'▼';font-size:10px;color:var(--teal);}
   .turno-details[open] .turno-summary::after{transform:rotate(180deg);}
-  .turno-summary:hover{background:#E5E7EB;}
   .turno-content{padding:0;border-top:1px solid var(--line);overflow-x:auto;}
-
   table{width:100%;border-collapse:collapse;font-size:14px;}
-  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#9CA3AF;
-     padding:8px 12px;border-bottom:1px solid var(--line);}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#9CA3AF;padding:8px 12px;border-bottom:1px solid var(--line);}
   td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle;}
-  tr:last-child td{border-bottom:none;}
-  .chip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
-        padding:2px 6px;border-radius:6px;background:var(--good-bg);color:var(--good-fg);border:1px solid var(--good-fg);margin:1px;}
+  .chip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;background:var(--good-bg);color:var(--good-fg);border:1px solid var(--good-fg);margin:1px;}
   .icon-btn{border:none;background:transparent;cursor:pointer;padding:6px;border-radius:6px;color:#6B7280;}
   .icon-btn:hover{background:#F3F4F6;}
   .empty{text-align:center;color:#9CA3AF;font-size:14px;padding:36px 10px;}
-  .stat{background:var(--paper);border-radius:10px;padding:12px;}
-  .stat p.label{font-size:10.5px;text-transform:uppercase;color:#9CA3AF;margin:0 0 3px;font-family:'JetBrains Mono',monospace;}
-  .stat p.value{font-size:24px;font-weight:800;margin:0;font-family:'JetBrains Mono',monospace;}
-  .stats2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-  .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-  .bar-label{width:70px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);flex-shrink:0;text-align:right;}
-  .bar-track{flex:1;background:#F3F4F6;border-radius:5px;height:16px;position:relative;overflow:hidden;}
+  .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .bar-label{width:70px;font-family:'JetBrains Mono',monospace;font-size:10px;text-align:right;flex-shrink:0;}
+  .bar-track{flex:1;background:#F3F4F6;border-radius:5px;height:12px;overflow:hidden;}
   .bar-fill{background:var(--teal);height:100%;border-radius:5px;}
-  .bar-val{width:26px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6B7280;text-align:left;}
+  .bar-val{width:26px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#6B7280;}
   .tips{border-radius:14px;padding:20px;color:#fff;background:linear-gradient(135deg,var(--navy),var(--teal));}
-  .tips p.k{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,.7);
-            font-family:'JetBrains Mono',monospace;margin:0 0 6px;}
-  .tips ul{margin:0;padding-left:0;list-style:none;font-size:14px;line-height:1.7;color:rgba(255,255,255,.92);}
+  .tips p.k{font-size:10.5px;text-transform:uppercase;color:rgba(255,255,255,.7);font-family:'JetBrains Mono',monospace;margin:0 0 6px;}
+  .tips ul{margin:0;padding-left:0;list-style:none;font-size:14px;line-height:1.7;}
   .month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
-  .wk-lbl{text-align:center;font-size:10.5px;text-transform:uppercase;color:#9CA3AF;font-weight:800;
-          font-family:'JetBrains Mono',monospace;margin-bottom:4px;}
-  .day-cell{min-height:64px;border:1px solid var(--line);border-radius:9px;padding:8px;text-align:left;
-    background:#fff;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;}
-  .day-cell:hover{transform:translateY(-1px);}
+  .wk-lbl{text-align:center;font-size:10.5px;text-transform:uppercase;color:#9CA3AF;font-weight:800;font-family:'JetBrains Mono',monospace;margin-bottom:4px;}
+  .day-cell{min-height:64px;border:1px solid var(--line);border-radius:9px;padding:8px;text-align:left;background:#fff;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;}
   .day-cell.has{background:var(--good-bg);}
   .day-cell.today{border-width:2px;border-color:var(--navy);}
   .day-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;}
-  .day-badge{align-self:flex-start;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;
-    background:var(--good-fg);color:#fff;padding:2px 6px;border-radius:6px;}
+  .day-badge{align-self:flex-start;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;background:var(--good-fg);color:#fff;padding:2px 6px;border-radius:6px;}
   .year-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
   @media (max-width:800px){.year-grid{grid-template-columns:repeat(2,1fr);}}
   @media (max-width:520px){.year-grid{grid-template-columns:1fr;}}
   .month-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;text-align:left;}
-  .month-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-  .month-card-top .name{font-weight:800;font-size:13px;color:var(--navy);}
   .mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
   .mini-cell{aspect-ratio:1;border-radius:2px;}
-  select, .free-input{width:100%;}
-  .mic-hint{font-size:12px;color:#9CA3AF;margin:0;}
-  .mic-warn{color:var(--amber-fg);}
-  .ai-toggle{background:transparent;border:1px solid var(--line);color:var(--navy);font-weight:700;font-size:12px;
-    padding:7px 12px;border-radius:999px;cursor:pointer;}
-  .ai-toggle.on{border-color:var(--good-fg);color:var(--good-fg);background:var(--good-bg);}
-  .ai-panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:10px;}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .modal-card{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;position:relative;}
+  .modal-close{position:absolute;top:16px;right:16px;background:var(--paper);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;}
+  .fab{position:fixed;left:22px;bottom:22px;width:60px;height:60px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;font-size:24px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:1000;}
+  .fab.listening{background:#DC2626;}
+  .fab.thinking{background:var(--teal);}
+  .fab-dot{position:absolute;top:2px;right:2px;width:14px;height:14px;border-radius:50%;background:var(--good-fg);border:2px solid #fff;}
+  .chat-panel{position:fixed;left:22px;bottom:94px;width:340px;max-width:calc(100vw - 44px);max-height:70vh;background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.22);display:flex;flex-direction:column;overflow:hidden;z-index:1000;border:1px solid var(--line);}
+  .chat-head{background:linear-gradient(120deg,var(--navy),var(--teal));color:#fff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .chat-head .title{font-weight:800;font-size:13.5px;}
+  .chat-head .status{font-size:11px;color:rgba(255,255,255,.8);}
+  .chat-head-btns{display:flex;gap:4px;}
+  .chat-head-btns button{background:rgba(255,255,255,.15);border:none;color:#fff;width:26px;height:26px;border-radius:7px;cursor:pointer;}
+  .chat-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--paper);}
+  .bubble-row{display:flex;}
+  .bubble-row.user{justify-content:flex-end;}
+  .bubble{max-width:85%;padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.5;}
+  .bubble.user{background:var(--navy);color:#fff;}
+  .bubble.assistant{background:#fff;border:1px solid var(--line);}
+  .bubble.error{background:var(--amber-bg);color:var(--amber-fg);}
+  .bubble .fields{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+  .chat-empty{text-align:center;color:#9CA3AF;font-size:12.5px;padding:24px 10px;}
+  .chat-foot{padding:12px;border-top:1px solid var(--line);background:#fff;}
+  .talk-btn{width:100%;border:none;border-radius:10px;padding:11px;font-weight:700;font-size:13.5px;cursor:pointer;background:var(--navy);color:#fff;}
+  .talk-btn.listening{background:#DC2626;}
+  .talk-btn:disabled{opacity:.5;cursor:not-allowed;}
+  .chat-foot-hint{font-size:10.5px;color:#9CA3AF;text-align:center;margin:6px 0 0;}
+  .ai-panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 12px 0;}
   .ai-panel p{font-size:12.5px;color:#4B5563;line-height:1.6;margin:0 0 10px;}
-  .ai-panel a{color:var(--teal);}
   .ai-key-row{display:flex;gap:8px;flex-wrap:wrap;}
   .ai-key-row input{flex:1;min-width:200px;}
   .ai-key-row button{border:none;border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;}
@@ -119,104 +109,101 @@
   .ai-status{margin-top:8px;font-size:12px;font-weight:700;}
   .ai-status.on{color:var(--good-fg);}
   .ai-status.off{color:#9CA3AF;}
-  
-  /* --- LOGO AUMENTADA COM CORES ORIGINAIS --- */
-  .logo-badge{display:flex;align-items:center;justify-content:center;}
-  .logo-badge img{height: auto; max-height: 160px; max-width: 100%; display: block;}
-
-  /* ---- Edit Modal ---- */
-  .overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);}
-  .modal-card{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.3);position:relative;}
-  .modal-close{position:absolute;top:16px;right:16px;background:var(--paper);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-weight:bold;color:var(--ink);display:flex;align-items:center;justify-content:center;transition:transform 0.1s;}
-  .modal-close:hover{transform:scale(1.1);background:#E5E7EB;}
-
-  /* ---- floating voice assistant widget ---- */
-  .fab{position:fixed;left:22px;bottom:22px;width:60px;height:60px;border-radius:50%;border:none;
-    background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;font-size:24px;cursor:pointer;
-    box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:1000;display:flex;align-items:center;justify-content:center;
-    transition:transform .15s ease;}
-  .fab:hover{transform:scale(1.06);}
-  .fab.listening{background:#DC2626;animation:fabpulse 1.3s infinite;}
-  .fab.thinking{background:var(--teal);}
-  @keyframes fabpulse{0%{box-shadow:0 0 0 0 rgba(220,38,38,.5);}70%{box-shadow:0 0 0 16px rgba(220,38,38,0);}100%{box-shadow:0 0 0 0 rgba(220,38,38,0);}}
-  .fab-dot{position:absolute;top:2px;right:2px;width:14px;height:14px;border-radius:50%;background:var(--good-fg);
-    border:2px solid #fff;}
-  .chat-panel{position:fixed;left:22px;bottom:94px;width:340px;max-width:calc(100vw - 44px);max-height:70vh;
-    background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.22);display:flex;flex-direction:column;
-    overflow:hidden;z-index:1000;border:1px solid var(--line);}
-  .chat-head{background:linear-gradient(120deg,var(--navy),var(--teal));color:#fff;padding:12px 14px;
-    display:flex;align-items:center;justify-content:space-between;gap:8px;}
-  .chat-head .title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13.5px;}
-  .chat-head .status{font-size:11px;color:rgba(255,255,255,.8);font-weight:600;}
-  .chat-head-btns{display:flex;gap:4px;}
-  .chat-head-btns button{background:rgba(255,255,255,.15);border:none;color:#fff;width:26px;height:26px;
-    border-radius:7px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;}
-  .chat-head-btns button:hover{background:rgba(255,255,255,.28);}
-  .chat-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--paper);}
-  .bubble-row{display:flex;}
-  .bubble-row.user{justify-content:flex-end;}
-  .bubble-row.assistant{justify-content:flex-start;}
-  .bubble{max-width:85%;padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.5;}
-  .bubble.user{background:var(--navy);color:#fff;border-bottom-right-radius:4px;}
-  .bubble.assistant{background:#fff;border:1px solid var(--line);color:var(--ink);border-bottom-left-radius:4px;}
-  .bubble.error{background:var(--amber-bg);border:1px solid #F5D08A;color:var(--amber-fg);border-bottom-left-radius:4px;}
-  .bubble .fields{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
-  .thinking-dots{display:inline-flex;gap:3px;align-items:center;}
-  .thinking-dots span{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:bounce 1.2s infinite;}
-  .thinking-dots span:nth-child(2){animation-delay:.15s;}
-  .thinking-dots span:nth-child(3){animation-delay:.3s;}
-  @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.5;}30%{transform:translateY(-4px);opacity:1;}}
-  .chat-empty{text-align:center;color:#9CA3AF;font-size:12.5px;padding:24px 10px;}
-  .chat-foot{padding:12px;border-top:1px solid var(--line);background:#fff;}
-  .talk-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:10px;
-    padding:11px;font-weight:700;font-size:13.5px;cursor:pointer;background:var(--navy);color:#fff;}
-  .talk-btn.listening{background:#DC2626;}
-  .talk-btn:disabled{opacity:.5;cursor:not-allowed;}
-  .chat-foot-hint{font-size:10.5px;color:#9CA3AF;text-align:center;margin:6px 0 0;}
-  .medico-hint{margin-top:12px;padding:9px 12px;border-radius:9px;font-size:13px;}
-  .medico-hint.ok{background:var(--good-bg);color:var(--good-fg);}
-  .medico-hint.pending{background:var(--paper);color:#6B7280;border:1px dashed var(--line);}
-  .medico-hint.warn{background:var(--amber-bg);color:var(--amber-fg);}
+  .logo-badge img{height:auto;max-height:160px;max-width:100%;display:block;}
+  /* Configuração de vagas */
+  #btnAbrirConfigVagas{position:fixed;bottom:24px;right:24px;background:#1E3A5F;color:#fff;border:none;padding:12px 20px;border-radius:50px;font-family:sans-serif;font-weight:600;font-size:14px;cursor:pointer;box-shadow:0 4px 15px rgba(30,58,95,.35);z-index:9998;}
+  #modalConfigVagas{display:none;position:fixed;inset:0;background:rgba(10,37,64,.65);z-index:9999;justify-content:center;align-items:center;padding:16px;}
+  .modal-vagas-card{background:#fff;width:100%;max-width:820px;max-height:90vh;border-radius:14px;display:flex;flex-direction:column;overflow:hidden;font-family:sans-serif;}
+  .modal-vagas-header{background:#1E3A5F;color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;}
+  .modal-vagas-header h3{margin:0;font-size:17px;}
+  .btn-copiar-link{background:#008CB4;color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
+  .btn-fechar-vagas{background:transparent;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1;}
+  .modal-vagas-body{padding:20px 24px;overflow-y:auto;color:#2C3E50;}
+  .config-grid-top{display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:18px;}
+  @media (max-width:600px){.config-grid-top{grid-template-columns:1fr;}}
+  .config-section{background:#F4F7FA;padding:14px 16px;border-radius:10px;border:1px solid #E2E8F0;}
+  .config-section label{display:block;font-weight:700;font-size:13px;color:#1E3A5F;margin-bottom:6px;}
+  .config-section input{width:100%;padding:8px 10px;border:1px solid #CBD5E1;border-radius:6px;font-size:14px;box-sizing:border-box;}
+  .tabela-exames-config{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:18px;}
+  .tabela-exames-config th{text-align:left;padding:10px 8px;border-bottom:2px solid #1E3A5F;color:#1E3A5F;font-size:13px;}
+  .tabela-exames-config td{padding:8px;border-bottom:1px solid #E2E8F0;}
+  .tabela-exames-config input[type="number"]{width:85px;padding:6px;border:1px solid #CBD5E1;border-radius:6px;text-align:center;font-weight:600;}
+  .slot-card{border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:10px;background:#F4F7FA;}
+  .slot-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+  .slot-head input{width:80px;padding:6px;border:1px solid #CBD5E1;border-radius:6px;}
+  .slot-group{font-size:12px;color:#1E3A5F;font-weight:700;margin-top:8px;}
+  .slot-checks{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;margin-top:4px;font-weight:400;color:#2C3E50;}
+  .modal-vagas-footer{padding:14px 24px;background:#F8FAFC;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .btn-salvar-vagas{background:#008CB4;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;}
+  .btn-recalc{background:#E2E8F0;color:#1E3A5F;border:none;padding:10px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;}
 </style>
 </head>
 <body>
 <header>
   <div class="wrap">
     <div class="row top">
-      <div>
-        <h1>Agenda de Exames Ocupacionais</h1>
-      </div>
+      <div><h1>Agenda de Exames Ocupacionais</h1></div>
       <div class="logo-badge"><img src="logo.png" alt="Alpale Saúde Ocupacional"></div>
       <div class="tabs" id="tabs"></div>
     </div>
     <div class="row nav" id="nav"></div>
   </div>
 </header>
-<main id="main">
-  <div style="text-align:center; padding: 40px; color: #1F4E5F;">
-    <h2>Carregando sistema...</h2>
-    <p>Conectando ao banco de dados seguro da Alpale.</p>
-  </div>
-</main>
+<main id="main"><div style="text-align:center;padding:40px;color:#1F4E5F;"><h2>Carregando sistema...</h2></div></main>
 <div id="voice-widget"></div>
 
-<!-- TRAVA DE SEGURANÇA CONTRA FALHA DE REDE -->
-<script>
-  setTimeout(() => {
-    const main = document.getElementById("main");
-    if(main && main.innerHTML.includes("Carregando sistema")) {
-      main.innerHTML = `<div style="text-align:center; padding: 40px; color: #DC2626; max-width:600px; margin:0 auto;">
-        <h2>⚠️ Falha de Conexão Detectada</h2>
-        <p style="color:var(--ink);">A página demorou muito para conectar ao banco de dados. Isso geralmente acontece quando um antivírus, extensão do navegador ou a própria rede está bloqueando o acesso temporariamente.</p>
-        <button onclick="location.reload()" style="padding:10px 20px; border:none; background:var(--navy); color:white; border-radius:8px; cursor:pointer; margin-top:10px; font-weight:bold;">Tentar Novamente</button>
-      </div>`;
-    }
-  }, 4000);
-</script>
+<!-- MODAL DE CONFIGURAÇÃO DE VAGAS -->
+<button id="btnAbrirConfigVagas" type="button">⚙️ Configurar Vagas Online</button>
+<div id="modalConfigVagas">
+  <div class="modal-vagas-card">
+    <div class="modal-vagas-header">
+      <h3>⚙️ Controle de Vagas e Exames (Site do Cliente)</h3>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <button class="btn-copiar-link" id="btnCopiarLinkCliente" type="button">🔗 Copiar Link do Cliente</button>
+        <button class="btn-fechar-vagas" id="btnFecharConfigVagas" type="button">&times;</button>
+      </div>
+    </div>
+    <div class="modal-vagas-body">
+      <div class="config-grid-top">
+        <div class="config-section">
+          <label for="cfgLimiteTotal">Limite geral / dia</label>
+          <input type="number" id="cfgLimiteTotal" min="1" max="300" value="35">
+          <small style="color:#6C7A89;font-size:11px;">Total máximo de pacientes por dia.</small>
+        </div>
+        <div class="config-section">
+          <label for="cfgDatasBloqueadas">Feriados / datas bloqueadas (AAAA-MM-DD)</label>
+          <input type="text" id="cfgDatasBloqueadas" placeholder="Ex: 2026-11-02, 2026-12-25">
+          <small style="color:#6C7A89;font-size:11px;">Separe por vírgula. Sábados e domingos já são bloqueados.</small>
+        </div>
+      </div>
+
+      <h4 style="margin:0 0 8px;color:#1E3A5F;">Exames no site</h4>
+      <table class="tabela-exames-config">
+        <thead><tr>
+          <th style="text-align:center;width:130px;">Liberado no site?</th>
+          <th>Exame ocupacional</th>
+          <th style="width:160px;">Limite diário</th>
+        </tr></thead>
+        <tbody id="listaExamesConfig"></tbody>
+      </table>
+
+      <h4 style="margin:0 0 8px;color:#1E3A5F;">Vagas e exames por médico / turno</h4>
+      <small style="color:#6C7A89;font-size:11px;display:block;margin-bottom:10px;">Limite 0 = sem limite no turno (vale só o limite geral). Tipos e exames desmarcados = todos permitidos.</small>
+      <div id="listaSlotsConfig"></div>
+    </div>
+    <div class="modal-vagas-footer">
+      <span id="statusConfigVagas" style="font-size:13px;font-weight:600;"></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-recalc" id="btnRecalcContadores" type="button">🔄 Recalcular contadores</button>
+        <button class="btn-salvar-vagas" id="btnSalvarConfigVagas" type="button">💾 Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-  import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, setDoc, deleteDoc, getDoc, getDocs, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAL2xXqo83pWKhyCta4Nk0gockDstxtJY4",
@@ -226,354 +213,325 @@
     messagingSenderId: "491340347533",
     appId: "1:491340347533:web:0983b4dba5bbdcc534cac4"
   };
-
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  window.db = db; 
+  window.db = db;
 
-  const EXAMS = ["CLINICO","AUDIO","EEG","ECG","ACV","ESP","ISHI","RX","LAB","PSICO","CINESIO","ODONTO","TOXIC","OTOLOGICO","VOCAL","PERICIA","PERICIA DOM", "T. SONO"];
-  const TIPOS_SUGERIDOS = ["Admissional","Periódico","Demissional","Mudança de Função","Mudança de Risco","Retorno","Revalidação","Perícia","Perícia Domiciliar"];
-  const WEEKDAY_LABELS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-  const MONTH_LABELS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-
-  function pad2(n){ return String(n).padStart(2,"0"); }
-
-  const SCHEDULE_BY_WEEKDAY = {
-    1: [ { start:"06:30", end:"10:30", medico:"Dra. Gizelle" }, { start:"11:00", end:"13:00", medico:"Dr. Luiz" }, { start:"16:00", end:"17:00", medico:"Dra. Nadia" } ],
-    2: [ { start:"06:30", end:"10:30", medico:"Dra. Gizelle" }, { start:"11:00", end:"13:00", medico:"Dra. Nadia" }, { start:"14:30", end:"16:00", medico:"Dr. Luiz" } ],
-    3: [ { start:"06:30", end:"10:30", medico:"Dra. Gizelle" }, { start:"11:00", end:"13:00", medico:"Dr. Luiz" } ],
-    4: [ { start:"06:30", end:"10:30", medico:"Dra. Louane" }, { start:"11:00", end:"13:00", medico:"Dra. Nadia" }, { start:"13:30", end:"17:00", medico:"Dra. Gizelle" } ],
-    5: [ { start:"06:30", end:"10:30", medico:"Dra. Louane" }, { start:"11:00", end:"13:00", medico:"Dra. Nadia" }, { start:"13:30", end:"16:00", medico:"Dr. Guilherme" } ],
+  /* =========================================================
+     REGRAS COMPARTILHADAS (idênticas em index.html e agendar.html)
+     ========================================================= */
+  const CATALOGO = {
+    CLINICO:{ativo:true,limiteDia:35,nome:"Clínico"}, AUDIO:{ativo:true,limiteDia:25,nome:"Audiometria"},
+    ACV:{ativo:true,limiteDia:30,nome:"Acuidade Visual"}, LAB:{ativo:true,limiteDia:25,nome:"Laboratório (Sangue)"},
+    RX:{ativo:true,limiteDia:20,nome:"Raio-X"}, PSICO:{ativo:true,limiteDia:8,nome:"Psicossocial"},
+    ECG:{ativo:true,limiteDia:15,nome:"ECG"}, EEG:{ativo:true,limiteDia:10,nome:"EEG"},
+    ESP:{ativo:true,limiteDia:20,nome:"Espirometria"}, ISHI:{ativo:true,limiteDia:30,nome:"Ishihara"},
+    CINESIO:{ativo:false,limiteDia:10,nome:"Cinesiológico"}, ODONTO:{ativo:false,limiteDia:10,nome:"Odontológico"},
+    TOXIC:{ativo:false,limiteDia:10,nome:"Toxicológico"}, OTOLOGICO:{ativo:false,limiteDia:15,nome:"Otológico"},
+    VOCAL:{ativo:false,limiteDia:10,nome:"Avaliação Vocal"}, "T. SONO":{ativo:false,limiteDia:15,nome:"Teste do Sono"},
+    PERICIA:{ativo:false,limiteDia:5,nome:"Perícia"}, "PERICIA DOM":{ativo:false,limiteDia:2,nome:"Perícia Domiciliar"}
   };
-  const WEEKDAY_FULL = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
-
-  function timeToMin(hhmm){ const [h,m] = hhmm.split(":").map(Number); return h*60+m; }
-  function getMedicoForSlot(weekday, hhmm){
-    const slots = SCHEDULE_BY_WEEKDAY[weekday];
-    if(!slots || !hhmm) return null;
-    const t = timeToMin(hhmm);
-    const hit = slots.find(s => t >= timeToMin(s.start) && t < timeToMin(s.end));
-    return hit ? hit.medico : null;
-  }
-  function getMedicoForDate(dateISO, hhmm){
-    if(!hhmm) return null;
-    const weekday = new Date(dateISO+"T12:00:00").getDay();
-    return getMedicoForSlot(weekday, hhmm);
-  }
-  function todayISO(){
-    const d = new Date();
-    const off = d.getTimezoneOffset();
-    return new Date(d.getTime() - off*60000).toISOString().slice(0,10);
-  }
-  function fmtWeekday(iso){
-    const d = new Date(iso+"T12:00:00");
-    const s = d.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
-    return s.charAt(0).toUpperCase()+s.slice(1);
-  }
-  function shiftDate(iso,delta){
-    const d = new Date(iso+"T12:00:00"); d.setDate(d.getDate()+delta);
-    return d.toISOString().slice(0,10);
-  }
-  function shiftMonth(ym,delta){
-    const [y,m] = ym.split("-").map(Number);
-    const d = new Date(y, m-1+delta, 1);
-    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`;
-  }
-  function monthMatrix(ym){
-    const [y,m] = ym.split("-").map(Number);
-    const first = new Date(y,m-1,1);
-    const startOffset = first.getDay();
-    const daysInMonth = new Date(y,m,0).getDate();
-    const cells = [];
-    for(let i=0;i<startOffset;i++) cells.push(null);
-    for(let d=1;d<=daysInMonth;d++) cells.push(`${y}-${pad2(m)}-${pad2(d)}`);
-    while(cells.length%7!==0) cells.push(null);
-    return cells;
-  }
-  function miniMonthMatrix(year, monthIndex0){
-    const first = new Date(year, monthIndex0, 1);
-    const startOffset = first.getDay();
-    const daysInMonth = new Date(year, monthIndex0+1, 0).getDate();
-    const cells = [];
-    for(let i=0;i<startOffset;i++) cells.push(null);
-    for(let d=1;d<=daysInMonth;d++) cells.push(`${year}-${pad2(monthIndex0+1)}-${pad2(d)}`);
-    return cells;
-  }
-  function emptyExams(){ const o={}; EXAMS.forEach(k=>o[k]=false); return o; }
-  
-  function emptyForm(d){ 
-    return { date: d || todayISO(), horario:"", empresa:"", tipo:"", funcionario:"", funcao:"", qtd: 1, exams: emptyExams() }; 
-  }
-  
-  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
-
-  // ---------- state ----------
-  const state = {
-    date: todayISO(),
-    viewMode: "day",
-    monthCursor: todayISO().slice(0,7),
-    yearCursor: Number(todayISO().slice(0,4)),
-    allEntries: [], 
-    entries: [],    
-    index: {},      
-    form: emptyForm(todayISO()),
-    editForm: null, 
-    formError: "",
-    confirmDeleteId: null,
-    error: "",
-    listening: false,
-    aiThinking: false,
-    micError: "",
-    apiKey: localStorage.getItem("claude-api-key") || "",
-    showAiPanel: false,
-    apiKeyDraft: "",
-    widgetOpen: false,
-    chatMessages: [], 
-    speechEnabled: true,
-    pendingAppointment: null,
-    awaitingConfirmation: false
+  const TIPOS_ASO = ["Admissional","Periódico","Demissional","Mudança de Função","Mudança de Risco","Retorno","Revalidação","Perícia","Perícia Domiciliar"];
+  const ESCALA = {
+    1:[{nome:"Dra. Gizelle",inicio:"06:30",fim:"10:30"},{nome:"Dr. Luiz",inicio:"11:00",fim:"13:00"},{nome:"Dra. Nadia",inicio:"16:00",fim:"17:00"}],
+    2:[{nome:"Dra. Gizelle",inicio:"06:30",fim:"10:30"},{nome:"Dra. Nadia",inicio:"11:00",fim:"13:00"},{nome:"Dr. Luiz",inicio:"14:30",fim:"16:00"}],
+    3:[{nome:"Dra. Gizelle",inicio:"06:30",fim:"10:30"},{nome:"Dr. Luiz",inicio:"11:00",fim:"13:00"}],
+    4:[{nome:"Dra. Louane",inicio:"06:30",fim:"10:30"},{nome:"Dra. Nadia",inicio:"11:00",fim:"13:00"},{nome:"Dra. Gizelle",inicio:"13:30",fim:"17:00"}],
+    5:[{nome:"Dra. Louane",inicio:"06:30",fim:"10:30"},{nome:"Dra. Nadia",inicio:"11:00",fim:"13:00"},{nome:"Dr. Guilherme",inicio:"13:30",fim:"16:00"}]
   };
-
-  function setState(patch){ Object.assign(state, patch); render(); }
-
-  // --- ESCUTANDO O FIREBASE EM TEMPO REAL ---
-  if(db) {
-    onSnapshot(collection(db, "agendamentos"), (snapshot) => {
-      const all = [];
-      const idx = {};
-      snapshot.forEach(d => {
-        const data = d.data();
-        all.push(data);
-        const q = data.qtd || 1;
-        idx[data.date] = (idx[data.date] || 0) + q;
-      });
-      state.allEntries = all;
-      state.index = idx;
-      state.entries = all.filter(e => e.date === state.date);
-      render(); 
+  const hm = s => { const [h,m]=s.split(":").map(Number); return h*60+m; };
+  const pad2 = n => String(n).padStart(2,"0");
+  const diaSemana = iso => new Date(iso+"T12:00:00").getDay();
+  function slotsDoDia(iso){
+    const wd = diaSemana(iso);
+    return (ESCALA[wd]||[]).map((s,idx)=>({...s, idx, wd, key:`${wd}|${s.inicio}`}));
+  }
+  function slotPorHorario(iso, horario){
+    if(!horario) return null;
+    const t = hm(horario);
+    return slotsDoDia(iso).find(s => t>=hm(s.inicio) && t<hm(s.fim)) || null;
+  }
+  function regraDoSlot(cfg, key){ return (cfg.slots||{})[key] || {limite:0,tiposAso:[],exames:[]}; }
+  function ajustarContadores(c, e, sinal){
+    const q = (e.qtd||1)*sinal;
+    c.total = Math.max(0,(c.total||0)+q);
+    c.slots = c.slots||{}; c.exames = c.exames||{};
+    if(e.slot) c.slots[e.slot] = Math.max(0,(c.slots[e.slot]||0)+q);
+    Object.keys(e.exams||{}).forEach(cod => { if(e.exams[cod]) c.exames[cod] = Math.max(0,(c.exames[cod]||0)+q); });
+  }
+  function validarContra(c, cfg, e, admin){
+    if(admin) return null;
+    const q = e.qtd||1;
+    const limTotal = parseInt(cfg.limiteTotalDia,10)||35;
+    if((c.total||0)+q > limTotal) return "VAGAS_ESGOTADAS";
+    const ex = {...CATALOGO, ...(cfg.exames||{})};
+    for(const cod of Object.keys(e.exams||{})){
+      const lim = parseInt(ex[cod]?.limiteDia,10)||0;
+      if(lim>0 && ((c.exames||{})[cod]||0)+q > lim) return "EXAME_ESGOTADO:"+(ex[cod]?.nome||cod);
+    }
+    const r = regraDoSlot(cfg, e.slot);
+    if(r.limite>0 && ((c.slots||{})[e.slot]||0)+q > r.limite) return "TURNO_ESGOTADO";
+    if(r.tiposAso?.length && !r.tiposAso.includes(e.tipo)) return "TIPO_NAO_PERMITIDO";
+    const proibido = Object.keys(e.exams||{}).find(cod => r.exames?.length && !r.exames.includes(cod));
+    if(proibido) return "EXAME_NAO_PERMITIDO:"+proibido;
+    return null;
+  }
+  // Grava agendamento e atualiza contadores em uma transação. admin=true ignora limites (uso do painel).
+  async function gravarAgendamento(e, {admin=false, anterior=null}={}){
+    await runTransaction(db, async (tx) => {
+      const cfgSnap = await tx.get(doc(db,"configuracoes","limites_agendamento"));
+      const cfg = cfgSnap.exists() ? cfgSnap.data() : {};
+      const cRef = doc(db,"contadores",e.date);
+      const cSnap = await tx.get(cRef);
+      const c = cSnap.exists() ? cSnap.data() : {};
+      c.total ??= 0; c.slots ??= {}; c.exames ??= {};
+      let cOldRef=null, cOld=null;
+      if(anterior && anterior.date !== e.date){
+        cOldRef = doc(db,"contadores",anterior.date);
+        const s = await tx.get(cOldRef);
+        cOld = s.exists() ? s.data() : {total:0,slots:{},exames:{}};
+      }
+      if(anterior){
+        if(anterior.date===e.date) ajustarContadores(c, anterior, -1);
+        else ajustarContadores(cOld, anterior, -1);
+      }
+      const erro = validarContra(c, cfg, e, admin);
+      if(erro) throw new Error(erro);
+      ajustarContadores(c, e, 1);
+      tx.set(cRef, c);
+      if(cOldRef) tx.set(cOldRef, cOld);
+      tx.set(doc(db,"agendamentos",e.id), e);
+    });
+  }
+  async function apagarAgendamento(e){
+    await runTransaction(db, async (tx) => {
+      const cRef = doc(db,"contadores",e.date);
+      const s = await tx.get(cRef);
+      const c = s.exists() ? s.data() : {total:0,slots:{},exames:{}};
+      ajustarContadores(c, e, -1);
+      tx.set(cRef, c);
+      tx.delete(doc(db,"agendamentos",e.id));
     });
   }
 
-  // ---------- actions ----------
-  function goToDay(iso){ setState({ date: iso, viewMode:"day", entries: state.allEntries.filter(e=>e.date===iso), form: emptyForm(iso), editForm:null, formError:"" }); }
-  function changeDate(iso){ setState({ date: iso, entries: state.allEntries.filter(e=>e.date===iso), form: emptyForm(iso), editForm:null, formError:"" }); }
-  function openMonth(ym){ setState({ monthCursor: ym, viewMode: "month" }); }
+  /* =========================================================
+     ESTADO E UTILITÁRIOS DO PAINEL
+     ========================================================= */
+  const WEEKDAY_LABELS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+  const WEEKDAY_FULL = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+  const MONTH_LABELS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  const DIAS_CFG = ["", "Seg", "Ter", "Qua", "Qui", "Sex"];
 
+  function todayISO(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+  function fmtWeekday(iso){ const s=new Date(iso+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"}); return s.charAt(0).toUpperCase()+s.slice(1); }
+  function shiftDate(iso,delta){ const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+delta); return d.toISOString().slice(0,10); }
+  function shiftMonth(ym,delta){ const [y,m]=ym.split("-").map(Number); const d=new Date(y,m-1+delta,1); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`; }
+  function monthMatrix(ym){
+    const [y,m]=ym.split("-").map(Number);
+    const cells=[]; for(let i=0;i<new Date(y,m-1,1).getDay();i++) cells.push(null);
+    const n=new Date(y,m,0).getDate(); for(let d=1;d<=n;d++) cells.push(`${y}-${pad2(m)}-${pad2(d)}`);
+    while(cells.length%7) cells.push(null);
+    return cells;
+  }
+  function miniMonthMatrix(year, m0){
+    const cells=[]; for(let i=0;i<new Date(year,m0,1).getDay();i++) cells.push(null);
+    const n=new Date(year,m0+1,0).getDate(); for(let d=1;d<=n;d++) cells.push(`${year}-${pad2(m0+1)}-${pad2(d)}`);
+    return cells;
+  }
+  function emptyExams(){ const o={}; Object.keys(CATALOGO).forEach(k=>o[k]=false); return o; }
+  function emptyForm(d){ return { date:d||todayISO(), horario:"", empresa:"", tipo:"", funcionario:"", funcao:"", qtd:1, exams:emptyExams() }; }
+  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function stripAccents(s){ return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(); }
+  function esc(s){ return (s??"").toString().replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+  function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstChild; }
+
+  const state = {
+    date: todayISO(), viewMode:"day", monthCursor: todayISO().slice(0,7), yearCursor: Number(todayISO().slice(0,4)),
+    allEntries:[], entries:[], index:{}, form: emptyForm(todayISO()), editForm:null, editOriginal:null,
+    formError:"", confirmDeleteId:null, error:"", listening:false, aiThinking:false,
+    apiKey: localStorage.getItem("claude-api-key")||"", showAiPanel:false, apiKeyDraft:"",
+    widgetOpen:false, chatMessages:[], speechEnabled:true, pendingAppointment:null, awaitingConfirmation:false
+  };
+  let configAtual = { limiteTotalDia:35, datasBloqueadas:[], exames: structuredClone(CATALOGO), slots:{} };
+
+  function setState(patch){ Object.assign(state, patch); render(); }
+
+  if(db){
+    onSnapshot(collection(db,"agendamentos"), snap => {
+      const all=[], idx={};
+      snap.forEach(d => { const data=d.data(); all.push(data); idx[data.date]=(idx[data.date]||0)+(data.qtd||1); });
+      state.allEntries = all; state.index = idx;
+      state.entries = all.filter(e => e.date === state.date);
+      render();
+    });
+  }
+
+  /* =========================================================
+     AÇÕES DO PAINEL
+     ========================================================= */
+  function goToDay(iso){ setState({ date:iso, viewMode:"day", entries: state.allEntries.filter(e=>e.date===iso), form: emptyForm(iso), editForm:null, formError:"" }); }
+  function changeDate(iso){ setState({ date:iso, entries: state.allEntries.filter(e=>e.date===iso), form: emptyForm(iso), editForm:null, formError:"" }); }
+  function openMonth(ym){ setState({ monthCursor:ym, viewMode:"month" }); }
   function toggleExam(k){ state.form.exams[k] = !state.form.exams[k]; render(); }
+
+  // PSICO sempre no 1º turno: força horário 06:30
+  function horarioEfetivo(horario, exams){
+    return exams.PSICO ? "06:30" : horario;
+  }
 
   async function submitForm(e){
     e.preventDefault();
     const f = state.form;
-    if(!f.horario && f.exams["CLINICO"]){ setState({formError:"Informe o horário para o médico ser escalado."}); return; }
     if(!f.empresa.trim() && !f.funcionario.trim()){ setState({formError:"Informe ao menos a empresa ou o funcionário."}); return; }
-    
-    const cleanExams = {};
-    EXAMS.forEach(k=>{ if(f.exams[k]) cleanExams[k]=1; });
-    
-    const targetDate = f.date || state.date;
-    const medico = cleanExams.CLINICO ? getMedicoForDate(targetDate, f.horario) : null;
-    
-    try {
-      const entryId = uid(); 
-      const entryData = { id: entryId, date: targetDate, horario: f.horario, empresa: f.empresa, tipo: f.tipo, funcionario: f.funcionario, funcao: f.funcao || "", exams: cleanExams, medico, qtd: parseInt(f.qtd) || 1 };
-      
-      if(db) await setDoc(doc(db, "agendamentos", entryId), entryData);
-      setState({ date: targetDate, form: emptyForm(targetDate), formError:"" });
-    } catch (err) {
+    const horario = horarioEfetivo(f.horario, f.exams);
+    if(!horario){ setState({formError:"Informe o horário de chegada."}); return; }
+    const slot = slotPorHorario(f.date, horario);
+    const exams = {}; Object.keys(f.exams).forEach(k=>{ if(f.exams[k]) exams[k]=1; });
+    if(!Object.keys(exams).length){ setState({formError:"Marque pelo menos um exame."}); return; }
+    const entry = { id:uid(), date:f.date, horario, medico: slot?.nome||null, slot: slot?.key||null,
+      empresa:f.empresa, tipo:f.tipo, funcionario:f.funcionario, funcao:f.funcao||"", exams, qtd: parseInt(f.qtd,10)||1, kitUrl:"", criadoEm:new Date().toISOString() };
+    try{
+      await gravarAgendamento(entry, {admin:true});
+      setState({ date:f.date, form: emptyForm(f.date), formError:"" });
+    }catch(err){
       setState({ formError: "Erro ao salvar na nuvem: " + err.message });
     }
   }
 
   function startEdit(entry){
-    const loadedExams = emptyExams();
-    if (entry.exams) {
-      EXAMS.forEach(k => { loadedExams[k] = !!entry.exams[k]; });
-    }
+    const loaded = emptyExams();
+    Object.keys(CATALOGO).forEach(k => { loaded[k] = !!entry.exams?.[k]; });
     setState({
-      editForm: { 
-        id: entry.id,
-        date: entry.date,
-        horario: entry.horario || "", 
-        empresa: entry.empresa || "", 
-        tipo: entry.tipo || "", 
-        funcionario: entry.funcionario || "",
-        funcao: entry.funcao || "",
-        qtd: entry.qtd || 1,
-        exams: loadedExams 
-      }
+      editOriginal: structuredClone(entry),
+      editForm: { id:entry.id, date:entry.date, horario:entry.horario||"", empresa:entry.empresa||"", tipo:entry.tipo||"",
+        funcionario:entry.funcionario||"", funcao:entry.funcao||"", qtd:entry.qtd||1, exams:loaded }
     });
   }
 
-  async function deleteEntry(id){
-    try {
-      if(db) await deleteDoc(doc(db, "agendamentos", id));
-      setState({ confirmDeleteId:null });
-    } catch(err) {
-      setState({ error: "Erro ao excluir da nuvem: " + err.message });
-    }
+  async function salvarEdicao(){
+    const f = state.editForm;
+    const exams = {}; Object.keys(f.exams).forEach(k=>{ if(f.exams[k]) exams[k]=1; });
+    const horario = horarioEfetivo(f.horario, f.exams);
+    const slot = slotPorHorario(f.date, horario);
+    const entry = { id:f.id, date:f.date, horario, medico: slot?.nome||null, slot: slot?.key||null,
+      empresa:f.empresa, tipo:f.tipo, funcionario:f.funcionario, funcao:f.funcao||"", exams, qtd:f.qtd||1,
+      kitUrl: state.editOriginal?.kitUrl||"", criadoEm: state.editOriginal?.criadoEm||new Date().toISOString() };
+    try{
+      await gravarAgendamento(entry, {admin:true, anterior: state.editOriginal});
+      setState({ editForm:null, editOriginal:null });
+    }catch(err){ alert("Erro ao salvar: "+err.message); }
   }
 
-  // ---------- voice dictation ----------
+  async function deleteEntry(entry){
+    try{
+      await apagarAgendamento(entry);
+      setState({ confirmDeleteId:null });
+    }catch(err){ setState({ error:"Erro ao excluir da nuvem: "+err.message }); }
+  }
+
+  /* =========================================================
+     VOZ / ASSISTENTE
+     ========================================================= */
   const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
   const MIC_SUPPORTED = !!SpeechRecognitionCtor;
   let recognition = null;
 
-  function stripAccents(s){ return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(); }
-
   const EXAM_SYNONYMS = {
-    CLINICO: ["clinico"], AUDIO: ["audio","audiometria"], EEG: ["eeg","eletroencefalograma"],
-    ECG: ["ecg","eletrocardiograma"], ACV: ["acv","acuidade visual"], ESP: ["esp","espirometria"],
-    ISHI: ["ishi","ishihara"], RX: ["rx","raio x","raio-x","raiox"], LAB: ["lab","laboratorial","laboratorio"],
-    PSICO: ["psico","psicotecnico"], CINESIO: ["cinesio","cinesioteste","cinesiologico"],
-    ODONTO: ["odonto","odontologico","dental"], TOXIC: ["toxic","toxicologico"], OTOLOGICO: ["otologico","otologia"],
-    VOCAL: ["triagem vocal","vocal","fonoaudiologia"],
-    PERICIA: ["pericia"], "PERICIA DOM": ["pericia domiciliar", "domiciliar"], "T. SONO": ["teste do sono", "sono"]
+    CLINICO:["clinico","consulta"], AUDIO:["audio","audiometria"], EEG:["eeg","eletroencefalograma"],
+    ECG:["ecg","eletrocardiograma"], ACV:["acv","acuidade visual"], ESP:["esp","espirometria"],
+    ISHI:["ishi","ishihara"], RX:["rx","raio x","raio-x","raiox"], LAB:["lab","laboratorial","laboratorio"],
+    PSICO:["psico","psicotecnico"], CINESIO:["cinesio","cinesioteste","cinesiologico"],
+    ODONTO:["odonto","odontologico","dental"], TOXIC:["toxic","toxicologico"], OTOLOGICO:["otologico","otologia"],
+    "PERICIA DOM":["pericia domiciliar","domiciliar"], PERICIA:["pericia"], "T. SONO":["teste do sono"]
   };
-
-  const TIME_WORDS = { "meio dia":"12:00", "meio-dia":"12:00", "meia noite":"00:00", "meia-noite":"00:00" };
+  const TIME_WORDS = { "meio dia":"12:00","meio-dia":"12:00","meia noite":"00:00","meia-noite":"00:00" };
 
   function roundToHalfHourVoice(hhmm){
-    const [h,m] = hhmm.split(":").map(Number);
-    let totalMin = h*60 + m;
-    totalMin = Math.round(totalMin/30)*30;
-    totalMin = ((totalMin % 1440) + 1440) % 1440;
-    return `${pad2(Math.floor(totalMin/60))}:${pad2(totalMin%60)}`;
+    const [h,m]=hhmm.split(":").map(Number);
+    let t=Math.round((h*60+m)/30)*30; t=((t%1440)+1440)%1440;
+    return `${pad2(Math.floor(t/60))}:${pad2(t%60)}`;
   }
-
   function extractHorario(norm){
-    for(const [word,val] of Object.entries(TIME_WORDS)){
-      if(norm.includes(word)) return roundToHalfHourVoice(val);
-    }
+    for(const [w,v] of Object.entries(TIME_WORDS)) if(norm.includes(w)) return roundToHalfHourVoice(v);
     const m = norm.match(/(\d{1,2})\s*(?:h|:|horas?)\s*(\d{1,2})?/);
-    if(m){
-      let hh = Math.min(23, parseInt(m[1],10));
-      let mm = m[2] ? Math.min(59, parseInt(m[2],10)) : 0;
-      return roundToHalfHourVoice(`${pad2(hh)}:${pad2(mm)}`);
-    }
+    if(m) return roundToHalfHourVoice(`${pad2(Math.min(23,parseInt(m[1],10)))}:${pad2(m[2]?Math.min(59,parseInt(m[2],10)):0)}`);
     return null;
   }
-
   function extractMarkedSegment(norm, raw, markers){
-    const allMarkers = ["horario","hora","empresa","funcionario","funcionaria","paciente","tipo","exame","exames"];
+    const all = ["horario","hora","empresa","funcionario","funcionaria","paciente","tipo","exame","exames"];
     for(const marker of markers){
-      const idx = norm.indexOf(marker);
-      if(idx===-1) continue;
-      const afterStart = idx + marker.length;
-      let end = raw.length;
-      for(const other of allMarkers){
-        if(other===marker) continue;
-        const oIdx = norm.indexOf(other, afterStart);
-        if(oIdx!==-1 && oIdx < end) end = oIdx;
-      }
-      const seg = raw.slice(afterStart, end).trim().replace(/^[:,-]\s*/,"");
+      const idx = norm.indexOf(marker); if(idx===-1) continue;
+      const start = idx+marker.length; let end = raw.length;
+      for(const o of all){ if(o===marker) continue; const oi=norm.indexOf(o,start); if(oi!==-1 && oi<end) end=oi; }
+      const seg = raw.slice(start,end).trim().replace(/^[:,-]\s*/,"");
       if(seg) return seg;
     }
     return null;
   }
-
-  function parseVoiceCommand(rawText){
-    const norm = stripAccents(rawText);
-    const fields = [];
-    const result = { horario:null, empresa:null, funcionario:null, tipo:null, exams:{} };
-
-    const horario = extractHorario(norm);
-    if(horario){ result.horario = horario; fields.push("horário "+horario); }
-
-    const empresa = extractMarkedSegment(norm, rawText, ["empresa"]);
-    if(empresa){ result.empresa = empresa; fields.push("empresa: "+empresa); }
-
-    const funcionario = extractMarkedSegment(norm, rawText, ["funcionario","funcionaria","paciente"]);
-    if(funcionario){ result.funcionario = funcionario; fields.push("funcionário: "+funcionario); }
-
-    for(const tipo of TIPOS_SUGERIDOS){
-      if(norm.includes(stripAccents(tipo))){ result.tipo = tipo; fields.push("tipo: "+tipo); break; }
-    }
-
-    const foundExams = [];
-    for(const [code, syns] of Object.entries(EXAM_SYNONYMS)){
-      if(syns.some(s=>norm.includes(s))){ result.exams[code]=true; foundExams.push(code); }
-    }
-    if(foundExams.length) fields.push("exames: "+foundExams.join(", "));
-
+  function parseVoiceCommand(raw){
+    const norm = stripAccents(raw);
+    const fields=[]; const result={horario:null,empresa:null,funcionario:null,tipo:null,exams:{}};
+    const h = extractHorario(norm); if(h){ result.horario=h; fields.push("horário "+h); }
+    const emp = extractMarkedSegment(norm,raw,["empresa"]); if(emp){ result.empresa=emp; fields.push("empresa: "+emp); }
+    const fun = extractMarkedSegment(norm,raw,["funcionario","funcionaria","paciente"]); if(fun){ result.funcionario=fun; fields.push("funcionário: "+fun); }
+    for(const t of TIPOS_ASO){ if(norm.includes(stripAccents(t))){ result.tipo=t; fields.push("tipo: "+t); break; } }
+    const found=[];
+    for(const [code,syns] of Object.entries(EXAM_SYNONYMS)){ if(syns.some(s=>norm.includes(s))){ result.exams[code]=true; found.push(code); } }
+    if(found.length) fields.push("exames: "+found.join(", "));
     return { result, fields };
   }
-
   function pushMessage(msg){
     state.chatMessages = [...state.chatMessages, msg];
     render();
-    const body = document.querySelector(".chat-body");
-    if(body) body.scrollTop = body.scrollHeight;
+    const body = document.querySelector(".chat-body"); if(body) body.scrollTop = body.scrollHeight;
   }
-
   function speak(text){
-    if(!state.speechEnabled) return;
-    if(!("speechSynthesis" in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "pt-BR"; u.rate = 1; window.speechSynthesis.speak(u);
-    } catch(_){}
+    if(!state.speechEnabled || !("speechSynthesis" in window)) return;
+    try{ window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="pt-BR"; window.speechSynthesis.speak(u); }catch(_){}
   }
-
-  function buildSpokenSummary(result, medico){
-    const parts = [];
-    if(result.empresa) parts.push(`empresa ${result.empresa}`);
-    if(result.funcionario) parts.push(`funcionário ${result.funcionario}`);
-    if(result.tipo) parts.push(`tipo ${result.tipo}`);
-    if(result.horario) parts.push(`às ${result.horario}`);
-    const exams = result.exames || Object.keys(result.exams||{});
-    if(exams && exams.length) parts.push(`exames ${exams.join(", ")}`);
-    if(medico) parts.push(`médico ${medico}`);
-    return parts.join(", ");
+  function buildSpokenSummary(r, medico){
+    const p=[];
+    if(r.empresa) p.push(`empresa ${r.empresa}`);
+    if(r.funcionario) p.push(`funcionário ${r.funcionario}`);
+    if(r.tipo) p.push(`tipo ${r.tipo}`);
+    if(r.horario) p.push(`às ${r.horario}`);
+    const ex = Object.keys(r.exams||{}); if(ex.length) p.push(`exames ${ex.join(", ")}`);
+    if(medico) p.push(`médico ${medico}`);
+    return p.join(", ");
   }
-
   async function confirmAppointment(){
-    if(!state.pendingAppointment) return;
-    const p = state.pendingAppointment;
-    const cleanExams = {};
-    Object.keys(p.exams||{}).forEach(k=>{ if(p.exams[k]) cleanExams[k]=1; });
-    const medico = cleanExams.CLINICO ? getMedicoForDate(state.date, p.horario) : null;
-    
-    const entryId = uid();
-    const entryData = { id: entryId, date: state.date, horario:p.horario, empresa:p.empresa, tipo:p.tipo, funcionario:p.funcionario, exams: cleanExams, medico, qtd: 1 };
-
-    try {
-      if(db) await setDoc(doc(db, "agendamentos", entryId), entryData);
-      
-      state.pendingAppointment = null;
-      state.awaitingConfirmation = false;
-      pushMessage({ role:"assistant", text: medico ? `✅ Agendamento adicionado com ${medico}!` : "✅ Agendamento adicionado com sucesso!" });
-      speak(medico ? `Agendamento confirmado com ${medico}.` : "Agendamento confirmado e adicionado.");
-    } catch (err) {
-      pushMessage({ role:"error", text: "Erro ao salvar na nuvem." });
-    }
+    const p = state.pendingAppointment; if(!p) return;
+    const horario = horarioEfetivo(p.horario, p.exams);
+    const slot = slotPorHorario(state.date, horario);
+    const exams = {}; Object.keys(p.exams||{}).forEach(k=>{ if(p.exams[k]) exams[k]=1; });
+    const entry = { id:uid(), date:state.date, horario, medico: slot?.nome||null, slot: slot?.key||null,
+      empresa:p.empresa, tipo:p.tipo, funcionario:p.funcionario, funcao:"", exams, qtd:1, kitUrl:"", criadoEm:new Date().toISOString() };
+    try{
+      await gravarAgendamento(entry, {admin:true});
+      state.pendingAppointment=null; state.awaitingConfirmation=false;
+      pushMessage({ role:"assistant", text: slot ? `✅ Agendamento adicionado com ${slot.nome}!` : "✅ Agendamento adicionado!" });
+      speak(slot ? `Agendamento confirmado com ${slot.nome}.` : "Agendamento confirmado.");
+    }catch(err){ pushMessage({ role:"error", text:"Erro ao salvar na nuvem: "+err.message }); }
   }
-
   function cancelPendingAppointment(){
-    state.pendingAppointment = null;
-    state.awaitingConfirmation = false;
-    pushMessage({ role:"assistant", text:"Ok, não adicionei esse agendamento." });
-    speak("Tudo bem, cancelado.");
+    state.pendingAppointment=null; state.awaitingConfirmation=false;
+    pushMessage({ role:"assistant", text:"Ok, não adicionei esse agendamento." }); speak("Tudo bem, cancelado.");
   }
-
   function applyParsedResult(result, fields, source){
     const exams = result.exames || Object.keys(result.exams||{});
     const prefix = source==="ai" ? "🤖 " : "🔤 ";
-
     if(!fields.length){
       pushMessage({ role:"assistant", text: prefix+'Não consegui identificar nenhum campo. Tente algo como: "horário 8 horas, empresa Paraty, tipo periódico, exames clínico".' });
-      speak("Não entendi. Pode repetir dizendo o horário e a empresa?");
-      return;
+      speak("Não entendi. Pode repetir?"); return;
     }
-
-    const canConfirm = !!result.horario && (!!result.empresa || !!result.funcionario);
-    const medico = (result.horario && exams.includes("CLINICO")) ? getMedicoForDate(state.date, result.horario) : null;
-    const displayFields = medico ? [...fields, "médico: "+medico] : fields;
-
+    const horario = horarioEfetivo(result.horario, Object.fromEntries(exams.map(k=>[k,true])));
+    const slot = horario ? slotPorHorario(state.date, horario) : null;
+    const canConfirm = !!horario && (!!result.empresa || !!result.funcionario) && !!slot;
+    const displayFields = slot ? [...fields, "médico: "+slot.nome] : fields;
     if(canConfirm){
-      state.pendingAppointment = { horario: result.horario, empresa: result.empresa||"", funcionario: result.funcionario||"", tipo: result.tipo||"", exams: Object.fromEntries(exams.map(k=>[k,true])) };
+      state.pendingAppointment = { horario, empresa: result.empresa||"", funcionario: result.funcionario||"", tipo: result.tipo||"", exams: Object.fromEntries(exams.map(k=>[k,true])) };
       state.awaitingConfirmation = true;
-      const summary = buildSpokenSummary(result, medico);
+      const summary = buildSpokenSummary(result, slot?.nome);
       pushMessage({ role:"assistant", text: prefix+"Entendi: "+summary+". Confirma o agendamento?", fields: displayFields, confirm:true });
       speak(`Você quer agendar ${summary}. Confirma?`);
     } else {
@@ -581,106 +539,79 @@
       if(result.empresa) state.form.empresa = result.empresa;
       if(result.funcionario) state.form.funcionario = result.funcionario;
       if(result.tipo) state.form.tipo = result.tipo;
-      exams.forEach(k=>{ if(EXAMS.includes(k)) state.form.exams[k]=true; });
-      if(state.viewMode!=="day") state.viewMode = "day";
-      pushMessage({ role:"assistant", text: prefix+"Preenchi o que entendi no formulário — falta horário ou empresa/funcionário para eu confirmar direto. Complete e clique em Adicionar.", fields: displayFields });
-      speak("Preenchi o formulário, mas falta horário ou empresa. Confira e adicione manualmente.");
+      exams.forEach(k=>{ if(k in CATALOGO) state.form.exams[k]=true; });
+      if(state.viewMode!=="day") state.viewMode="day";
+      pushMessage({ role:"assistant", text: prefix+"Preenchi o formulário. Falta horário válido, empresa ou funcionário para confirmar direto.", fields: displayFields });
+      speak("Preenchi o formulário. Confira e adicione manualmente.");
     }
   }
-
-  async function interpretWithAI(rawText){
-    state.aiThinking = true; render();
-    try {
+  async function interpretWithAI(raw){
+    state.aiThinking=true; render();
+    try{
       const system = `Você extrai dados de agendamentos de exames ocupacionais ditados por voz em português do Brasil.
-  Responda APENAS com um JSON válido, sem markdown, sem explicações, no formato exato:
-  {"horario": "HH:MM" ou null, "empresa": string ou null, "funcionario": string ou null, "tipo": um destes valores exatamente ou null [${TIPOS_SUGERIDOS.map(t=>`"${t}"`).join(", ")}], "exames": array com zero ou mais destes códigos exatamente [${EXAMS.map(e=>`"${e}"`).join(", ")}]}
-  Interprete sinônimos (ex: "audiometria" = AUDIO, "raio-x" = RX, "eletro" = ECG). Se a pessoa se corrigir ("não, na verdade..."), use a versão corrigida. Se algo não for mencionado, use null ou array vazio.`;
-
-      let resp = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: { "content-type": "application/json", "x-api-key": state.apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
-          body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 300, system, messages: [{ role: "user", content: rawText }] })
+Responda APENAS com JSON válido, sem markdown, no formato:
+{"horario":"HH:MM" ou null,"empresa":string ou null,"funcionario":string ou null,"tipo":um destes exatamente ou null [${TIPOS_ASO.map(t=>`"${t}"`).join(", ")}],"exames":array de zero ou mais destes códigos exatos [${Object.keys(CATALOGO).map(e=>`"${e}"`).join(", ")}]}
+"consulta" = CLINICO. Interprete sinônimos. Se a pessoa se corrigir, use a versão corrigida.`;
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST",
+        headers:{ "content-type":"application/json", "x-api-key":state.apiKey, "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true" },
+        body: JSON.stringify({ model:"claude-haiku-4-5-20251001", max_tokens:300, system, messages:[{role:"user",content:raw}] })
       });
-      
-      if(!resp.ok){ throw new Error(resp.status===401 ? "Chave de API inválida ou expirada." : "Erro na API"); }
+      if(!resp.ok) throw new Error(resp.status===401 ? "Chave de API inválida ou expirada." : "Erro na API");
       const data = await resp.json();
-      const textOut = (data.content||[]).map(b=>b.text||"").join("").trim();
-      const clean = textOut.replace(/```json|```/g,"").trim();
-      const parsed = JSON.parse(clean);
+      const txt = (data.content||[]).map(b=>b.text||"").join("").trim().replace(/```json|```/g,"").trim();
+      const parsed = JSON.parse(txt);
       if(parsed.horario) parsed.horario = roundToHalfHourVoice(parsed.horario);
-      const fields = [];
+      const fields=[];
       if(parsed.horario) fields.push("horário "+parsed.horario);
       if(parsed.empresa) fields.push("empresa: "+parsed.empresa);
       if(parsed.funcionario) fields.push("funcionário: "+parsed.funcionario);
       if(parsed.tipo) fields.push("tipo: "+parsed.tipo);
-      if(parsed.exames && parsed.exames.length) fields.push("exames: "+parsed.exames.join(", "));
+      if(parsed.exames?.length) fields.push("exames: "+parsed.exames.join(", "));
       applyParsedResult(parsed, fields, "ai");
-    } catch(err){
-      pushMessage({ role:"error", text:"⚠️ IA indisponível: " + err.message + " Usando reconhecimento por palavras-chave como reserva." });
-      const { result, fields } = parseVoiceCommand(rawText);
-      applyParsedResult({...result, exames: Object.keys(result.exams)}, fields, "rules");
-    } finally {
-      state.aiThinking = false; render();
-    }
+    }catch(err){
+      pushMessage({ role:"error", text:"⚠️ IA indisponível: "+err.message+" Usando palavras-chave." });
+      const {result,fields} = parseVoiceCommand(raw);
+      applyParsedResult({...result, exames:Object.keys(result.exams)}, fields, "rules");
+    }finally{ state.aiThinking=false; render(); }
   }
-
-  function handleTranscript(rawText){
-    pushMessage({ role:"user", text: rawText });
+  function handleTranscript(raw){
+    pushMessage({ role:"user", text:raw });
     if(state.awaitingConfirmation){
-      const norm = stripAccents(rawText);
-      const yes = /\b(sim|confirma|confirmar|pode|isso mesmo|correto|positivo|exato)\b/.test(norm);
-      const no = /\b(nao|cancela|cancelar|errado|negativo|espera)\b/.test(norm);
-      if(yes){ confirmAppointment(); return; }
-      if(no){ cancelPendingAppointment(); return; }
-      pushMessage({ role:"assistant", text:'Não entendi — diga "sim" para confirmar ou "não" para cancelar.' });
-      speak("Não entendi. Diga sim para confirmar, ou não para cancelar.");
-      return;
+      const norm = stripAccents(raw);
+      if(/\b(sim|confirma|confirmar|pode|isso mesmo|correto|positivo|exato)\b/.test(norm)){ confirmAppointment(); return; }
+      if(/\b(nao|cancela|cancelar|errado|negativo|espera)\b/.test(norm)){ cancelPendingAppointment(); return; }
+      pushMessage({ role:"assistant", text:'Não entendi. Diga "sim" para confirmar ou "não" para cancelar.' }); return;
     }
-    if(state.apiKey){ interpretWithAI(rawText); } else {
-      const { result, fields } = parseVoiceCommand(rawText);
-      applyParsedResult({...result, exames: Object.keys(result.exams)}, fields, "rules");
-    }
+    if(state.apiKey) interpretWithAI(raw);
+    else { const {result,fields}=parseVoiceCommand(raw); applyParsedResult({...result, exames:Object.keys(result.exams)}, fields, "rules"); }
   }
-
-  function saveApiKey(){
-    const key = state.apiKeyDraft.trim(); if(!key) return;
-    localStorage.setItem("claude-api-key", key); state.apiKey = key; state.apiKeyDraft = ""; render();
-  }
-  function removeApiKey(){ localStorage.removeItem("claude-api-key"); state.apiKey = ""; render(); }
-
+  function saveApiKey(){ const k=state.apiKeyDraft.trim(); if(!k) return; localStorage.setItem("claude-api-key",k); state.apiKey=k; state.apiKeyDraft=""; render(); }
+  function removeApiKey(){ localStorage.removeItem("claude-api-key"); state.apiKey=""; render(); }
   function startListening(){
-    if(!MIC_SUPPORTED){ pushMessage({ role:"error", text:"Seu navegador não tem suporte a ditado por voz. Funciona no Chrome ou Edge." }); return; }
+    if(!MIC_SUPPORTED){ pushMessage({ role:"error", text:"Seu navegador não tem suporte a ditado. Use Chrome ou Edge." }); return; }
     if(!recognition){
       recognition = new SpeechRecognitionCtor();
-      recognition.lang = "pt-BR"; recognition.interimResults = false; recognition.maxAlternatives = 1;
-      recognition.onstart = ()=>{ state.listening = true; render(); };
-      recognition.onresult = (e)=>{ const text = e.results[0][0]?.transcript || ""; if(text.trim()) handleTranscript(text); };
-      recognition.onerror = (e)=>{
-        const messages = {
-          "not-allowed": "Permissão de microfone negada.", "service-not-allowed": "O serviço de reconhecimento de voz foi bloqueado.",
-          "network": "Falha de rede no reconhecimento de voz.", "no-speech": "Não ouvi nada. Toque no microfone e fale novamente.",
-          "audio-capture": "Nenhum microfone encontrado.", "aborted": null
-        };
-        if(messages[e.error]) pushMessage({ role:"error", text: "⚠️ " + messages[e.error] });
-        state.listening = false; render();
+      recognition.lang="pt-BR"; recognition.interimResults=false; recognition.maxAlternatives=1;
+      recognition.onstart = ()=>{ state.listening=true; render(); };
+      recognition.onresult = e => { const t=e.results[0][0]?.transcript||""; if(t.trim()) handleTranscript(t); };
+      recognition.onerror = e => {
+        const msgs={"not-allowed":"Permissão de microfone negada.","network":"Falha de rede no reconhecimento.","no-speech":"Não ouvi nada. Toque e fale novamente.","audio-capture":"Nenhum microfone encontrado."};
+        if(msgs[e.error]) pushMessage({ role:"error", text:"⚠️ "+msgs[e.error] });
+        state.listening=false; render();
       };
-      recognition.onend = ()=>{ state.listening = false; render(); };
+      recognition.onend = ()=>{ state.listening=false; render(); };
     }
-    try { recognition.start(); state.listening = true; render(); } catch(err){
-      try { recognition.stop(); } catch(_){}
-      state.listening = false; pushMessage({ role:"error", text:"⚠️ Erro ao iniciar microfone. Toque novamente." }); render();
-    }
+    try{ recognition.start(); state.listening=true; render(); }catch(_){ state.listening=false; render(); }
   }
+  function stopListening(){ if(recognition){ try{ recognition.stop(); }catch(_){} } state.listening=false; render(); }
+  function toggleWidget(){ state.widgetOpen=!state.widgetOpen; render(); }
 
-  function stopListening(){ if(recognition){ try { recognition.stop(); } catch(_){} } state.listening = false; render(); }
-  function toggleWidget(){ state.widgetOpen = !state.widgetOpen; render(); }
-
-  // --- FUNÇÕES DE RENDERIZAÇÃO DA INTERFACE ---
-  function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstChild; }
-  function esc(s){ return (s??"").toString().replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
-
+  /* =========================================================
+     RENDERIZAÇÃO
+     ========================================================= */
   function renderTabs(){
-    const tabs = document.getElementById("tabs"); tabs.innerHTML = "";
+    const tabs = document.getElementById("tabs"); tabs.innerHTML="";
     [["day","Dia"],["month","Mês"],["year","Ano"]].forEach(([id,label])=>{
       const b = el(`<button class="tab ${state.viewMode===id?'active':''}">${label}</button>`);
       b.onclick = ()=>{
@@ -691,934 +622,514 @@
       tabs.appendChild(b);
     });
   }
-
   function renderNav(){
-    const nav = document.getElementById("nav"); nav.innerHTML = "";
+    const nav = document.getElementById("nav"); nav.innerHTML="";
     if(state.viewMode==="day"){
-      const prev = el(`<button class="btn-ghost">‹</button>`); prev.onclick=()=>changeDate(shiftDate(state.date,-1));
-      const box = el(`<div class="datebox">📅 <input type="date" value="${state.date}"></div>`);
-      box.querySelector("input").onchange = (e)=>changeDate(e.target.value);
-      const next = el(`<button class="btn-ghost">›</button>`); next.onclick=()=>changeDate(shiftDate(state.date,1));
-      const today = el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Hoje</button>`);
-      today.onclick = ()=>changeDate(todayISO());
-      const wk = el(`<span style="font-size:14px;color:rgba(255,255,255,.9);margin-left:4px;">${fmtWeekday(state.date)}</span>`);
-      nav.append(prev, box, next, today, wk);
+      const prev=el(`<button class="btn-ghost">‹</button>`); prev.onclick=()=>changeDate(shiftDate(state.date,-1));
+      const box=el(`<div class="datebox">📅 <input type="date" value="${state.date}"></div>`);
+      box.querySelector("input").onchange = e=>changeDate(e.target.value);
+      const next=el(`<button class="btn-ghost">›</button>`); next.onclick=()=>changeDate(shiftDate(state.date,1));
+      const today=el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Hoje</button>`); today.onclick=()=>changeDate(todayISO());
+      nav.append(prev,box,next,today,el(`<span style="font-size:14px;color:rgba(255,255,255,.9);margin-left:4px;">${fmtWeekday(state.date)}</span>`));
     } else if(state.viewMode==="month"){
-      const prev = el(`<button class="btn-ghost">‹</button>`); prev.onclick=()=>setState({monthCursor:shiftMonth(state.monthCursor,-1)});
-      const label = el(`<span class="mono" style="font-weight:800;min-width:160px;font-size:14px;">${MONTH_LABELS[Number(state.monthCursor.slice(5,7))-1]} ${state.monthCursor.slice(0,4)}</span>`);
-      const next = el(`<button class="btn-ghost">›</button>`); next.onclick=()=>setState({monthCursor:shiftMonth(state.monthCursor,1)});
-      const today = el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Mês atual</button>`);
-      today.onclick = ()=>setState({monthCursor: todayISO().slice(0,7)});
-      
-      const total = Object.entries(state.index).filter(([d])=>d.startsWith(state.monthCursor)).reduce((s,[,c])=>s+c,0);
-      const info = el(`<span class="mono" style="color:rgba(255,255,255,.8);font-size:13px;">${total} agendamento${total!==1?"s":""} no mês</span>`);
-      nav.append(prev,label,next,today,info);
+      const prev=el(`<button class="btn-ghost">‹</button>`); prev.onclick=()=>setState({monthCursor:shiftMonth(state.monthCursor,-1)});
+      const label=el(`<span class="mono" style="font-weight:800;min-width:160px;font-size:14px;">${MONTH_LABELS[Number(state.monthCursor.slice(5,7))-1]} ${state.monthCursor.slice(0,4)}</span>`);
+      const next=el(`<button class="btn-ghost">›</button>`); next.onclick=()=>setState({monthCursor:shiftMonth(state.monthCursor,1)});
+      const today=el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Mês atual</button>`); today.onclick=()=>setState({monthCursor:todayISO().slice(0,7)});
+      const total=Object.entries(state.index).filter(([d])=>d.startsWith(state.monthCursor)).reduce((s,[,c])=>s+c,0);
+      nav.append(prev,label,next,today,el(`<span class="mono" style="color:rgba(255,255,255,.8);font-size:13px;">${total} exame${total!==1?"s":""} no mês</span>`));
     } else {
-      const prev = el(`<button class="btn-ghost">‹</button>`); prev.onclick=()=>setState({yearCursor:state.yearCursor-1});
-      const label = el(`<span class="mono" style="font-weight:800;min-width:70px;font-size:14px;">${state.yearCursor}</span>`);
-      const next = el(`<button class="btn-ghost">›</button>`); next.onclick=()=>setState({yearCursor:state.yearCursor+1});
-      const today = el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Ano atual</button>`);
-      today.onclick = ()=>setState({yearCursor: Number(todayISO().slice(0,4))});
-      
-      const total = Object.entries(state.index).filter(([d])=>d.startsWith(String(state.yearCursor))).reduce((s,[,c])=>s+c,0);
-      const info = el(`<span class="mono" style="color:rgba(255,255,255,.8);font-size:13px;">${total} agendamento${total!==1?"s":""} no ano</span>`);
-      nav.append(prev,label,next,today,info);
+      const prev=el(`<button class="btn-ghost">‹</button>`); prev.onclick=()=>setState({yearCursor:state.yearCursor-1});
+      const label=el(`<span class="mono" style="font-weight:800;min-width:70px;font-size:14px;">${state.yearCursor}</span>`);
+      const next=el(`<button class="btn-ghost">›</button>`); next.onclick=()=>setState({yearCursor:state.yearCursor+1});
+      const today=el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Ano atual</button>`); today.onclick=()=>setState({yearCursor:Number(todayISO().slice(0,4))});
+      const total=Object.entries(state.index).filter(([d])=>d.startsWith(String(state.yearCursor))).reduce((s,[,c])=>s+c,0);
+      nav.append(prev,label,next,today,el(`<span class="mono" style="color:rgba(255,255,255,.8);font-size:13px;">${total} exame${total!==1?"s":""} no ano</span>`));
     }
   }
 
   function computeTotals(entries){
-    const t = emptyExams(); EXAMS.forEach(k=>t[k]=0);
-    entries.forEach(e=>{ 
-      const q = e.qtd || 1;
-      EXAMS.forEach(k=>{ const v=e.exams?.[k]; if(v) t[k]+=Number(v)*q; }); 
-    });
+    const t={}; Object.keys(CATALOGO).forEach(k=>t[k]=0);
+    entries.forEach(e=>{ const q=e.qtd||1; Object.keys(CATALOGO).forEach(k=>{ if(e.exams?.[k]) t[k]+=Number(e.exams[k])*q; }); });
     return t;
   }
 
-  // ------- MODAL DE EDIÇÃO --------
   function renderEditModal(){
     if(!state.editForm) return null;
     const f = state.editForm;
     const overlay = el(`<div class="overlay"></div>`);
     const card = el(`<div class="modal-card"></div>`);
     card.innerHTML = `<button type="button" class="modal-close">✕</button><h2 style="margin:0 0 16px;color:var(--navy);font-size:18px;font-weight:800;">✏️ Editar Agendamento</h2>`;
-    card.querySelector(".modal-close").onclick = ()=>setState({editForm:null});
-    
+    card.querySelector(".modal-close").onclick = ()=>setState({editForm:null, editOriginal:null});
     const form = el(`<form></form>`);
-    const fg = el(`<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px;"></div>`);
+    const fg = el(`<div class="field-grid"></div>`);
     fg.innerHTML = `
       <label class="field">📅 Data<input type="date" id="ef-data" class="mono" value="${esc(f.date)}"></label>
       <label class="field">⏰ Horário<input type="time" id="ef-horario" class="mono" value="${esc(f.horario)}"></label>
       <label class="field">🏢 Empresa<input type="text" id="ef-empresa" value="${esc(f.empresa)}"></label>
-      <label class="field">📋 Tipo de exame<input type="text" id="ef-tipo" list="tipos-exame" value="${esc(f.tipo)}"></label>
+      <label class="field">📋 Tipo<input type="text" id="ef-tipo" list="tipos-exame" value="${esc(f.tipo)}"></label>
       <label class="field">👤 Funcionário(a)<input type="text" id="ef-func" value="${esc(f.funcionario)}"></label>
       <label class="field">🛠️ Função<input type="text" id="ef-funcao" value="${esc(f.funcao||"")}"></label>
-      <label class="field">🔢 Quantidade<input type="number" id="ef-qtd" value="${f.qtd||1}" min="1" max="100" style="background:#F3F4F6; border-color:var(--teal); font-weight:700;"></label>
-    `;
+      <label class="field">🔢 Quantidade<input type="number" id="ef-qtd" value="${f.qtd||1}" min="1" max="100"></label>`;
     form.appendChild(fg);
-    
-    // O segredo: usamos 'onblur' para não travar a digitação do usuário
-    fg.querySelector("#ef-data").oninput = e => { f.date = e.target.value; };
-    fg.querySelector("#ef-data").onblur = e => { f.date = e.target.value; setState({editForm:f}); };
-    
-    fg.querySelector("#ef-horario").oninput = e => { f.horario = e.target.value; };
-    fg.querySelector("#ef-horario").onblur = e => { f.horario = e.target.value; setState({editForm:f}); };
-    
-    fg.querySelector("#ef-empresa").oninput = e => f.empresa = e.target.value;
-    fg.querySelector("#ef-tipo").oninput = e => f.tipo = e.target.value;
-    fg.querySelector("#ef-func").oninput = e => f.funcionario = e.target.value;
-    fg.querySelector("#ef-funcao").oninput = e => f.funcao = e.target.value;
-    fg.querySelector("#ef-qtd").oninput = e => f.qtd = parseInt(e.target.value) || 1;
-    
-    const examBlock = el(`<div style="margin-top:16px;"><p style="font-size:12px;font-weight:700;color:#6B7280;margin:0 0 6px;">Exames</p></div>`);
-    const eg = el(`<div class="exam-grid"></div>`);
-    EXAMS.forEach(k=>{
-      const active = !!f.exams[k];
-      const btn = el(`<button type="button" class="exam-btn ${active?'active':''}">${active?"✓":"&nbsp;"}<span>${k}</span></button>`);
-      btn.onclick = ()=>{ f.exams[k] = !f.exams[k]; setState({editForm:f}); };
+    fg.querySelector("#ef-data").oninput = e=>f.date=e.target.value;
+    fg.querySelector("#ef-horario").oninput = e=>f.horario=e.target.value;
+    fg.querySelector("#ef-empresa").oninput = e=>f.empresa=e.target.value;
+    fg.querySelector("#ef-tipo").oninput = e=>f.tipo=e.target.value;
+    fg.querySelector("#ef-func").oninput = e=>f.funcionario=e.target.value;
+    fg.querySelector("#ef-funcao").oninput = e=>f.funcao=e.target.value;
+    fg.querySelector("#ef-qtd").oninput = e=>f.qtd=parseInt(e.target.value,10)||1;
+    const eg = el(`<div class="exam-grid" style="margin-top:14px;"></div>`);
+    Object.keys(CATALOGO).forEach(k=>{
+      const active=!!f.exams[k];
+      const btn=el(`<button type="button" class="exam-btn ${active?'active':''}">${active?"✓":"&nbsp;"}<span>${k}</span></button>`);
+      btn.onclick=()=>{ f.exams[k]=!f.exams[k]; setState({editForm:f}); };
       eg.appendChild(btn);
     });
-    examBlock.appendChild(eg); form.appendChild(examBlock);
-    
-    if(f.exams["CLINICO"]){
-      let hintHtml, hintClass;
-      if(!f.horario){ hintHtml = "🩺 Informe o horário para identificar o médico."; hintClass = "medico-hint pending"; }
-      else {
-        const medico = getMedicoForDate(f.date, f.horario);
-        if(medico){ hintHtml = `🩺 Médico responsável: <b>${esc(medico)}</b>`; hintClass = "medico-hint ok"; }
-        else { hintHtml = `⚠️ Nenhum médico escalado.`; hintClass = "medico-hint warn"; }
-      }
-      form.appendChild(el(`<div class="${hintClass}">${hintHtml}</div>`));
-    }
-
-    form.appendChild(el(`<button type="submit" class="submit-btn" style="width:100%; justify-content:center; margin-top:20px;">✓ Salvar Alterações</button>`));
-    
-    form.onsubmit = async (e) => {
-      e.preventDefault();
-      const cleanExams = {};
-      EXAMS.forEach(k=>{ if(f.exams[k]) cleanExams[k]=1; });
-      const medico = cleanExams.CLINICO ? getMedicoForDate(f.date, f.horario) : null;
-      const entryData = { id: f.id, date: f.date, horario: f.horario, empresa: f.empresa, tipo: f.tipo, funcionario: f.funcionario, funcao: f.funcao || "", exams: cleanExams, medico, qtd: f.qtd };
-      try {
-        if(db) await setDoc(doc(db, "agendamentos", f.id), entryData);
-        setState({ editForm: null });
-      } catch(err){ alert("Erro ao salvar: "+err.message); }
-    };
-    
-    card.appendChild(form);
-    overlay.appendChild(card);
+    form.appendChild(eg);
+    const slot = slotPorHorario(f.date, horarioEfetivo(f.horario, f.exams));
+    form.appendChild(el(`<div class="medico-hint" style="margin-top:12px;padding:9px 12px;border-radius:9px;font-size:13px;background:${slot?'var(--good-bg)':'var(--amber-bg)'};color:${slot?'var(--good-fg)':'var(--amber-fg)'};">${slot?`🩺 Médico/turno: <b>${esc(slot.nome)}</b> (${slot.inicio}–${slot.fim})`:'⚠️ Horário fora de qualquer turno.'}</div>`));
+    form.appendChild(el(`<button type="submit" class="submit-btn" style="width:100%;justify-content:center;margin-top:20px;">✓ Salvar Alterações</button>`));
+    form.onsubmit = async e=>{ e.preventDefault(); await salvarEdicao(); };
+    card.appendChild(form); overlay.appendChild(card);
     return overlay;
   }
 
   function renderDayView(){
     const container = el(`<div class="grid5"></div>`);
-    const left = el(`<div></div>`);
-    const right = el(`<div></div>`);
+    const left = el(`<div></div>`), right = el(`<div></div>`);
 
-    const form = el(`<form class="card"></form>`);
-    const formHead = el(`<div class="row" style="justify-content:space-between;margin-bottom:14px;"><h2 style="margin:0;">✨ Novo Agendamento</h2></div>`);
-    form.appendChild(formHead);
-
-    const fg = el(`<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px;"></div>`);
+    // ---- formulário ----
+    const form = el(`<form class="card"><h2>✨ Novo Agendamento</h2></form>`);
+    const fg = el(`<div class="field-grid"></div>`);
     fg.innerHTML = `
       <label class="field">📅 Data<input type="date" id="f-data" class="mono" value="${esc(state.form.date)}"></label>
       <label class="field">⏰ Horário<input type="time" id="f-horario" class="mono" value="${esc(state.form.horario)}"></label>
       <label class="field">🏢 Empresa<input type="text" id="f-empresa" placeholder="ex: paraty" value="${esc(state.form.empresa)}"></label>
-      <label class="field">📋 Tipo<input type="text" id="f-tipo" list="tipos-exame" placeholder="periódico…" value="${esc(state.form.tipo)}"><datalist id="tipos-exame">${TIPOS_SUGERIDOS.map(t=>`<option value="${esc(t)}">`).join("")}</datalist></label>
+      <label class="field">📋 Tipo<input type="text" id="f-tipo" list="tipos-exame" placeholder="periódico…" value="${esc(state.form.tipo)}">
+        <datalist id="tipos-exame">${TIPOS_ASO.map(t=>`<option value="${esc(t)}">`).join("")}</datalist></label>
       <label class="field">👤 Func./Lote<input type="text" id="f-func" placeholder="nome..." value="${esc(state.form.funcionario)}"></label>
       <label class="field">🛠️ Função<input type="text" id="f-funcao" placeholder="ex: soldador..." value="${esc(state.form.funcao||"")}"></label>
-      <label class="field">🔢 Quantidade<input type="number" id="f-qtd" value="${state.form.qtd||1}" min="1" max="100" style="background:#F3F4F6; border-color:var(--teal); font-weight:700;"></label>
-    `;
+      <label class="field">🔢 Quantidade<input type="number" id="f-qtd" value="${state.form.qtd||1}" min="1" max="100"></label>`;
     form.appendChild(fg);
-    
-    fg.querySelector("#f-data").oninput = e => { state.form.date = e.target.value; };
-    fg.querySelector("#f-data").onblur = e => { state.form.date = e.target.value; render(); };
-    
-    // Deixa o teclado livre. Só atualiza a tela quando clicar fora (onblur)
-    fg.querySelector("#f-horario").oninput = e => { state.form.horario = e.target.value; };
-    fg.querySelector("#f-horario").onblur = e => { state.form.horario = e.target.value; render(); };
-    
-    fg.querySelector("#f-empresa").oninput = e=>{ state.form.empresa = e.target.value; };
-    fg.querySelector("#f-tipo").oninput = e=>{ state.form.tipo = e.target.value; };
-    fg.querySelector("#f-func").oninput = e=>{ state.form.funcionario = e.target.value; };
-    fg.querySelector("#f-funcao").oninput = e=>{ state.form.funcao = e.target.value; };
-    fg.querySelector("#f-qtd").oninput = e=>{ state.form.qtd = parseInt(e.target.value)||1; };
+    fg.querySelector("#f-data").onchange = e=>{ state.form.date=e.target.value; render(); };
+    fg.querySelector("#f-horario").oninput = e=>{ state.form.horario=e.target.value; };
+    fg.querySelector("#f-horario").onblur = e=>{ state.form.horario=e.target.value; render(); };
+    fg.querySelector("#f-empresa").oninput = e=>state.form.empresa=e.target.value;
+    fg.querySelector("#f-tipo").oninput = e=>state.form.tipo=e.target.value;
+    fg.querySelector("#f-func").oninput = e=>state.form.funcionario=e.target.value;
+    fg.querySelector("#f-funcao").oninput = e=>state.form.funcao=e.target.value;
+    fg.querySelector("#f-qtd").oninput = e=>state.form.qtd=parseInt(e.target.value,10)||1;
 
-    const examBlock = el(`<div style="margin-top:16px;"><p style="font-size:12px;font-weight:700;color:#6B7280;margin:0 0 6px;">Exames — clique para marcar se vai fazer</p></div>`);
+    const examBlock = el(`<div style="margin-top:16px;"><p style="font-size:12px;font-weight:700;color:#6B7280;margin:0 0 6px;">Exames — clique para marcar</p></div>`);
     const eg = el(`<div class="exam-grid"></div>`);
-    EXAMS.forEach(k=>{
-      const active = !!state.form.exams[k];
-      const btn = el(`<button type="button" class="exam-btn ${active?'active':''}">${active?"✓":"&nbsp;"}<span>${k}</span></button>`);
-      btn.onclick = ()=>toggleExam(k); eg.appendChild(btn);
+    Object.keys(CATALOGO).forEach(k=>{
+      const active=!!state.form.exams[k];
+      const btn=el(`<button type="button" class="exam-btn ${active?'active':''}">${active?"✓":"&nbsp;"}<span>${k}</span></button>`);
+      btn.onclick=()=>toggleExam(k); eg.appendChild(btn);
     });
     examBlock.appendChild(eg); form.appendChild(examBlock);
 
-    if(state.form.exams["CLINICO"]){
-      let hintHtml, hintClass;
-      if(!state.form.horario){ hintHtml = "🩺 Informe o horário para eu identificar o médico responsável."; hintClass = "medico-hint pending"; }
-      else {
-        const targetDate = state.form.date || state.date;
-        const medico = getMedicoForDate(targetDate, state.form.horario);
-        if(medico){ hintHtml = `🩺 Médico responsável: <b>${esc(medico)}</b>`; hintClass = "medico-hint ok"; }
-        else { hintHtml = `⚠️ Nenhum médico escalado para ${esc(state.form.horario)} nesta ${esc(WEEKDAY_FULL[new Date(targetDate+"T12:00:00").getDay()])}.`; hintClass = "medico-hint warn"; }
-      }
-      form.appendChild(el(`<div class="${hintClass}">${hintHtml}</div>`));
-    }
+    const hrEf = horarioEfetivo(state.form.horario, state.form.exams);
+    const slotF = hrEf ? slotPorHorario(state.form.date, hrEf) : null;
+    form.appendChild(el(`<div class="medico-hint" style="margin-top:12px;padding:9px 12px;border-radius:9px;font-size:13px;background:${slotF?'var(--good-bg)':'var(--paper)'};color:${slotF?'var(--good-fg)':'#6B7280'};">${
+      state.form.exams.PSICO ? '🧠 Psicossocial: horário fixo 06:30 (1º turno). ' : ''}${slotF ? `🩺 Médico/turno: <b>${esc(slotF.nome)}</b> (${slotF.inicio}–${slotF.fim})` : 'Informe um horário dentro de um turno para identificar o médico.'}</div>`));
+
     if(state.formError) form.appendChild(el(`<div class="err">⚠️ ${esc(state.formError)}</div>`));
     const submitBtn = el(`<button type="submit" class="submit-btn">+ Adicionar Agendamento</button>`);
     form.appendChild(submitBtn); form.onsubmit = submitForm; left.appendChild(form);
 
-    const totalAgendamentos = state.entries.reduce((sum, e) => sum + (e.qtd || 1), 0);
-
-    // --- CÁLCULO DOS TURNOS PARA A TABELA (SANFONA) ---
-    const weekday = new Date(state.date+"T12:00:00").getDay();
-    const todaySlots = SCHEDULE_BY_WEEKDAY[weekday] || [];
-    
-    const lbl1 = `1º Turno (${todaySlots[0] ? todaySlots[0].medico : "Manhã"})`;
-    const lbl2 = `2º Turno (${todaySlots[1] ? todaySlots[1].medico : "Almoço"})`;
-    const lbl3 = `3º Turno (${todaySlots[2] ? todaySlots[2].medico : "Tarde"})`;
-
-    const turnos = [lbl1, lbl2, lbl3, "Sem Horário"];
-    const byTurno = { [lbl1]:[], [lbl2]:[], [lbl3]:[], "Sem Horário":[] };
-
-    const sorted = [...state.entries].sort((a,b)=>{
-      if(!a.horario) return 1; if(!b.horario) return -1; return a.horario.localeCompare(b.horario);
-    });
-
-    sorted.forEach(e => {
-      let t = "Sem Horário";
-      if(e.horario){
-        const m = timeToMin(e.horario);
-        if(m < timeToMin("11:00")) t = lbl1;
-        else if(m < timeToMin("13:30")) t = lbl2;
-        else t = lbl3;
-      }
-      byTurno[t].push(e);
+    // ---- lista do dia por turno ----
+    const totalAg = state.entries.reduce((s,e)=>s+(e.qtd||1),0);
+    const turnos = slotsDoDia(state.date);
+    const byTurno = {}; turnos.forEach(t=>byTurno[t.key]=[]); byTurno["sem"]=[];
+    const sorted = [...state.entries].sort((a,b)=>{ if(!a.horario) return 1; if(!b.horario) return -1; return a.horario.localeCompare(b.horario); });
+    sorted.forEach(e=>{
+      const s = e.slot ? turnos.find(t=>t.key===e.slot) : slotPorHorario(state.date, e.horario);
+      (byTurno[s?.key] || byTurno["sem"]).push(e);
     });
 
     const tableCard = el(`<div class="card" style="padding:0;overflow:hidden;"></div>`);
-    tableCard.appendChild(el(`<div style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
-      <h2 style="margin:0;">Agendamentos do dia</h2><span class="mono entry-count" style="font-size:12px;color:#9CA3AF;">${totalAgendamentos} exames no total</span></div>`));
-
+    tableCard.appendChild(el(`<div style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;"><h2 style="margin:0;">Agendamentos do dia</h2><span class="mono entry-count" style="font-size:12px;color:#9CA3AF;">${totalAg} exames no total</span></div>`));
     if(state.error) tableCard.appendChild(el(`<div class="empty" style="color:var(--amber-fg);">⚠️ ${esc(state.error)}</div>`));
-    else if(sorted.length===0) tableCard.appendChild(el(`<div class="empty">Nenhum agendamento para ${esc(fmtWeekday(state.date).toLowerCase())}. Use o formulário acima para adicionar.</div>`));
+    else if(sorted.length===0) tableCard.appendChild(el(`<div class="empty">Nenhum agendamento para ${esc(fmtWeekday(state.date).toLowerCase())}.</div>`));
     else {
-      const listWrap = el(`<div style="padding:16px 20px; background:var(--paper);"></div>`);
-
-      turnos.forEach(t => {
-        const tEntries = byTurno[t];
-        if (tEntries.length === 0) return;
-
-        // "open" adicionado para a sanfona já começar aberta e você não se assustar!
+      const listWrap = el(`<div style="padding:16px 20px;background:var(--paper);"></div>`);
+      [...turnos.map(t=>t.key),"sem"].forEach(key=>{
+        const lista = byTurno[key]; if(!lista || !lista.length) return;
+        const slot = turnos.find(t=>t.key===key);
+        const label = slot ? `${slot.inicio} · ${slot.nome}` : "Fora de turno";
         const det = el(`<details class="turno-details" open></details>`);
-        const sum = el(`<summary class="turno-summary"><span>${esc(t)}</span><span class="mono" style="font-weight:700; color:#6B7280; font-size:11px; background:#E5E7EB; padding:3px 8px; border-radius:6px;">${tEntries.length} agend.</span></summary>`);
-        det.appendChild(sum);
-
+        det.appendChild(el(`<summary class="turno-summary"><span>${esc(label)}</span><span class="mono" style="font-weight:700;color:#6B7280;font-size:11px;background:#E5E7EB;padding:3px 8px;border-radius:6px;">${lista.length} agend.</span></summary>`));
         const content = el(`<div class="turno-content"></div>`);
         const table = el(`<table><thead><tr><th>Hora</th><th>Empresa</th><th>Tipo</th><th>Funcionário(a)</th><th>Exames</th><th></th></tr></thead><tbody></tbody></table>`);
         const tbody = table.querySelector("tbody");
-
-        tEntries.forEach((entry,i)=>{
-          const tr = el(`<tr class="entry-row" data-name="${esc(entry.funcionario).toLowerCase()}" data-empresa="${esc(entry.empresa).toLowerCase()}" data-qtd="${entry.qtd || 1}" style="background:${i%2?'#FBFAF7':'white'};"></tr>`);
+        lista.forEach((entry,i)=>{
+          const tr = el(`<tr class="entry-row" data-name="${esc(entry.funcionario).toLowerCase()}" data-empresa="${esc(entry.empresa).toLowerCase()}" data-qtd="${entry.qtd||1}" style="background:${i%2?'#FBFAF7':'white'};"></tr>`);
           tr.appendChild(el(`<td class="mono" style="font-weight:700;color:var(--navy);">${esc(entry.horario)||"—"}${entry.medico?`<div style="font-family:'Inter',sans-serif;font-weight:600;font-size:10.5px;color:var(--good-fg);margin-top:2px;">🩺 ${esc(entry.medico)}</div>`:""}</td>`));
           tr.appendChild(el(`<td>${esc(entry.empresa)||"—"}</td>`));
           tr.appendChild(el(`<td style="color:#6B7280;">${esc(entry.tipo)||"—"}</td>`));
-          
-          let funcText = esc(entry.funcionario) || "—";
-          if (entry.qtd > 1) {
-              funcText += ` <span style="font-size:10px; background:var(--teal); color:white; padding:2px 6px; border-radius:10px; font-weight:bold; margin-left:6px;">LOTE: ${entry.qtd}</span>`;
-          }
-          if (entry.funcao) funcText += `<div style="font-size:11px;color:#6B7280;margin-top:2px;">🛠️ ${esc(entry.funcao)}</div>`;
+          let funcText = esc(entry.funcionario)||"—";
+          if((entry.qtd||1)>1) funcText += ` <span style="font-size:10px;background:var(--teal);color:white;padding:2px 6px;border-radius:10px;font-weight:bold;margin-left:6px;">LOTE: ${entry.qtd}</span>`;
+          if(entry.funcao) funcText += `<div style="font-size:11px;color:#6B7280;margin-top:2px;">🛠️ ${esc(entry.funcao)}</div>`;
           tr.appendChild(el(`<td>${funcText}</td>`));
-          
           const examsTd = el(`<td></td>`);
-          const marked = EXAMS.filter(k=>entry.exams?.[k]);
-          if(marked.length===0){ examsTd.innerHTML = `<span style="color:#D1D5DB;font-size:12px;">—</span>`; } else { marked.forEach(k=> examsTd.appendChild(el(`<span class="chip">${k}</span>`))); }
+          const marked = Object.keys(CATALOGO).filter(k=>entry.exams?.[k]);
+          if(!marked.length) examsTd.innerHTML = `<span style="color:#D1D5DB;font-size:12px;">—</span>`;
+          else marked.forEach(k=>examsTd.appendChild(el(`<span class="chip">${k}</span>`)));
           tr.appendChild(examsTd);
-          const actionsTd = el(`<td></td>`);
           const actionsRow = el(`<div style="display:flex;gap:4px;justify-content:flex-end;"></div>`);
           const editBtn = el(`<button class="icon-btn">✏️</button>`); editBtn.onclick=()=>startEdit(entry); actionsRow.appendChild(editBtn);
           if(state.confirmDeleteId===entry.id){
-            const conf = el(`<button class="mono" style="font-size:11px;font-weight:700;padding:5px 8px;border:none;border-radius:6px;background:#FEE2E2;color:#DC2626;cursor:pointer;">confirmar</button>`); conf.onclick=()=>deleteEntry(entry.id);
-            const cancelDel = el(`<button class="icon-btn">✕</button>`); cancelDel.onclick=()=>setState({confirmDeleteId:null});
+            const conf=el(`<button class="mono" style="font-size:11px;font-weight:700;padding:5px 8px;border:none;border-radius:6px;background:#FEE2E2;color:#DC2626;cursor:pointer;">confirmar</button>`); conf.onclick=()=>deleteEntry(entry);
+            const cancelDel=el(`<button class="icon-btn">✕</button>`); cancelDel.onclick=()=>setState({confirmDeleteId:null});
             actionsRow.append(conf,cancelDel);
           } else {
-            const delBtn = el(`<button class="icon-btn">🗑️</button>`); delBtn.onclick=()=>setState({confirmDeleteId:entry.id}); actionsRow.appendChild(delBtn);
+            const delBtn=el(`<button class="icon-btn">🗑️</button>`); delBtn.onclick=()=>setState({confirmDeleteId:entry.id}); actionsRow.appendChild(delBtn);
           }
-          actionsTd.appendChild(actionsRow); tr.appendChild(actionsTd); tbody.appendChild(tr);
+          const actionsTd = el(`<td></td>`); actionsTd.appendChild(actionsRow); tr.appendChild(actionsTd);
+          tbody.appendChild(tr);
         });
-        content.appendChild(table);
-        det.appendChild(content);
-        listWrap.appendChild(det);
+        content.appendChild(table); det.appendChild(content); listWrap.appendChild(det);
       });
       tableCard.appendChild(listWrap);
     }
     left.appendChild(tableCard);
 
-    // 0) CARTÃO: BUSCA DE FUNCIONÁRIOS
-    const searchCard = el(`<div class="card" style="padding:14px 20px; border: 2px solid var(--teal);"></div>`);
-    const searchWrap = el(`<div style="display:flex; align-items:center; gap:10px; flex-wrap:nowrap; width:100%;">
-      <span style="font-size:16px; flex-shrink:0;">🔍</span>
-      <input type="text" id="search-input" placeholder="Buscar por funcionário..." style="flex:1; min-width:0; width:100%; border:none; outline:none; font-size:14px; font-weight:600; font-family:inherit; color:var(--ink); background:transparent;">
-      <span style="width:1px; height:22px; background:var(--line); flex-shrink:0;"></span>
-      <span style="font-size:16px; flex-shrink:0;">🔍</span>
-      <input type="text" id="search-empresa" placeholder="Buscar por empresa..." style="flex:1; min-width:0; width:100%; border:none; outline:none; font-size:14px; font-weight:600; font-family:inherit; color:var(--ink); background:transparent;">
-    </div>`);
+    // ---- busca ----
+    const searchCard = el(`<div class="card" style="padding:14px 20px;border:2px solid var(--teal);"></div>`);
+    const searchWrap = el(`<div style="display:flex;align-items:center;gap:10px;">
+      <span>🔍</span><input type="text" id="search-input" placeholder="Buscar por funcionário..." style="flex:1;min-width:0;border:none;outline:none;font-size:14px;font-weight:600;background:transparent;">
+      <span style="width:1px;height:22px;background:var(--line);"></span>
+      <span>🔍</span><input type="text" id="search-empresa" placeholder="Buscar por empresa..." style="flex:1;min-width:0;border:none;outline:none;font-size:14px;font-weight:600;background:transparent;"></div>`);
     searchCard.appendChild(searchWrap);
-
-    const applySearch = () => {
-      const termFunc = stripAccents(searchWrap.querySelector("#search-input").value);
-      const termEmp = stripAccents(searchWrap.querySelector("#search-empresa").value);
-      const rows = left.querySelectorAll(".entry-row");
-      let countExames = 0;
-      rows.forEach(r => {
-        const name = stripAccents(r.getAttribute("data-name") || "");
-        const emp = stripAccents(r.getAttribute("data-empresa") || "");
-        if (name.includes(termFunc) && emp.includes(termEmp)) {
-          r.style.display = "";
-          countExames += parseInt(r.getAttribute("data-qtd") || 1);
-          if (termFunc.trim() !== "" || termEmp.trim() !== "") {
-            const det = r.closest("details");
-            if (det) det.open = true; // Abre a sanfona se houver resultado
-          }
-        } else {
-          r.style.display = "none";
-        }
+    const applySearch = ()=>{
+      const tf=stripAccents(searchWrap.querySelector("#search-input").value);
+      const te=stripAccents(searchWrap.querySelector("#search-empresa").value);
+      let count=0;
+      left.querySelectorAll(".entry-row").forEach(r=>{
+        const ok = stripAccents(r.getAttribute("data-name")||"").includes(tf) && stripAccents(r.getAttribute("data-empresa")||"").includes(te);
+        r.style.display = ok ? "" : "none";
+        if(ok){ count+=parseInt(r.getAttribute("data-qtd")||1,10); if(tf||te){ const d=r.closest("details"); if(d) d.open=true; } }
       });
-      const countSpan = left.querySelector(".entry-count");
-      if (countSpan) countSpan.textContent = countExames + (countExames !== 1 ? " exames no total" : " exame no total");
+      const c = left.querySelector(".entry-count"); if(c) c.textContent = `${count} exame${count!==1?"s":""} no total`;
     };
     searchWrap.querySelector("#search-input").oninput = applySearch;
     searchWrap.querySelector("#search-empresa").oninput = applySearch;
     right.appendChild(searchCard);
 
-    // 1) CARTÃO: RESUMO DO DIA POR TURNOS
+    // ---- resumo por turno ----
     const summaryCard = el(`<div class="card"></div>`);
-    summaryCard.appendChild(el(`<div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2 style="margin:0;">Resumo do Dia</h2>
-        <span class="mono" style="font-size:11px; background:var(--paper); padding:4px 8px; border-radius:6px; color:var(--navy); font-weight:700;">${totalAgendamentos} exames</span>
-    </div>`));
-
-    let hasData = false;
-    turnos.forEach(t => {
-      if(byTurno[t].length === 0) return;
-      hasData = true;
-      const totals = computeTotals(byTurno[t]);
+    summaryCard.appendChild(el(`<div style="display:flex;justify-content:space-between;align-items:center;"><h2 style="margin:0;">Resumo do Dia</h2><span class="mono" style="font-size:11px;background:var(--paper);padding:4px 8px;border-radius:6px;color:var(--navy);font-weight:700;">${totalAg} exames</span></div>`));
+    let hasData=false;
+    turnos.forEach(t=>{
+      const lista = byTurno[t.key]; if(!lista.length) return;
+      hasData=true;
+      const totals = computeTotals(lista);
       const grand = Object.values(totals).reduce((a,b)=>a+b,0);
-      const pessoasTurno = byTurno[t].reduce((sum, e) => sum + (e.qtd || 1), 0);
-      
-      const sec = el(`<div style="margin-top:16px; border:1px solid var(--line); border-radius:10px; padding:12px;"></div>`);
-      sec.appendChild(el(`<div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #E5E7EB; padding-bottom:6px;">
-        <span style="font-size:12.5px; font-weight:800; color:var(--teal);">${t}</span>
-        <span style="font-size:11px; color:#6B7280; font-weight:600;">${pessoasTurno} pes. / ${grand} exames</span>
-      </div>`));
-
-      const chartData = EXAMS.map(k=>({name:k,total:totals[k]})).filter(d=>d.total>0);
-      if(chartData.length > 0){
-         const chart = el(`<div></div>`);
-         const max = Math.max(...chartData.map(d=>d.total));
-         chartData.forEach(d=>{
-            const pct = Math.max(6, Math.round((d.total/max)*100));
-            chart.appendChild(el(`<div class="bar-row" style="margin-bottom:4px;"><span class="bar-label" style="font-size:10px;">${d.name}</span><div class="bar-track" style="height:12px;"><div class="bar-fill" style="width:${pct}%;"></div></div><span class="bar-val" style="font-size:10px;">${d.total}</span></div>`));
-         });
-         sec.appendChild(chart);
-      } else {
-         sec.appendChild(el(`<p style="font-size:11px; color:#9CA3AF; margin:0;">Nenhum exame marcado.</p>`));
-      }
+      const pessoas = lista.reduce((s,e)=>s+(e.qtd||1),0);
+      const sec = el(`<div style="margin-top:16px;border:1px solid var(--line);border-radius:10px;padding:12px;"></div>`);
+      sec.appendChild(el(`<div style="display:flex;justify-content:space-between;margin-bottom:10px;border-bottom:1px solid #E5E7EB;padding-bottom:6px;"><span style="font-size:12.5px;font-weight:800;color:var(--teal);">${esc(t.inicio)} · ${esc(t.nome)}</span><span style="font-size:11px;color:#6B7280;font-weight:600;">${pessoas} pes. / ${grand} exames</span></div>`));
+      const chartData = Object.keys(CATALOGO).map(k=>({name:k,total:totals[k]})).filter(d=>d.total>0);
+      if(chartData.length){
+        const max = Math.max(...chartData.map(d=>d.total));
+        const chart = el(`<div></div>`);
+        chartData.forEach(d=>{ const pct=Math.max(6,Math.round((d.total/max)*100)); chart.appendChild(el(`<div class="bar-row"><span class="bar-label">${d.name}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%;"></div></div><span class="bar-val">${d.total}</span></div>`)); });
+        sec.appendChild(chart);
+      } else sec.appendChild(el(`<p style="font-size:11px;color:#9CA3AF;margin:0;">Nenhum exame marcado.</p>`));
       summaryCard.appendChild(sec);
     });
-
-    if(!hasData) {
-      summaryCard.appendChild(el(`<p style="text-align:center;color:#9CA3AF;font-size:14px;padding:32px 0;">Sem exames marcados ainda.</p>`));
-    }
+    if(!hasData) summaryCard.appendChild(el(`<p style="text-align:center;color:#9CA3AF;font-size:14px;padding:32px 0;">Sem exames marcados ainda.</p>`));
     right.appendChild(summaryCard);
 
-    // 2) CARTÃO: ATENDIMENTOS POR MÉDICO
-    const docCard = el(`<div class="card"></div>`);
-    docCard.appendChild(el(`<h2>🩺 Atendimentos por Médico</h2>`));
+    // ---- atendimentos por médico ----
+    const docCard = el(`<div class="card"><h2>🩺 Atendimentos por Médico</h2></div>`);
     const docStats = {};
-    sorted.forEach(e => {
-      const q = e.qtd || 1;
-      if (e.medico) {
-        if (!docStats[e.medico]) docStats[e.medico] = { total: 0, tipos: {} };
-        docStats[e.medico].total += q;
-        const t = e.tipo || "Sem tipo";
-        docStats[e.medico].tipos[t] = (docStats[e.medico].tipos[t] || 0) + q;
-      }
-    });
-
-    const docOrder = {};
-    todaySlots.forEach((s, idx) => {
-        if (!(s.medico in docOrder)) docOrder[s.medico] = idx;
-    });
-
-    const docKeys = Object.keys(docStats).sort((a, b) => {
-      const orderA = a in docOrder ? docOrder[a] : 999;
-      const orderB = b in docOrder ? docOrder[b] : 999;
-      if (orderA !== orderB) return orderA - orderB;
-      return a.localeCompare(b); 
-    });
-
-    if(docKeys.length === 0){
-      docCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;text-align:center;padding:16px 0;">Nenhum atendimento médico registrado para hoje.</p>`));
-    } else {
+    sorted.forEach(e=>{ if(!e.medico) return; const q=e.qtd||1; docStats[e.medico] ??= {total:0,tipos:{}}; docStats[e.medico].total+=q; const t=e.tipo||"Sem tipo"; docStats[e.medico].tipos[t]=(docStats[e.medico].tipos[t]||0)+q; });
+    const docKeys = Object.keys(docStats);
+    if(!docKeys.length) docCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;text-align:center;padding:16px 0;">Nenhum atendimento por médico hoje.</p>`));
+    else {
       const list = el(`<div style="display:flex;flex-direction:column;gap:10px;"></div>`);
-      docKeys.forEach(m => {
-        const item = el(`<div style="background:var(--paper);border-radius:8px;padding:10px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span style="font-size:13.5px;font-weight:700;color:var(--navy);">${esc(m)}</span>
-            <span class="mono" style="font-size:11px;font-weight:800;background:var(--teal);color:#fff;padding:2px 8px;border-radius:6px;" title="Total de exames clínicos">${docStats[m].total}</span>
-          </div>
-        </div>`);
-        const tiposDiv = el(`<div style="display:flex;flex-wrap:wrap;gap:6px;"></div>`);
-        Object.entries(docStats[m].tipos).forEach(([t, qtd]) => {
-          tiposDiv.appendChild(el(`<span style="font-size:11px;color:#4B5563;background:#E5E7EB;padding:4px 8px;border-radius:6px;font-weight:500;">${esc(t)}: <b>${qtd}</b></span>`));
-        });
-        item.appendChild(tiposDiv);
-        list.appendChild(item);
+      docKeys.forEach(m=>{
+        const item = el(`<div style="background:var(--paper);border-radius:8px;padding:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:13.5px;font-weight:700;color:var(--navy);">${esc(m)}</span><span class="mono" style="font-size:11px;font-weight:800;background:var(--teal);color:#fff;padding:2px 8px;border-radius:6px;">${docStats[m].total}</span></div></div>`);
+        const tipos = el(`<div style="display:flex;flex-wrap:wrap;gap:6px;"></div>`);
+        Object.entries(docStats[m].tipos).forEach(([t,q])=>tipos.appendChild(el(`<span style="font-size:11px;color:#4B5563;background:#E5E7EB;padding:4px 8px;border-radius:6px;">${esc(t)}: <b>${q}</b></span>`)));
+        item.appendChild(tipos); list.appendChild(item);
       });
       docCard.appendChild(list);
     }
     right.appendChild(docCard);
 
-    // 3) CARTÃO: ESCALA DA SEMANA
-    const scheduleCard = el(`<div class="card"></div>`);
-    scheduleCard.appendChild(el(`<h2>📋 Escala de ${esc(WEEKDAY_FULL[weekday])}</h2>`));
-    if(!todaySlots || todaySlots.length===0){ scheduleCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum médico de clínico escalado neste dia.</p>`)); }
+    // ---- escala ----
+    const scheduleCard = el(`<div class="card"><h2>📋 Escala de ${esc(WEEKDAY_FULL[diaSemana(state.date)])}</h2></div>`);
+    if(!turnos.length) scheduleCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Sem escala neste dia.</p>`));
     else {
       const list = el(`<div style="display:flex;flex-direction:column;gap:8px;"></div>`);
-      todaySlots.forEach(s=>{ list.appendChild(el(`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--paper);border-radius:8px;padding:8px 10px;"><span class="mono" style="font-size:12px;color:var(--navy);font-weight:700;">${s.start}–${s.end}</span><span style="font-size:13px;font-weight:600;">${esc(s.medico)}</span></div>`)); });
+      turnos.forEach(s=>list.appendChild(el(`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--paper);border-radius:8px;padding:8px 10px;"><span class="mono" style="font-size:12px;color:var(--navy);font-weight:700;">${s.inicio}–${s.fim}</span><span style="font-size:13px;font-weight:600;">${esc(s.nome)}</span></div>`)));
       scheduleCard.appendChild(list);
     }
     right.appendChild(scheduleCard);
 
-    // 4) CARTÃO: LISTA PSICO (COM BOTÃO IMPRIMIR)
-    const psicoEntries = sorted.filter(e => e.exams?.PSICO);
+    // ---- lista PSICO ----
+    const psicoEntries = sorted.filter(e=>e.exams?.PSICO);
     const psicoCard = el(`<div class="card"></div>`);
-    
-    const psicoHead = el(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-      <h2 style="margin:0;">🧠 Lista PSICO do dia</h2>
-    </div>`);
-
-    if(psicoEntries.length > 0){
+    const psicoHead = el(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><h2 style="margin:0;">🧠 Lista PSICO do dia</h2></div>`);
+    if(psicoEntries.length){
       const printBtn = el(`<button class="btn-ghost mono" style="background:var(--navy);color:#fff;font-size:11px;padding:6px 10px;font-weight:700;">🖨️ IMPRIMIR</button>`);
-      printBtn.onclick = () => {
+      printBtn.onclick = ()=>{
         const w = window.open('', '_blank');
-        let htmlPrint = `<html><head><title>Lista PSICO - ${fmtWeekday(state.date)}</title>
-          <style>
-            body{font-family:sans-serif;padding:20px;color:#1A2B32;}
-            h1{font-size:20px;border-bottom:2px solid #1F4E5F;padding-bottom:10px;margin-bottom:20px;}
-            table{width:100%;border-collapse:collapse;font-size:14px;}
-            th,td{border:1px solid #DCD6C9;padding:12px;text-align:left;}
-            th{background:#F6F4EF;color:#1F4E5F;text-transform:uppercase;font-size:12px;}
-          </style>
-          </head><body>
-          <h1>Lista de Exames Psicológicos - ${fmtWeekday(state.date)}</h1>
-          <table>
-            <thead><tr><th>Horário</th><th>Funcionário(a)</th><th>Empresa</th><th>Tipo</th></tr></thead>
-            <tbody>`;
-        psicoEntries.forEach(e => {
-          const badge = e.qtd > 1 ? ` (LOTE: ${e.qtd})` : "";
-          htmlPrint += `<tr>
-            <td style="font-family:monospace;font-weight:bold;">${esc(e.horario)||'--:--'}</td>
-            <td><b>${esc(e.funcionario)||'—'}</b>${badge}${e.funcao?`<br><small>${esc(e.funcao)}</small>`:''}</td>
-            <td>${esc(e.empresa)||'—'}</td>
-            <td>${esc(e.tipo)||'—'}</td>
-          </tr>`;
-        });
-        htmlPrint += `</tbody></table>`;
-        htmlPrint += "<scr" + "ipt>window.onload = function() { window.print(); window.close(); }</scr" + "ipt>";
-        htmlPrint += `</body></html>`;
-        w.document.write(htmlPrint);
-        w.document.close();
+        let h = `<html><head><title>Lista PSICO - ${fmtWeekday(state.date)}</title><style>body{font-family:sans-serif;padding:20px;color:#1A2B32;}h1{font-size:20px;border-bottom:2px solid #1F4E5F;padding-bottom:10px;margin-bottom:20px;}table{width:100%;border-collapse:collapse;font-size:14px;}th,td{border:1px solid #DCD6C9;padding:12px;text-align:left;}th{background:#F6F4EF;color:#1F4E5F;text-transform:uppercase;font-size:12px;}</style></head><body><h1>Lista de Exames Psicológicos - ${fmtWeekday(state.date)}</h1><table><thead><tr><th>Horário</th><th>Funcionário(a)</th><th>Empresa</th><th>Tipo</th></tr></thead><tbody>`;
+        psicoEntries.forEach(e=>{ h += `<tr><td style="font-family:monospace;font-weight:bold;">${esc(e.horario)||'--:--'}</td><td><b>${esc(e.funcionario)||'—'}</b>${(e.qtd||1)>1?` (LOTE: ${e.qtd})`:''}${e.funcao?`<br><small>${esc(e.funcao)}</small>`:''}</td><td>${esc(e.empresa)||'—'}</td><td>${esc(e.tipo)||'—'}</td></tr>`; });
+        h += `</tbody></table><scr`+`ipt>window.onload=function(){window.print();window.close();}</scr`+`ipt></body></html>`;
+        w.document.write(h); w.document.close();
       };
       psicoHead.appendChild(printBtn);
     }
     psicoCard.appendChild(psicoHead);
-
-    if(psicoEntries.length === 0){ 
-      psicoCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum agendamento com PSICO hoje.</p>`)); 
-    } else {
+    if(!psicoEntries.length) psicoCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum agendamento com PSICO hoje.</p>`));
+    else {
       const list = el(`<div style="display:flex;flex-direction:column;gap:8px;"></div>`);
-      psicoEntries.forEach(e=>{ 
-        const badge = e.qtd > 1 ? ` <span style="font-size:10px;background:var(--teal);color:white;padding:2px 6px;border-radius:10px;">LOTE: ${e.qtd}</span>` : "";
-        list.appendChild(el(`<div style="background:var(--paper);border-radius:8px;padding:8px 10px;"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;"><span style="font-size:13px;font-weight:700;color:var(--ink);">${esc(e.funcionario)||"—"}${badge}</span><span class="mono" style="font-size:11px;color:var(--navy);font-weight:700;">${esc(e.horario)||""}</span></div><div style="font-size:12px;color:#6B7280;margin-top:2px;">${esc(e.tipo)||"tipo não informado"} · ${esc(e.empresa)||"empresa não informada"}</div></div>`)); 
-      });
+      psicoEntries.forEach(e=>list.appendChild(el(`<div style="background:var(--paper);border-radius:8px;padding:8px 10px;"><div style="display:flex;justify-content:space-between;gap:8px;"><span style="font-size:13px;font-weight:700;">${esc(e.funcionario)||"—"}${(e.qtd||1)>1?` <span style="font-size:10px;background:var(--teal);color:#fff;padding:2px 6px;border-radius:10px;">LOTE: ${e.qtd}</span>`:""}</span><span class="mono" style="font-size:11px;color:var(--navy);font-weight:700;">${esc(e.horario)||""}</span></div><div style="font-size:12px;color:#6B7280;margin-top:2px;">${esc(e.tipo)||"tipo não informado"} · ${esc(e.empresa)||"empresa não informada"}</div></div>`)));
       psicoCard.appendChild(list);
     }
     right.appendChild(psicoCard);
 
-    right.appendChild(el(`<div class="tips"><p class="k">como funciona</p><ul><li>• Digite o horário — o sistema ordena tudo automaticamente.</li><li>• Use as abas Mês/Ano para ver a agenda inteira de uma vez.</li><li>• Ao marcar CLÍNICO, o médico responsável é identificado sozinho.</li><li>• ☁️ Seus dados estão salvos em nuvem (Firebase).</li></ul></div>`));
-    container.append(left,right); return container;
+    right.appendChild(el(`<div class="tips"><p class="k">como funciona</p><ul><li>• Digite o horário; o sistema identifica o turno e o médico.</li><li>• PSICO é sempre no 1º turno (06:30).</li><li>• Limites por médico/turno são configurados em ⚙️ Configurar Vagas.</li><li>• ☁️ Dados salvos no Firebase.</li></ul></div>`));
+    container.append(left,right);
+    return container;
   }
 
   function renderMonthView(){
     const card = el(`<div class="card"></div>`);
-    const wkRow = el(`<div class="month-grid" style="margin-bottom:2px;"></div>`);
-    WEEKDAY_LABELS.forEach(w=> wkRow.appendChild(el(`<div class="wk-lbl">${w}</div>`))); card.appendChild(wkRow);
+    const wk = el(`<div class="month-grid" style="margin-bottom:2px;"></div>`);
+    WEEKDAY_LABELS.forEach(w=>wk.appendChild(el(`<div class="wk-lbl">${w}</div>`)));
+    card.appendChild(wk);
     const grid = el(`<div class="month-grid"></div>`);
-    const todayStr = todayISO();
+    const today = todayISO();
     monthMatrix(state.monthCursor).forEach(iso=>{
       if(!iso){ grid.appendChild(el(`<div></div>`)); return; }
-      const count = state.index[iso]||0; const isToday = iso===todayStr; const dayNum = Number(iso.slice(8,10));
-      const cell = el(`<button class="day-cell ${count>0?'has':''} ${isToday?'today':''}"><span class="day-num">${dayNum}</span>${count>0?`<span class="day-badge">${count}</span>`:""}</button>`);
+      const count = state.index[iso]||0;
+      const cell = el(`<button class="day-cell ${count>0?'has':''} ${iso===today?'today':''}"><span class="day-num">${Number(iso.slice(8,10))}</span>${count>0?`<span class="day-badge">${count}</span>`:""}</button>`);
       cell.onclick = ()=>goToDay(iso); grid.appendChild(cell);
     });
     card.appendChild(grid); return card;
   }
-
   function renderYearView(){
     const grid = el(`<div class="year-grid"></div>`);
-    MONTH_LABELS.forEach((label, mIdx)=>{
+    MONTH_LABELS.forEach((label,mIdx)=>{
       const ym = `${state.yearCursor}-${pad2(mIdx+1)}`;
       const total = Object.entries(state.index).filter(([d])=>d.startsWith(ym)).reduce((s,[,c])=>s+c,0);
       const card = el(`<button class="month-card"></button>`);
-      card.appendChild(el(`<div class="month-card-top"><span class="name">${label}</span>${total>0?`<span class="mono" style="font-size:10px;font-weight:800;background:var(--good-bg);color:var(--good-fg);padding:2px 6px;border-radius:6px;">${total}</span>`:""}</div>`));
+      card.appendChild(el(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-weight:800;font-size:13px;color:var(--navy);">${label}</span>${total>0?`<span class="mono" style="font-size:10px;font-weight:800;background:var(--good-bg);color:var(--good-fg);padding:2px 6px;border-radius:6px;">${total}</span>`:""}</div>`));
       const mini = el(`<div class="mini-grid"></div>`);
-      miniMonthMatrix(state.yearCursor, mIdx).forEach(iso=>{ const has = iso && state.index[iso]; mini.appendChild(el(`<div class="mini-cell" style="background:${iso?(has?'var(--teal)':'var(--line)'):'transparent'};opacity:${iso?(has?1:0.35):0};"></div>`)); });
-      card.appendChild(mini); card.onclick = ()=>openMonth(ym); grid.appendChild(card);
+      miniMonthMatrix(state.yearCursor, mIdx).forEach(iso=>{ const has=iso&&state.index[iso]; mini.appendChild(el(`<div class="mini-cell" style="background:${iso?(has?'var(--teal)':'var(--line)'):'transparent'};opacity:${iso?(has?1:.35):0};"></div>`)); });
+      card.appendChild(mini); card.onclick=()=>openMonth(ym); grid.appendChild(card);
     });
     return grid;
   }
 
   function renderVoiceWidget(){
-    const host = document.getElementById("voice-widget"); host.innerHTML = "";
+    const host = document.getElementById("voice-widget"); host.innerHTML="";
     if(state.widgetOpen){
       const panel = el(`<div class="chat-panel"></div>`);
-      const head = el(`<div class="chat-head"><div class="title">🎙️ Assistente de voz</div><div class="status">${state.listening?'ouvindo…':(state.aiThinking?'pensando…':(state.apiKey?'IA ativada':'modo palavras-chave'))}</div></div>`);
+      const head = el(`<div class="chat-head"><div><div class="title">🎙️ Assistente de voz</div><div class="status">${state.listening?'ouvindo…':(state.aiThinking?'pensando…':(state.apiKey?'IA ativada':'modo palavras-chave'))}</div></div></div>`);
       const btns = el(`<div class="chat-head-btns"></div>`);
-      const muteBtn = el(`<button title="${state.speechEnabled?'Silenciar respostas':'Ativar respostas por áudio'}">${state.speechEnabled?'🔊':'🔇'}</button>`);
-      muteBtn.onclick = ()=>{ state.speechEnabled = !state.speechEnabled; if(!state.speechEnabled) window.speechSynthesis?.cancel(); render(); };
-      const gearBtn = el(`<button title="Configurar IA">⚙️</button>`); gearBtn.onclick = ()=> setState({ showAiPanel: !state.showAiPanel });
-      const closeBtn = el(`<button title="Fechar">✕</button>`); closeBtn.onclick = toggleWidget;
-      btns.append(muteBtn, gearBtn, closeBtn); head.appendChild(btns); panel.appendChild(head);
+      const muteBtn = el(`<button title="Respostas por áudio">${state.speechEnabled?'🔊':'🔇'}</button>`);
+      muteBtn.onclick = ()=>{ state.speechEnabled=!state.speechEnabled; if(!state.speechEnabled) window.speechSynthesis?.cancel(); render(); };
+      const gearBtn = el(`<button title="Configurar IA">⚙️</button>`); gearBtn.onclick=()=>setState({showAiPanel:!state.showAiPanel});
+      const closeBtn = el(`<button title="Fechar">✕</button>`); closeBtn.onclick=toggleWidget;
+      btns.append(muteBtn,gearBtn,closeBtn); head.appendChild(btns); panel.appendChild(head);
 
       if(state.showAiPanel){
-        const aip = el(`<div class="ai-panel" style="margin:10px 12px 0;"></div>`);
-        aip.innerHTML = `<p>Com uma chave de API da Anthropic, o áudio é interpretado por IA de verdade. A chave fica salva só neste navegador. Crie a sua em <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>. Sem chave, funciona por palavras-chave.</p>
-          <div class="ai-key-row"><input type="password" id="api-key-input" placeholder="Cole sua chave de API aqui" value="${esc(state.apiKeyDraft)}"><button class="ai-save">Salvar</button>${state.apiKey ? `<button class="ai-remove">Remover</button>` : ""}</div><p class="ai-status ${state.apiKey?'on':'off'}">${state.apiKey?'✅ IA ativada':'○ Nenhuma chave configurada'}</p>`;
-        aip.querySelector("#api-key-input").oninput = e=>{ state.apiKeyDraft = e.target.value; };
+        const aip = el(`<div class="ai-panel"></div>`);
+        aip.innerHTML = `<p>Com uma chave de API da Anthropic, o áudio é interpretado por IA. A chave fica só neste navegador. Crie em <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>.</p>
+          <div class="ai-key-row"><input type="password" id="api-key-input" placeholder="Cole sua chave" value="${esc(state.apiKeyDraft)}"><button class="ai-save">Salvar</button>${state.apiKey?`<button class="ai-remove">Remover</button>`:""}</div>
+          <p class="ai-status ${state.apiKey?'on':'off'}">${state.apiKey?'✅ IA ativada':'○ Nenhuma chave configurada'}</p>`;
+        aip.querySelector("#api-key-input").oninput = e=>{ state.apiKeyDraft=e.target.value; };
         aip.querySelector(".ai-save").onclick = saveApiKey;
         const rm = aip.querySelector(".ai-remove"); if(rm) rm.onclick = removeApiKey;
         panel.appendChild(aip);
       }
 
       const body = el(`<div class="chat-body"></div>`);
-      if(state.chatMessages.length===0){ body.appendChild(el(`<div class="chat-empty">Toque no microfone e fale, ex.:<br>"horário 8 horas, empresa Paraty, tipo periódico, exames clínico e audiometria"</div>`)); }
-      else {
-        state.chatMessages.forEach((msg,idx)=>{
-          if(msg.role==="user"){ body.appendChild(el(`<div class="bubble-row user"><div class="bubble user">🗣️ “${esc(msg.text)}”</div></div>`)); }
-          else if(msg.role==="error"){ body.appendChild(el(`<div class="bubble-row assistant"><div class="bubble error">${esc(msg.text)}</div></div>`)); }
-          else {
-            const b = el(`<div class="bubble assistant">${esc(msg.text)}</div>`);
-            if(msg.fields && msg.fields.length){ const fw = el(`<div class="fields"></div>`); msg.fields.forEach(f=> fw.appendChild(el(`<span class="chip">${esc(f)}</span>`))); b.appendChild(fw); }
-            if(msg.confirm && idx === state.chatMessages.length-1 && state.awaitingConfirmation){
-              const actions = el(`<div style="display:flex;gap:6px;margin-top:8px;"></div>`);
-              const okBtn = el(`<button style="flex:1;border:none;border-radius:7px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;background:var(--good-fg);color:#fff;">✅ Confirmar</button>`); okBtn.onclick = confirmAppointment;
-              const noBtn = el(`<button style="flex:1;border:none;border-radius:7px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;background:#FEE2E2;color:#DC2626;">✖️ Cancelar</button>`); noBtn.onclick = cancelPendingAppointment;
-              actions.append(okBtn,noBtn); b.appendChild(actions);
-            }
-            const row = el(`<div class="bubble-row assistant"></div>`); row.appendChild(b); body.appendChild(row);
+      if(!state.chatMessages.length) body.appendChild(el(`<div class="chat-empty">Toque no microfone e fale, ex.:<br>"horário 8 horas, empresa Paraty, tipo periódico, exames clínico e audiometria"</div>`));
+      else state.chatMessages.forEach((msg,idx)=>{
+        if(msg.role==="user") body.appendChild(el(`<div class="bubble-row user"><div class="bubble user">🗣️ “${esc(msg.text)}”</div></div>`));
+        else if(msg.role==="error") body.appendChild(el(`<div class="bubble-row"><div class="bubble error">${esc(msg.text)}</div></div>`));
+        else {
+          const b = el(`<div class="bubble assistant">${esc(msg.text)}</div>`);
+          if(msg.fields?.length){ const fw=el(`<div class="fields"></div>`); msg.fields.forEach(f=>fw.appendChild(el(`<span class="chip">${esc(f)}</span>`))); b.appendChild(fw); }
+          if(msg.confirm && idx===state.chatMessages.length-1 && state.awaitingConfirmation){
+            const actions = el(`<div style="display:flex;gap:6px;margin-top:8px;"></div>`);
+            const okBtn=el(`<button style="flex:1;border:none;border-radius:7px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;background:var(--good-fg);color:#fff;">✅ Confirmar</button>`); okBtn.onclick=confirmAppointment;
+            const noBtn=el(`<button style="flex:1;border:none;border-radius:7px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;background:#FEE2E2;color:#DC2626;">✖️ Cancelar</button>`); noBtn.onclick=cancelPendingAppointment;
+            actions.append(okBtn,noBtn); b.appendChild(actions);
           }
-        });
-      }
-      if(state.aiThinking){ body.appendChild(el(`<div class="bubble-row assistant"><div class="bubble assistant"><span class="thinking-dots"><span></span><span></span><span></span></span></div></div>`)); }
+          const row = el(`<div class="bubble-row"></div>`); row.appendChild(b); body.appendChild(row);
+        }
+      });
+      if(state.aiThinking) body.appendChild(el(`<div class="bubble-row"><div class="bubble assistant">…</div></div>`));
       panel.appendChild(body);
 
       const foot = el(`<div class="chat-foot"></div>`);
       const talkBtn = el(`<button type="button" class="talk-btn ${state.listening?'listening':''}" ${state.aiThinking?'disabled':''}>${state.listening?'⏺️ Ouvindo… toque para parar':'🎙️ Toque e fale'}</button>`);
-      talkBtn.onclick = ()=> state.listening ? stopListening() : startListening(); foot.appendChild(talkBtn);
-      foot.appendChild(el(`<p class="chat-foot-hint">Funciona melhor no Chrome/Edge, com internet.</p>`)); panel.appendChild(foot);
+      talkBtn.onclick = ()=>state.listening?stopListening():startListening();
+      foot.appendChild(talkBtn);
+      foot.appendChild(el(`<p class="chat-foot-hint">Funciona melhor no Chrome/Edge, com internet.</p>`));
+      panel.appendChild(foot);
       host.appendChild(panel);
-      requestAnimationFrame(()=>{ const b=host.querySelector(".chat-body"); if(b) b.scrollTop = b.scrollHeight; });
+      requestAnimationFrame(()=>{ const b=host.querySelector(".chat-body"); if(b) b.scrollTop=b.scrollHeight; });
     }
-
     const fab = el(`<button class="fab ${state.listening?'listening':''} ${state.aiThinking?'thinking':''}" title="Assistente de voz">${state.listening?'⏺️':(state.aiThinking?'🤖':'🎙️')}</button>`);
-    fab.onclick = toggleWidget; if(state.apiKey) fab.appendChild(el(`<span class="fab-dot" title="IA ativada"></span>`));
+    fab.onclick = toggleWidget;
+    if(state.apiKey) fab.appendChild(el(`<span class="fab-dot"></span>`));
     host.appendChild(fab);
   }
 
   function render(){
     renderTabs(); renderNav();
-    const main = document.getElementById("main"); main.innerHTML = "";
+    const main = document.getElementById("main"); main.innerHTML="";
     const wrap = el(`<div class="wrap" style="padding-top:0;"></div>`);
-    if(state.viewMode==="day") wrap.appendChild(renderDayView()); else if(state.viewMode==="month") wrap.appendChild(renderMonthView()); else wrap.appendChild(renderYearView());
-    main.appendChild(wrap); renderVoiceWidget();
-    
-    const modal = renderEditModal();
-    if(modal) main.appendChild(modal);
+    if(state.viewMode==="day") wrap.appendChild(renderDayView());
+    else if(state.viewMode==="month") wrap.appendChild(renderMonthView());
+    else wrap.appendChild(renderYearView());
+    main.appendChild(wrap);
+    renderVoiceWidget();
+    const modal = renderEditModal(); if(modal) main.appendChild(modal);
   }
 
-  // Renderização inicial
-  render();
-</script>
-  <!-- ================= MÓDULO COMPLETO DE CONTROLE DE VAGAS E GUIAS ANEXADAS ================= -->
-<style>
-  #btnAbrirConfigVagas {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: #1E3A5F;
-    color: #fff;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 50px;
-    font-family: sans-serif;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(30, 58, 95, 0.35);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    z-index: 9998;
-    transition: transform 0.2s, background 0.2s;
-  }
-  #btnAbrirConfigVagas:hover {
-    background: #008CB4;
-    transform: translateY(-2px);
-  }
-
-  #modalConfigVagas {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(10, 37, 64, 0.65);
-    backdrop-filter: blur(3px);
-    z-index: 9999;
-    justify-content: center;
-    align-items: center;
-    padding: 16px;
-  }
-
-  .modal-vagas-card {
-    background: #fff;
-    width: 100%;
-    max-width: 720px;
-    max-height: 90vh;
-    border-radius: 14px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    font-family: sans-serif;
-  }
-
-  .modal-vagas-header {
-    background: #1E3A5F;
-    color: #fff;
-    padding: 16px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .modal-vagas-header h3 { margin: 0; font-size: 17px; }
-  
-  .header-actions-vagas {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .btn-copiar-link {
-    background: #008CB4;
-    color: #fff;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .btn-copiar-link:hover { background: #00B4D8; }
-
-  .btn-fechar-vagas {
-    background: transparent; border: none; color: #fff;
-    font-size: 24px; cursor: pointer; line-height: 1;
-  }
-
-  .modal-vagas-body {
-    padding: 20px 24px;
-    overflow-y: auto;
-    color: #2C3E50;
-  }
-
-  .config-grid-top {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 14px;
-    margin-bottom: 18px;
-  }
-  @media (max-width: 600px) {
-    .config-grid-top { grid-template-columns: 1fr; }
-  }
-
-  .config-section {
-    background: #F4F7FA;
-    padding: 14px 16px;
-    border-radius: 10px;
-    border: 1px solid #E2E8F0;
-  }
-  .config-section label {
-    display: block;
-    font-weight: 700;
-    font-size: 13px;
-    color: #1E3A5F;
-    margin-bottom: 6px;
-  }
-  .config-section input {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #CBD5E1;
-    border-radius: 6px;
-    font-size: 14px;
-    box-sizing: border-box;
-  }
-
-  .tabela-exames-config {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-  .tabela-exames-config th {
-    text-align: left;
-    padding: 10px 8px;
-    border-bottom: 2px solid #1E3A5F;
-    color: #1E3A5F;
-    font-size: 13px;
-  }
-  .tabela-exames-config td {
-    padding: 8px;
-    border-bottom: 1px solid #E2E8F0;
-    vertical-align: middle;
-  }
-  .tabela-exames-config input[type="number"] {
-    width: 85px;
-    padding: 6px;
-    border: 1px solid #CBD5E1;
-    border-radius: 6px;
-    text-align: center;
-    font-weight: 600;
-  }
-  .switch-ativo {
-    transform: scale(1.25);
-    cursor: pointer;
-  }
-
-  .modal-vagas-footer {
-    padding: 14px 24px;
-    background: #F8FAFC;
-    border-top: 1px solid #E2E8F0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .btn-salvar-vagas {
-    background: #008CB4;
-    color: #fff;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  .btn-salvar-vagas:hover { background: #1E3A5F; }
-</style>
-
-<!-- Botão Flutuante na Tela Principal -->
-<button id="btnAbrirConfigVagas" type="button">
-  ⚙️ Configurar Vagas Online
-</button>
-
-<!-- Modal de Controle -->
-<div id="modalConfigVagas">
-  <div class="modal-vagas-card">
-    <div class="modal-vagas-header">
-      <h3>⚙️ Controle de Vagas e Exames (Site do Cliente)</h3>
-      <div class="header-actions-vagas">
-        <button class="btn-copiar-link" id="btnCopiarLinkCliente" type="button">🔗 Copiar Link do Cliente</button>
-        <button class="btn-fechar-vagas" id="btnFecharConfigVagas">&times;</button>
-      </div>
-    </div>
-
-    <div class="modal-vagas-body">
-      <div class="config-grid-top">
-        <div class="config-section">
-          <label for="cfgLimiteTotal">Limite Geral / Dia:</label>
-          <input type="number" id="cfgLimiteTotal" min="1" max="300" value="35">
-          <small style="color:#6C7A89; font-size:11px; display:block; margin-top:4px;">Total máximo de pacientes por dia.</small>
-        </div>
-
-        <div class="config-section">
-          <label for="cfgDatasBloqueadas">Feriados / Datas Bloqueadas (AAAA-MM-DD):</label>
-          <input type="text" id="cfgDatasBloqueadas" placeholder="Ex: 2026-11-02, 2026-11-15, 2026-12-25">
-          <small style="color:#6C7A89; font-size:11px; display:block; margin-top:4px;">Separe por vírgula. Sábados e domingos já são bloqueados.</small>
-        </div>
-      </div>
-
-      <table class="tabela-exames-config">
-        <thead>
-          <tr>
-            <th style="text-align:center; width:130px;">Liberado no Site?</th>
-            <th>Exame Ocupacional</th>
-            <th style="width:160px;">Limite Diário de Vagas</th>
-          </tr>
-        </thead>
-        <tbody id="listaExamesConfig"></tbody>
-      </table>
-    </div>
-
-    <div class="modal-vagas-footer">
-      <span id="statusConfigVagas" style="font-size:13px; font-weight:600;"></span>
-      <button class="btn-salvar-vagas" id="btnSalvarConfigVagas">💾 Salvar Alterações</button>
-    </div>
-  </div>
-</div>
-
-<script type="module">
-  import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-
-  const catalogoPadrao = {
-    CLINICO:       { ativo: true,  limiteDia: 35, nome: "Clínico" },
-    AUDIO:         { ativo: true,  limiteDia: 25, nome: "Audiometria" },
-    ACV:           { ativo: true,  limiteDia: 30, nome: "Acuidade Visual" },
-    LAB:           { ativo: true,  limiteDia: 25, nome: "Laboratório (Sangue)" },
-    RX:            { ativo: true,  limiteDia: 20, nome: "Raio-X" },
-    PSICO:         { ativo: true,  limiteDia: 8,  nome: "Psicossocial" },
-    ECG:           { ativo: true,  limiteDia: 15, nome: "ECG" },
-    EEG:           { ativo: true,  limiteDia: 10, nome: "EEG" },
-    ESP:           { ativo: true,  limiteDia: 20, nome: "Espirometria" },
-    ISHI:          { ativo: true,  limiteDia: 30, nome: "Ishihara" },
-    CINESIO:       { ativo: false, limiteDia: 10, nome: "Cinesiológico" },
-    ODONTO:        { ativo: false, limiteDia: 10, nome: "Odontológico" },
-    TOXIC:         { ativo: false, limiteDia: 10, nome: "Toxicológico" },
-    OTOLOGICO:     { ativo: false, limiteDia: 15, nome: "Otológico" },
-    VOCAL:         { ativo: false, limiteDia: 10, nome: "Avaliação Vocal" },
-    "T. SONO":     { ativo: false, limiteDia: 15, nome: "Teste do Sono" },
-    PERICIA:       { ativo: false, limiteDia: 5,  nome: "Perícia" },
-    "PERICIA DOM": { ativo: false, limiteDia: 2,  nome: "Perícia Domiciliar" }
-  };
-
-  const modal = document.getElementById("modalConfigVagas");
-  const btnAbrir = document.getElementById("btnAbrirConfigVagas");
-  const btnFechar = document.getElementById("btnFecharConfigVagas");
-  const btnSalvar = document.getElementById("btnSalvarConfigVagas");
-  const btnCopiar = document.getElementById("btnCopiarLinkCliente");
-  const tbody = document.getElementById("listaExamesConfig");
+  /* =========================================================
+     CONFIGURAÇÃO DE VAGAS
+     ========================================================= */
+  const modalCfg = document.getElementById("modalConfigVagas");
+  const tbodyExames = document.getElementById("listaExamesConfig");
   const inputTotal = document.getElementById("cfgLimiteTotal");
   const inputDatas = document.getElementById("cfgDatasBloqueadas");
-  const statusEl = document.getElementById("statusConfigVagas");
+  const statusCfg = document.getElementById("statusConfigVagas");
+  const boxSlots = document.getElementById("listaSlotsConfig");
 
-  let configAtual = {
-    limiteTotalDia: 35,
-    datasBloqueadas: [],
-    exames: JSON.parse(JSON.stringify(catalogoPadrao))
-  };
-
-  // Botão para copiar link do cliente facilmente
-  btnCopiar.addEventListener("click", () => {
-    const urlCliente = "https://agendamento.alpale.com.br/agendar";
-    navigator.clipboard.writeText(urlCliente);
-    btnCopiar.textContent = "✅ Link Copiado!";
-    setTimeout(() => { btnCopiar.textContent = "🔗 Copiar Link do Cliente"; }, 2000);
-  });
-
-  function renderizarTabela() {
-    tbody.innerHTML = "";
-    Object.keys(catalogoPadrao).forEach(chave => {
-      const item = configAtual.exames[chave] || catalogoPadrao[chave];
+  function slotsParaConfig(){
+    const out=[];
+    Object.keys(ESCALA).forEach(wd=>ESCALA[wd].forEach((s,idx)=>out.push({...s, idx, wd:Number(wd), key:`${wd}|${s.inicio}`})));
+    return out;
+  }
+  function renderizarExamesCfg(){
+    tbodyExames.innerHTML="";
+    Object.keys(CATALOGO).forEach(k=>{
+      const item = configAtual.exames[k] || CATALOGO[k];
       const tr = document.createElement("tr");
-      const travado = chave === "CLINICO" ? "disabled checked" : (item.ativo ? "checked" : "");
-
-      tr.innerHTML = `
-        <td style="text-align:center;">
-          <input type="checkbox" class="switch-ativo" data-key="${chave}" ${travado}>
-        </td>
-        <td><strong>${item.nome}</strong> <small style="color:#6C7A89;">(${chave})</small></td>
-        <td>
-          <input type="number" class="input-limite-exame" data-key="${chave}" min="0" max="300" value="${item.limiteDia}">
-        </td>
-      `;
-      tbody.appendChild(tr);
+      tr.innerHTML = `<td style="text-align:center;"><input type="checkbox" class="switch-ativo" data-key="${k}" ${item.ativo?'checked':''}></td>
+        <td><strong>${item.nome}</strong> <small style="color:#6C7A89;">(${k})</small></td>
+        <td><input type="number" class="input-limite-exame" data-key="${k}" min="0" max="300" value="${item.limiteDia}"></td>`;
+      tbodyExames.appendChild(tr);
     });
   }
-
-  async function carregarDoFirebase() {
-    statusEl.style.color = "#008CB4";
-    statusEl.textContent = "Carregando configurações do banco...";
-    try {
-      const db = window.db;
-      const snap = await getDoc(doc(db, "configuracoes", "limites_agendamento"));
-      if (snap.exists()) {
-        const dados = snap.data();
-        configAtual.limiteTotalDia = dados.limiteTotalDia ?? 35;
-        configAtual.datasBloqueadas = dados.datasBloqueadas ?? [];
-        configAtual.exames = { ...JSON.parse(JSON.stringify(catalogoPadrao)), ...(dados.exames || {}) };
+  function renderizarSlots(){
+    const salvos = configAtual.slots || {};
+    boxSlots.innerHTML = slotsParaConfig().map(s=>{
+      const r = salvos[s.key] || {limite:0,tiposAso:[],exames:[]};
+      return `<div class="slot-card" data-key="${s.key}">
+        <div class="slot-head">
+          <strong>${DIAS_CFG[s.wd]} · ${esc(s.nome)} <small>(${s.inicio}–${s.fim})</small></strong>
+          <label style="font-size:12px;font-weight:700;">Vagas no turno <input type="number" class="slot-limite" min="0" value="${r.limite}"></label>
+        </div>
+        <div class="slot-group">Tipos de ASO que realiza (nenhum marcado = todos)</div>
+        <div class="slot-checks">${TIPOS_ASO.map(t=>`<label><input type="checkbox" class="slot-tipo" value="${t}" ${r.tiposAso.includes(t)?'checked':''}> ${t}</label>`).join("")}</div>
+        <div class="slot-group">Exames que realiza (nenhum marcado = todos)</div>
+        <div class="slot-checks">${Object.keys(CATALOGO).map(k=>`<label><input type="checkbox" class="slot-exame" value="${k}" ${r.exames.includes(k)?'checked':''}> ${k}</label>`).join("")}</div>
+      </div>`;
+    }).join("");
+  }
+  function coletarSlots(){
+    const out={};
+    boxSlots.querySelectorAll(".slot-card").forEach(card=>{
+      out[card.dataset.key] = {
+        limite: parseInt(card.querySelector(".slot-limite").value,10)||0,
+        tiposAso: [...card.querySelectorAll(".slot-tipo:checked")].map(i=>i.value),
+        exames: [...card.querySelectorAll(".slot-exame:checked")].map(i=>i.value)
+      };
+    });
+    return out;
+  }
+  async function carregarConfig(){
+    statusCfg.style.color="#008CB4"; statusCfg.textContent="Carregando configurações...";
+    try{
+      const snap = await getDoc(doc(db,"configuracoes","limites_agendamento"));
+      if(snap.exists()){
+        const d = snap.data();
+        configAtual = {
+          limiteTotalDia: d.limiteTotalDia ?? 35,
+          datasBloqueadas: d.datasBloqueadas ?? [],
+          exames: {...structuredClone(CATALOGO), ...(d.exames||{})},
+          slots: d.slots || {}
+        };
       }
-      inputTotal.value = configAtual.limiteTotalDia;
-      inputDatas.value = (configAtual.datasBloqueadas || []).join(", ");
-      renderizarTabela();
-      statusEl.textContent = "";
-    } catch (e) {
-      console.error(e);
-      renderizarTabela();
-      statusEl.style.color = "#EF4444";
-      statusEl.textContent = "Padrão local carregado.";
+      statusCfg.textContent="";
+    }catch(e){
+      console.error(e); statusCfg.style.color="#EF4444"; statusCfg.textContent="Padrão local carregado.";
     }
+    inputTotal.value = configAtual.limiteTotalDia;
+    inputDatas.value = (configAtual.datasBloqueadas||[]).join(", ");
+    renderizarExamesCfg(); renderizarSlots();
   }
 
-  btnAbrir.addEventListener("click", () => {
-    modal.style.display = "flex";
-    carregarDoFirebase();
+  document.getElementById("btnAbrirConfigVagas").addEventListener("click", ()=>{ modalCfg.style.display="flex"; carregarConfig(); });
+  document.getElementById("btnFecharConfigVagas").addEventListener("click", ()=>{ modalCfg.style.display="none"; });
+  document.getElementById("btnCopiarLinkCliente").addEventListener("click", e=>{
+    const url = window.location.origin + window.location.pathname.replace(/\/index\.html$/,'').replace(/\/$/,'') + "/agendar.html";
+    navigator.clipboard.writeText(url);
+    e.target.textContent = "✅ Link Copiado!";
+    setTimeout(()=>{ e.target.textContent="🔗 Copiar Link do Cliente"; }, 2000);
   });
 
-  btnFechar.addEventListener("click", () => {
-    modal.style.display = "none";
-  });
-
-  btnSalvar.addEventListener("click", async () => {
-    btnSalvar.disabled = true;
-    statusEl.style.color = "#1E3A5F";
-    statusEl.textContent = "Salvando no banco...";
-
-    const novoLimiteTotal = parseInt(inputTotal.value, 10) || 35;
-    const novasDatas = inputDatas.value
-      .split(",")
-      .map(d => d.trim())
-      .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
-
-    const novosExames = JSON.parse(JSON.stringify(catalogoPadrao));
-
-    document.querySelectorAll(".switch-ativo").forEach(chk => {
-      const k = chk.getAttribute("data-key");
-      novosExames[k].ativo = k === "CLINICO" ? true : chk.checked;
-    });
-
-    document.querySelectorAll(".input-limite-exame").forEach(inp => {
-      const k = inp.getAttribute("data-key");
-      novosExames[k].limiteDia = parseInt(inp.value, 10) || 0;
-    });
-
-    try {
-      const db = window.db;
-      await setDoc(doc(db, "configuracoes", "limites_agendamento"), {
-        limiteTotalDia: novoLimiteTotal,
-        datasBloqueadas: novasDatas,
-        exames: novosExames,
+  document.getElementById("btnSalvarConfigVagas").addEventListener("click", async ()=>{
+    const btn = document.getElementById("btnSalvarConfigVagas");
+    btn.disabled=true; statusCfg.style.color="#1E3A5F"; statusCfg.textContent="Salvando...";
+    const exames = structuredClone(CATALOGO);
+    document.querySelectorAll(".switch-ativo").forEach(c=>{ const k=c.dataset.key; exames[k].ativo = k==="CLINICO" ? true : c.checked; });
+    document.querySelectorAll(".input-limite-exame").forEach(i=>{ exames[i.dataset.key].limiteDia = parseInt(i.value,10)||0; });
+    const datas = inputDatas.value.split(",").map(d=>d.trim()).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d));
+    try{
+      await setDoc(doc(db,"configuracoes","limites_agendamento"), {
+        limiteTotalDia: parseInt(inputTotal.value,10)||35,
+        datasBloqueadas: datas,
+        exames,
+        slots: coletarSlots(),
         atualizadoEm: new Date().toISOString()
       });
-      statusEl.style.color = "#2EC4B6";
-      statusEl.textContent = "✅ Configurações salvas e ativas no site do cliente!";
-      setTimeout(() => { modal.style.display = "none"; }, 1200);
-    } catch (err) {
-      console.error(err);
-      statusEl.style.color = "#EF4444";
-      statusEl.textContent = "❌ Erro ao salvar. Verifique se window.db está disponível.";
-    } finally {
-      btnSalvar.disabled = false;
-    }
+      statusCfg.style.color="#2EC4B6"; statusCfg.textContent="✅ Configurações salvas e ativas no site!";
+      setTimeout(()=>{ modalCfg.style.display="none"; }, 1200);
+    }catch(err){
+      console.error(err); statusCfg.style.color="#EF4444"; statusCfg.textContent="❌ Erro ao salvar: "+err.message;
+    }finally{ btn.disabled=false; }
   });
-</script>
 
+  // Reconstrói contadores a partir de todos os agendamentos (migração e correção)
+  document.getElementById("btnRecalcContadores").addEventListener("click", async ()=>{
+    const btn = document.getElementById("btnRecalcContadores");
+    btn.disabled=true; statusCfg.style.color="#1E3A5F"; statusCfg.textContent="Recalculando contadores...";
+    try{
+      const snap = await getDocs(collection(db,"agendamentos"));
+      const porData = {};
+      const updates = [];
+      snap.forEach(d=>{
+        const e = d.data();
+        const slot = e.slot ? {key:e.slot} : slotPorHorario(e.date, e.horario);
+        const entrada = {...e, slot: slot?.key || null};
+        porData[e.date] ??= {total:0,slots:{},exames:{}};
+        ajustarContadores(porData[e.date], entrada, 1);
+        if(!e.slot && slot) updates.push(setDoc(doc(db,"agendamentos",d.id), {slot:slot.key}, {merge:true}));
+      });
+      await Promise.all(updates);
+      for(const [iso,c] of Object.entries(porData)) await setDoc(doc(db,"contadores",iso), c);
+      statusCfg.style.color="#2EC4B6";
+      statusCfg.textContent = `✅ ${Object.keys(porData).length} dia(s) recalculado(s).`;
+    }catch(err){
+      console.error(err); statusCfg.style.color="#EF4444"; statusCfg.textContent="❌ Erro: "+err.message;
+    }finally{ btn.disabled=false; }
+  });
+
+  render();
+</script>
 </body>
 </html>
