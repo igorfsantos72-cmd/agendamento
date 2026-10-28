@@ -1,137 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solicitar Agendamento - Alpale Saúde Ocupacional</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-  <style>
-    :root {
-      --primary: #1E3A5F;
-      --secondary: #008CB4;
-      --bg-light: #F4F7FA;
-      --border-color: #CBD5E1;
-      --white: #FFFFFF;
-      --success: #2EC4B6;
-      --danger: #EF4444;
-      --warning: #F59E0B;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body { background-color: var(--bg-light); color: var(--primary); min-height: 100vh; }
-
-    .blue-band { background: var(--primary); color: var(--white); padding: 3.5rem 5% 8.5rem 5%; }
-    .band-content { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 2rem; }
-    .band-text p { font-size: 0.95rem; color: #CBD5E1; margin-bottom: 0.2rem; }
-    .band-text h1 { font-size: 2.4rem; font-weight: 700; }
-    .logo-img-large { height: 130px; max-width: 350px; object-fit: contain; background: var(--white); padding: 15px 25px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); }
-
-    .main-container { margin-top: -5.5rem; padding: 0 5% 3rem 5%; display: flex; justify-content: center; position: relative; z-index: 10; }
-    .form-card { background: var(--white); width: 100%; max-width: 1100px; border-radius: 20px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12); padding: 3rem; }
-    .card-title { font-size: 1.6rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; }
-
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
-    @media (max-width: 768px) {
-      .form-grid { grid-template-columns: 1fr; }
-      .form-card { padding: 1.8rem; }
-      .band-content { flex-direction: column-reverse; text-align: center; }
-      .blue-band { padding: 2.5rem 5% 6.5rem 5%; }
-      .band-text h1 { font-size: 1.8rem; }
-      .logo-img-large { height: 100px; }
-    }
-
-    .input-group { display: flex; flex-direction: column; }
-    .input-group label { font-size: 0.85rem; font-weight: 600; color: var(--primary); margin-bottom: 0.5rem; }
-    .input-wrapper { position: relative; }
-    .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #6C7A89; }
-    .input-wrapper input, .input-wrapper select { width: 100%; padding: 0.9rem 1rem 0.9rem 2.6rem; border: 1.5px solid var(--border-color); border-radius: 12px; font-size: 0.95rem; color: #333; background: var(--white); transition: all 0.3s; }
-    .input-wrapper input:focus, .input-wrapper select:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px rgba(0, 140, 180, 0.15); }
-    .input-wrapper input[readonly] { background-color: #F8FAFC; color: #1E3A5F; font-weight: 700; cursor: not-allowed; }
-    .input-wrapper select option[hidden] { display: none; }
-
-    .date-info-badge { font-size: 0.8rem; margin-top: 6px; font-weight: 600; display: none; }
-
-    .exams-title { font-size: 0.95rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem; }
-    .exams-grid { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-bottom: 2rem; }
-    .exam-chip { background: var(--white); border: 1.5px solid var(--border-color); padding: 0.65rem 1.25rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; color: var(--primary); cursor: pointer; user-select: none; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; }
-    .exam-chip:hover { border-color: var(--secondary); background: rgba(0, 140, 180, 0.04); }
-    .exam-chip.active { background: var(--primary); border-color: var(--primary); color: var(--white); }
-    .exam-chip.esgotado { background-color: #F1F5F9 !important; border-color: #CBD5E1 !important; color: #94A3B8 !important; cursor: not-allowed !important; opacity: 0.65; }
-    .badge-esgotado { font-size: 0.72rem; background: #E2E8F0; color: #64748B; padding: 2px 7px; border-radius: 12px; font-weight: 700; text-transform: uppercase; }
-
-    .alert-banner { background: #E0F2FE; border-left: 4px solid var(--secondary); color: #0369A1; padding: 1rem; border-radius: 10px; font-size: 0.85rem; margin-bottom: 1.5rem; display: none; align-items: center; gap: 0.65rem; }
-
-    .upload-area { border: 2px dashed var(--border-color); background: var(--bg-light); border-radius: 16px; padding: 2rem; text-align: center; cursor: pointer; position: relative; margin-bottom: 2rem; transition: all 0.3s; }
-    .upload-area:hover { border-color: var(--secondary); background: rgba(0, 140, 180, 0.03); }
-    .upload-area input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-    .upload-icon { font-size: 2.2rem; color: var(--secondary); margin-bottom: 0.5rem; }
-    .upload-text { font-size: 0.9rem; font-weight: 600; color: var(--primary); }
-    .file-preview { display: none; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.85rem; color: var(--success); font-weight: 600; margin-top: 0.5rem; }
-
-    .btn-submit { width: 100%; background: linear-gradient(135deg, #00B4D8 0%, var(--secondary) 100%); color: var(--white); border: none; padding: 1.25rem; border-radius: 50px; font-size: 1.05rem; font-weight: 600; cursor: pointer; box-shadow: 0 8px 20px rgba(0, 140, 180, 0.25); transition: all 0.3s ease; }
-    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 140, 180, 0.35); }
-    .btn-submit:disabled { background: #CBD5E1; cursor: not-allowed; box-shadow: none; transform: none; }
-    .status-msg { text-align: center; margin-top: 1.25rem; font-size: 0.95rem; font-weight: 600; min-height: 24px; }
-
-    .tabs-nav { display: flex; gap: 0; margin-bottom: 2rem; border-bottom: 2px solid var(--border-color); }
-    .tab-btn { padding: 0.8rem 1.5rem; font-size: 0.9rem; font-weight: 600; color: #6C7A89; background: transparent; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
-    .tab-btn:hover { color: var(--secondary); }
-    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
-
-    .dropzone-lote { border: 2.5px dashed var(--secondary); background: #EFF9FD; border-radius: 18px; padding: 3rem 2rem; text-align: center; cursor: pointer; position: relative; transition: all 0.3s; margin-bottom: 1.5rem; }
-    .dropzone-lote:hover, .dropzone-lote.dragover { background: #D6F0FA; border-color: var(--primary); }
-    .dropzone-lote input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-    .dropzone-icon { font-size: 2.8rem; color: var(--secondary); margin-bottom: 0.75rem; }
-    .dropzone-text { font-size: 1rem; font-weight: 600; color: var(--primary); }
-    .dropzone-sub { font-size: 0.82rem; color: #6C7A89; margin-top: 4px; }
-
-    .lote-status-bar { display: flex; align-items: center; gap: 1rem; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: 12px; padding: 0.85rem 1.2rem; margin-bottom: 1rem; font-size: 0.85rem; font-weight: 600; color: var(--primary); flex-wrap: wrap; }
-    .lote-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
-    .lote-badge.ok { background: #D1FAE5; color: #065F46; }
-    .lote-badge.warn { background: #FEF3C7; color: #92400E; }
-    .lote-badge.err { background: #FEE2E2; color: #991B1B; }
-
-    .tabela-lote-wrap { overflow-x: auto; margin-bottom: 1.5rem; }
-    .tabela-lote { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
-    .tabela-lote th { background: var(--primary); color: #fff; padding: 10px 12px; text-align: left; font-weight: 600; white-space: nowrap; }
-    .tabela-lote td { padding: 10px 12px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
-    .tabela-lote tr:hover td { background: #F8FAFC; }
-    .tabela-lote tr.linha-erro td { background: #FFF5F5; }
-    .tabela-lote tr.linha-aviso td { background: #FFFBEB; }
-    .tabela-lote tr.linha-ok td { background: #F0FAFA; }
-    .exame-tag { display: inline-block; background: #E0F2FE; color: #0369A1; border-radius: 20px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; margin: 2px 2px 2px 0; }
-    .status-icon { font-size: 1rem; }
-    .input-data-lote { border: 1.5px solid var(--border-color); border-radius: 8px; padding: 6px 8px; font-size: 0.82rem; font-family: inherit; color: var(--primary); width: 130px; }
-    .input-data-lote.erro { border-color: var(--danger); background: #FFF5F5; }
-    .select-lote { border: 1.5px solid var(--border-color); border-radius: 8px; padding: 6px 8px; font-size: 0.8rem; font-family: inherit; color: var(--primary); max-width: 180px; }
-    .select-lote.erro { border-color: var(--danger); background: #FFF5F5; }
-    .btn-remover-linha { background: none; border: none; color: #94A3B8; cursor: pointer; font-size: 1rem; padding: 4px 8px; border-radius: 6px; transition: all 0.2s; }
-    .btn-remover-linha:hover { color: var(--danger); background: #FEE2E2; }
-
-    .progress-wrap { display: none; background: #F1F5F9; border-radius: 12px; overflow: hidden; height: 10px; margin-bottom: 1rem; }
-    .progress-bar { height: 100%; background: linear-gradient(90deg, var(--secondary), var(--success)); border-radius: 12px; transition: width 0.4s; width: 0%; }
-
-    .btn-confirmar-lote { width: 100%; background: linear-gradient(135deg, #1E3A5F 0%, #008CB4 100%); color: #fff; border: none; padding: 1.25rem; border-radius: 50px; font-size: 1.05rem; font-weight: 700; cursor: pointer; box-shadow: 0 8px 20px rgba(30, 58, 95, 0.25); transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-    .btn-confirmar-lote:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(30,58,95,0.3); }
-    .btn-confirmar-lote:disabled { background: #CBD5E1; cursor: not-allowed; box-shadow: none; transform: none; }
-
-    .modal-sucesso { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-    .modal-sucesso.aberto { display: flex; }
-    .modal-sucesso-card { background: #fff; border-radius: 20px; padding: 2.5rem; max-width: 480px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-    .modal-sucesso-icon { font-size: 3.5rem; color: var(--success); margin-bottom: 1rem; }
-    .modal-sucesso h3 { font-size: 1.4rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
-    .modal-sucesso p { font-size: 0.9rem; color: #6C7A89; margin-bottom: 1.5rem; }
-    .modal-lista { text-align: left; background: #F8FAFC; border-radius: 12px; padding: 1rem; max-height: 200px; overflow-y: auto; margin-bottom: 1.5rem; }
-    .modal-lista li { font-size: 0.83rem; padding: 4px 0; color: var(--primary); list-style: none; display: flex; gap: 8px; }
-    .btn-fechar-modal { background: var(--primary); color: #fff; border: none; padding: 0.85rem 2.5rem; border-radius: 50px; font-weight: 700; cursor: pointer; font-size: 0.95rem; }
-  </style>
-</head>
 <body>
 
   <div class="blue-band">
@@ -149,13 +15,129 @@
       <h2 class="card-title">Agendar Exame Ocupacional</h2>
 
       <div class="tabs-nav">
-        <button class="tab-btn active" data-tab="individual"><i class="fa-solid fa-user"></i> Agendamento Individual</button>
-        <button class="tab-btn" data-tab="lote"><i class="fa-solid fa-file-pdf"></i> Agendamento em Lote (PDFs)</button>
+        <button class="tab-btn active" data-tab="individual" type="button"><i class="fa-solid fa-user"></i> Agendamento Individual</button>
+        <button class="tab-btn" data-tab="lote" type="button"><i class="fa-solid fa-file-pdf"></i> Agendamento em Lote (PDFs)</button>
       </div>
 
-      <!-- ABA INDIVIDUAL -->
+      <!-- ===== ABA INDIVIDUAL ===== -->
       <div class="tab-pane active" id="tab-individual">
         <form id="agendamentoForm">
           <div class="form-grid">
             <div class="input-group">
-              <label for="empresa">
+              <label for="empresa">Buscar empresa *</label>
+              <div class="input-wrapper"><i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="empresa" placeholder="Nome da empresa solicitante" required></div>
+            </div>
+
+            <div class="input-group">
+              <label for="funcionario">Nome do colaborador *</label>
+              <div class="input-wrapper"><i class="fa-regular fa-user"></i>
+                <input type="text" id="funcionario" placeholder="Nome completo do colaborador" required></div>
+            </div>
+
+            <div class="input-group">
+              <label for="tipo">Tipo de Exame (ASO) *</label>
+              <div class="input-wrapper"><i class="fa-solid fa-notes-medical"></i>
+                <select id="tipo" required><option value="" disabled selected>Selecione o tipo do ASO...</option></select></div>
+            </div>
+
+            <div class="input-group">
+              <label for="data">Data pretendida *</label>
+              <div class="input-wrapper"><i class="fa-regular fa-calendar"></i>
+                <input type="date" id="data" required></div>
+              <div id="dateInfoBadge" class="date-info-badge"></div>
+            </div>
+
+            <div class="input-group" id="divMedico" style="display:none;">
+              <label for="medico">Médico / turno *</label>
+              <div class="input-wrapper"><i class="fa-solid fa-user-doctor"></i>
+                <select id="medico" required><option value="" disabled selected>Selecione a data primeiro...</option></select></div>
+            </div>
+
+            <div class="input-group" id="divHorario" style="display:none;">
+              <label for="horario">Horário de Chegada *</label>
+              <div class="input-wrapper"><i class="fa-regular fa-clock"></i>
+                <input type="text" id="horario" value="" readonly required></div>
+            </div>
+          </div>
+
+          <h3 class="exams-title">Exames ocupacionais solicitados</h3>
+          <div class="exams-grid" id="examsGrid"></div>
+
+          <div class="alert-banner" id="psicoAlert">
+            <i class="fa-solid fa-circle-info"></i>
+            <span><strong>Atenção:</strong> Devido ao exame Psicossocial, o agendamento foi direcionado ao <strong>1º turno (06:30)</strong>.</span>
+          </div>
+
+          <div class="input-group">
+            <label style="margin-top:1rem;">Anexar arquivos (Opcional)</label>
+            <div class="upload-area" id="uploadArea">
+              <input type="file" id="arquivoKit" accept=".pdf, .png, .jpg, .jpeg">
+              <div class="upload-icon"><i class="fa-solid fa-paperclip"></i></div>
+              <div class="upload-text" id="uploadText">Clique ou arraste a Guia / Kit de Atendimento (PDF, PNG, JPG)</div>
+              <div class="file-preview" id="filePreview"><i class="fa-solid fa-circle-check"></i> <span id="fileName">arquivo.pdf</span></div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit" id="btnSubmit">CONFIRMAR AGENDAMENTO</button>
+          <div class="status-msg" id="statusMsg"></div>
+        </form>
+      </div>
+
+      <!-- ===== ABA LOTE ===== -->
+      <div class="tab-pane" id="tab-lote">
+        <div class="dropzone-lote" id="dropzoneLote">
+          <input type="file" id="inputPdfsLote" multiple accept=".pdf">
+          <div class="dropzone-icon"><i class="fa-solid fa-file-arrow-up"></i></div>
+          <div class="dropzone-text">Arraste ou selecione os PDFs dos ASOs aqui</div>
+          <div class="dropzone-sub">Você pode selecionar vários arquivos de uma vez (cada um representa um colaborador)</div>
+        </div>
+
+        <div id="processandoMsg" style="display:none;text-align:center;color:var(--secondary);font-weight:600;margin-bottom:1rem;">
+          <i class="fa-solid fa-spinner fa-spin"></i> Lendo arquivos PDF...</div>
+
+        <div class="lote-status-bar" id="loteStatusBar" style="display:none;">
+          <i class="fa-solid fa-list-check"></i>
+          <span id="loteContador"></span>
+          <span id="loteBadges"></span>
+        </div>
+
+        <div class="tabela-lote-wrap" id="tabelaLoteWrap" style="display:none;">
+          <table class="tabela-lote">
+            <thead>
+              <tr>
+                <th style="width:32px;"></th>
+                <th>Colaborador</th>
+                <th>Empresa</th>
+                <th>Cargo / Tipo ASO</th>
+                <th>Exames</th>
+                <th>Data</th>
+                <th>Médico / turno</th>
+                <th>Status</th>
+                <th style="width:36px;"></th>
+              </tr>
+            </thead>
+            <tbody id="corpoTabelaLote"></tbody>
+          </table>
+        </div>
+
+        <div class="progress-wrap" id="progressWrap"><div class="progress-bar" id="progressBar"></div></div>
+        <div id="loteGravacaoMsg" style="text-align:center;font-size:.85rem;font-weight:600;color:var(--secondary);margin-bottom:1rem;display:none;"></div>
+
+        <button class="btn-confirmar-lote" id="btnConfirmarLote" style="display:none;" disabled>
+          <i class="fa-solid fa-calendar-check"></i>
+          <span id="btnLoteLabel">Confirmar Agendamentos em Lote</span>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-sucesso" id="modalSucesso">
+    <div class="modal-sucesso-card">
+      <div class="modal-sucesso-icon"><i class="fa-solid fa-circle-check"></i></div>
+      <h3>Lote Confirmado!</h3>
+      <p id="modalSucessoTexto"></p>
+      <ul class="modal-lista" id="modalSucessoLista"></ul>
+      <button class="btn-fechar-modal" id="btnFecharModal">Fechar</button>
+    </div>
+  </div>
