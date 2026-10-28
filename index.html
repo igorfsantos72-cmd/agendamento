@@ -200,7 +200,6 @@
 </main>
 <div id="voice-widget"></div>
 
-<!-- TRAVA DE SEGURANÇA CONTRA FALHA DE REDE -->
 <script>
   setTimeout(() => {
     const main = document.getElementById("main");
@@ -307,7 +306,6 @@
   
   function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
-  // ---------- state ----------
   const state = {
     date: todayISO(),
     viewMode: "day",
@@ -336,7 +334,6 @@
 
   function setState(patch){ Object.assign(state, patch); render(); }
 
-  // --- ESCUTANDO O FIREBASE EM TEMPO REAL ---
   if(db) {
     onSnapshot(collection(db, "agendamentos"), (snapshot) => {
       const all = [];
@@ -354,7 +351,6 @@
     });
   }
 
-  // ---------- actions ----------
   function goToDay(iso){ setState({ date: iso, viewMode:"day", entries: state.allEntries.filter(e=>e.date===iso), form: emptyForm(iso), editForm:null, formError:"" }); }
   function changeDate(iso){ setState({ date: iso, entries: state.allEntries.filter(e=>e.date===iso), form: emptyForm(iso), editForm:null, formError:"" }); }
   function openMonth(ym){ setState({ monthCursor: ym, viewMode: "month" }); }
@@ -413,7 +409,6 @@
     }
   }
 
-  // ---------- voice dictation ----------
   const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
   const MIC_SUPPORTED = !!SpeechRecognitionCtor;
   let recognition = null;
@@ -675,7 +670,6 @@
   function stopListening(){ if(recognition){ try { recognition.stop(); } catch(_){} } state.listening = false; render(); }
   function toggleWidget(){ state.widgetOpen = !state.widgetOpen; render(); }
 
-  // --- FUNÇÕES DE RENDERIZAÇÃO DA INTERFACE ---
   function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstChild; }
   function esc(s){ return (s??"").toString().replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 
@@ -735,7 +729,6 @@
     return t;
   }
 
-  // ------- MODAL DE EDIÇÃO --------
   function renderEditModal(){
     if(!state.editForm) return null;
     const f = state.editForm;
@@ -757,7 +750,6 @@
     `;
     form.appendChild(fg);
     
-    // O segredo: usamos 'onblur' para não travar a digitação do usuário
     fg.querySelector("#ef-data").oninput = e => { f.date = e.target.value; };
     fg.querySelector("#ef-data").onblur = e => { f.date = e.target.value; setState({editForm:f}); };
     
@@ -834,7 +826,6 @@
     fg.querySelector("#f-data").oninput = e => { state.form.date = e.target.value; };
     fg.querySelector("#f-data").onblur = e => { state.form.date = e.target.value; render(); };
     
-    // Deixa o teclado livre. Só atualiza a tela quando clicar fora (onblur)
     fg.querySelector("#f-horario").oninput = e => { state.form.horario = e.target.value; };
     fg.querySelector("#f-horario").onblur = e => { state.form.horario = e.target.value; render(); };
     
@@ -870,7 +861,6 @@
 
     const totalAgendamentos = state.entries.reduce((sum, e) => sum + (e.qtd || 1), 0);
 
-    // --- CÁLCULO DOS TURNOS PARA A TABELA (SANFONA) ---
     const weekday = new Date(state.date+"T12:00:00").getDay();
     const todaySlots = SCHEDULE_BY_WEEKDAY[weekday] || [];
     
@@ -909,7 +899,6 @@
         const tEntries = byTurno[t];
         if (tEntries.length === 0) return;
 
-        // "open" adicionado para a sanfona já começar aberta e você não se assustar!
         const det = el(`<details class="turno-details" open></details>`);
         const sum = el(`<summary class="turno-summary"><span>${esc(t)}</span><span class="mono" style="font-weight:700; color:#6B7280; font-size:11px; background:#E5E7EB; padding:3px 8px; border-radius:6px;">${tEntries.length} agend.</span></summary>`);
         det.appendChild(sum);
@@ -955,7 +944,6 @@
     }
     left.appendChild(tableCard);
 
-    // 0) CARTÃO: BUSCA DE FUNCIONÁRIOS
     const searchCard = el(`<div class="card" style="padding:14px 20px; border: 2px solid var(--teal);"></div>`);
     const searchWrap = el(`<div style="display:flex; align-items:center; gap:10px; flex-wrap:nowrap; width:100%;">
       <span style="font-size:16px; flex-shrink:0;">🔍</span>
@@ -979,7 +967,7 @@
           countExames += parseInt(r.getAttribute("data-qtd") || 1);
           if (termFunc.trim() !== "" || termEmp.trim() !== "") {
             const det = r.closest("details");
-            if (det) det.open = true; // Abre a sanfona se houver resultado
+            if (det) det.open = true; 
           }
         } else {
           r.style.display = "none";
@@ -992,7 +980,6 @@
     searchWrap.querySelector("#search-empresa").oninput = applySearch;
     right.appendChild(searchCard);
 
-    // 1) CARTÃO: RESUMO DO DIA POR TURNOS
     const summaryCard = el(`<div class="card"></div>`);
     summaryCard.appendChild(el(`<div style="display:flex; justify-content:space-between; align-items:center;">
         <h2 style="margin:0;">Resumo do Dia</h2>
@@ -1033,7 +1020,6 @@
     }
     right.appendChild(summaryCard);
 
-    // 2) CARTÃO: ATENDIMENTOS POR MÉDICO
     const docCard = el(`<div class="card"></div>`);
     docCard.appendChild(el(`<h2>🩺 Atendimentos por Médico</h2>`));
     const docStats = {};
@@ -1081,7 +1067,6 @@
     }
     right.appendChild(docCard);
 
-    // 3) CARTÃO: ESCALA DA SEMANA
     const scheduleCard = el(`<div class="card"></div>`);
     scheduleCard.appendChild(el(`<h2>📋 Escala de ${esc(WEEKDAY_FULL[weekday])}</h2>`));
     if(!todaySlots || todaySlots.length===0){ scheduleCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum médico de clínico escalado neste dia.</p>`)); }
@@ -1092,7 +1077,6 @@
     }
     right.appendChild(scheduleCard);
 
-    // 4) CARTÃO: LISTA PSICO (COM BOTÃO IMPRIMIR)
     const psicoEntries = sorted.filter(e => e.exams?.PSICO);
     const psicoCard = el(`<div class="card"></div>`);
     
@@ -1249,10 +1233,8 @@
     if(modal) main.appendChild(modal);
   }
 
-  // Renderização inicial
   render();
 </script>
-  <!-- ================= MÓDULO COMPLETO DE CONTROLE DE VAGAS E GUIAS ANEXADAS ================= -->
 <style>
   #btnAbrirConfigVagas {
     position: fixed;
@@ -1294,8 +1276,8 @@
   .modal-vagas-card {
     background: #fff;
     width: 100%;
-    max-width: 760px;
-    max-height: 92vh;
+    max-width: 720px;
+    max-height: 90vh;
     border-radius: 14px;
     box-shadow: 0 15px 40px rgba(0,0,0,0.25);
     display: flex;
@@ -1425,12 +1407,10 @@
   .btn-salvar-vagas:hover { background: #1E3A5F; }
 </style>
 
-<!-- Botão Flutuante na Tela Principal -->
 <button id="btnAbrirConfigVagas" type="button">
   ⚙️ Configurar Vagas Online
 </button>
 
-<!-- Modal de Controle -->
 <div id="modalConfigVagas">
   <div class="modal-vagas-card">
     <div class="modal-vagas-header">
@@ -1451,4 +1431,173 @@
 
         <div class="config-section">
           <label for="cfgDatasBloqueadas">Feriados / Datas Bloqueadas (AAAA-MM-DD):</label>
-          <input
+          <input type="text" id="cfgDatasBloqueadas" placeholder="Ex: 2026-11-02, 2026-11-15, 2026-12-25">
+          <small style="color:#6C7A89; font-size:11px; display:block; margin-top:4px;">Separe por vírgula. Sábados e domingos já são bloqueados.</small>
+        </div>
+      </div>
+
+      <table class="tabela-exames-config">
+        <thead>
+          <tr>
+            <th style="text-align:center; width:130px;">Liberado no Site?</th>
+            <th>Exame Ocupacional</th>
+            <th style="width:160px;">Limite Diário de Vagas</th>
+          </tr>
+        </thead>
+        <tbody id="listaExamesConfig"></tbody>
+      </table>
+    </div>
+
+    <div class="modal-vagas-footer">
+      <span id="statusConfigVagas" style="font-size:13px; font-weight:600;"></span>
+      <button class="btn-salvar-vagas" id="btnSalvarConfigVagas">💾 Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  const catalogoPadrao = {
+    CLINICO:       { ativo: true,  limiteDia: 35, nome: "Clínico" },
+    AUDIO:         { ativo: true,  limiteDia: 25, nome: "Audiometria" },
+    ACV:           { ativo: true,  limiteDia: 30, nome: "Acuidade Visual" },
+    LAB:           { ativo: true,  limiteDia: 25, nome: "Laboratório (Sangue)" },
+    RX:            { ativo: true,  limiteDia: 20, nome: "Raio-X" },
+    PSICO:         { ativo: true,  limiteDia: 8,  nome: "Psicossocial" },
+    ECG:           { ativo: true,  limiteDia: 15, nome: "ECG" },
+    EEG:           { ativo: true,  limiteDia: 10, nome: "EEG" },
+    ESP:           { ativo: true,  limiteDia: 20, nome: "Espirometria" },
+    ISHI:          { ativo: true,  limiteDia: 30, nome: "Ishihara" },
+    CINESIO:       { ativo: false, limiteDia: 10, nome: "Cinesiológico" },
+    ODONTO:        { ativo: false, limiteDia: 10, nome: "Odontológico" },
+    TOXIC:         { ativo: false, limiteDia: 10, nome: "Toxicológico" },
+    OTOLOGICO:     { ativo: false, limiteDia: 15, nome: "Otológico" },
+    VOCAL:         { ativo: false, limiteDia: 10, nome: "Avaliação Vocal" },
+    "T. SONO":     { ativo: false, limiteDia: 15, nome: "Teste do Sono" },
+    PERICIA:       { ativo: false, limiteDia: 5,  nome: "Perícia" },
+    "PERICIA DOM": { ativo: false, limiteDia: 2,  nome: "Perícia Domiciliar" }
+  };
+
+  const modal = document.getElementById("modalConfigVagas");
+  const btnAbrir = document.getElementById("btnAbrirConfigVagas");
+  const btnFechar = document.getElementById("btnFecharConfigVagas");
+  const btnSalvar = document.getElementById("btnSalvarConfigVagas");
+  const btnCopiar = document.getElementById("btnCopiarLinkCliente");
+  const tbody = document.getElementById("listaExamesConfig");
+  const inputTotal = document.getElementById("cfgLimiteTotal");
+  const inputDatas = document.getElementById("cfgDatasBloqueadas");
+  const statusEl = document.getElementById("statusConfigVagas");
+
+  let configAtual = {
+    limiteTotalDia: 35,
+    datasBloqueadas: [],
+    exames: JSON.parse(JSON.stringify(catalogoPadrao))
+  };
+
+  btnCopiar.addEventListener("click", () => {
+    const urlCliente = "https://agendamento.alpale.com.br/agendar";
+    navigator.clipboard.writeText(urlCliente);
+    btnCopiar.textContent = "✅ Link Copiado!";
+    setTimeout(() => { btnCopiar.textContent = "🔗 Copiar Link do Cliente"; }, 2000);
+  });
+
+  function renderizarTabela() {
+    tbody.innerHTML = "";
+    Object.keys(catalogoPadrao).forEach(chave => {
+      const item = configAtual.exames[chave] || catalogoPadrao[chave];
+      const tr = document.createElement("tr");
+      const travado = chave === "CLINICO" ? "disabled checked" : (item.ativo ? "checked" : "");
+
+      tr.innerHTML = `
+        <td style="text-align:center;">
+          <input type="checkbox" class="switch-ativo" data-key="${chave}" ${travado}>
+        </td>
+        <td><strong>${item.nome}</strong> <small style="color:#6C7A89;">(${chave})</small></td>
+        <td>
+          <input type="number" class="input-limite-exame" data-key="${chave}" min="0" max="300" value="${item.limiteDia}">
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function carregarDoFirebase() {
+    statusEl.style.color = "#008CB4";
+    statusEl.textContent = "Carregando configurações do banco...";
+    try {
+      const db = window.db;
+      const snap = await getDoc(doc(db, "configuracoes", "limites_agendamento"));
+      if (snap.exists()) {
+        const dados = snap.data();
+        configAtual.limiteTotalDia = dados.limiteTotalDia ?? 35;
+        configAtual.datasBloqueadas = dados.datasBloqueadas ?? [];
+        configAtual.exames = { ...JSON.parse(JSON.stringify(catalogoPadrao)), ...(dados.exames || {}) };
+      }
+      inputTotal.value = configAtual.limiteTotalDia;
+      inputDatas.value = (configAtual.datasBloqueadas || []).join(", ");
+      renderizarTabela();
+      statusEl.textContent = "";
+    } catch (e) {
+      console.error(e);
+      renderizarTabela();
+      statusEl.style.color = "#EF4444";
+      statusEl.textContent = "Padrão local carregado.";
+    }
+  }
+
+  btnAbrir.addEventListener("click", () => {
+    modal.style.display = "flex";
+    carregarDoFirebase();
+  });
+
+  btnFechar.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  btnSalvar.addEventListener("click", async () => {
+    btnSalvar.disabled = true;
+    statusEl.style.color = "#1E3A5F";
+    statusEl.textContent = "Salvando no banco...";
+
+    const novoLimiteTotal = parseInt(inputTotal.value, 10) || 35;
+    const novasDatas = inputDatas.value
+      .split(",")
+      .map(d => d.trim())
+      .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
+
+    const novosExames = JSON.parse(JSON.stringify(catalogoPadrao));
+
+    document.querySelectorAll(".switch-ativo").forEach(chk => {
+      const k = chk.getAttribute("data-key");
+      novosExames[k].ativo = k === "CLINICO" ? true : chk.checked;
+    });
+
+    document.querySelectorAll(".input-limite-exame").forEach(inp => {
+      const k = inp.getAttribute("data-key");
+      novosExames[k].limiteDia = parseInt(inp.value, 10) || 0;
+    });
+
+    try {
+      const db = window.db;
+      await setDoc(doc(db, "configuracoes", "limites_agendamento"), {
+        limiteTotalDia: novoLimiteTotal,
+        datasBloqueadas: novasDatas,
+        exames: novosExames,
+        atualizadoEm: new Date().toISOString()
+      });
+      statusEl.style.color = "#2EC4B6";
+      statusEl.textContent = "✅ Configurações salvas e ativas no site do cliente!";
+      setTimeout(() => { modal.style.display = "none"; }, 1200);
+    } catch (err) {
+      console.error(err);
+      statusEl.style.color = "#EF4444";
+      statusEl.textContent = "❌ Erro ao salvar. Verifique se window.db está disponível.";
+    } finally {
+      btnSalvar.disabled = false;
+    }
+  });
+</script>
+
+</body>
+</html>
