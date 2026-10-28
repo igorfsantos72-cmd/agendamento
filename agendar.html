@@ -17,6 +17,7 @@
       --white: #FFFFFF;
       --success: #2EC4B6;
       --danger: #EF4444;
+      --warning: #F59E0B;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
@@ -40,10 +41,10 @@
     .band-text h1 { font-size: 2.4rem; font-weight: 700; }
 
     .logo-img-large {
-      height: 130px; /* Tamanho do logo bem maior */
+      height: 130px;
       max-width: 350px;
       object-fit: contain;
-      background: var(--white); /* Fundo branco para destacar no azul */
+      background: var(--white);
       padding: 15px 25px;
       border-radius: 16px;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
@@ -99,14 +100,40 @@
     
     .input-wrapper input[readonly] { background-color: #F8FAFC; color: #1E3A5F; font-weight: 700; cursor: not-allowed; }
 
+    .date-info-badge {
+      font-size: 0.8rem;
+      margin-top: 6px;
+      font-weight: 600;
+      display: none;
+    }
+
     /* CHIPS DOS EXAMES */
     .exams-title { font-size: 0.95rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem; }
     .exams-grid { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-bottom: 2rem; }
     .exam-chip {
       background: var(--white); border: 1.5px solid var(--border-color); padding: 0.65rem 1.25rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; color: var(--primary); cursor: pointer; user-select: none; transition: all 0.2s ease;
+      display: inline-flex; align-items: center; gap: 6px;
     }
     .exam-chip:hover { border-color: var(--secondary); background: rgba(0, 140, 180, 0.04); }
     .exam-chip.active { background: var(--primary); border-color: var(--primary); color: var(--white); }
+    
+    /* CHIP ESGOTADO */
+    .exam-chip.esgotado {
+      background-color: #F1F5F9 !important;
+      border-color: #CBD5E1 !important;
+      color: #94A3B8 !important;
+      cursor: not-allowed !important;
+      opacity: 0.65;
+    }
+    .badge-esgotado {
+      font-size: 0.72rem;
+      background: #E2E8F0;
+      color: #64748B;
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
 
     .alert-banner { background: #E0F2FE; border-left: 4px solid var(--secondary); color: #0369A1; padding: 1rem; border-radius: 10px; font-size: 0.85rem; margin-bottom: 1.5rem; display: none; align-items: center; gap: 0.65rem; }
 
@@ -119,10 +146,10 @@
     .file-preview { display: none; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.85rem; color: var(--success); font-weight: 600; margin-top: 0.5rem; }
 
     /* BOTÃO */
-    .btn-submit { width: 100%; background: linear-gradient(135deg, var(--accent-cyan, #00B4D8) 0%, var(--secondary) 100%); color: var(--white); border: none; padding: 1.25rem; border-radius: 50px; font-size: 1.05rem; font-weight: 600; cursor: pointer; box-shadow: 0 8px 20px rgba(0, 140, 180, 0.25); transition: all 0.3s ease; }
+    .btn-submit { width: 100%; background: linear-gradient(135deg, #00B4D8 0%, var(--secondary) 100%); color: var(--white); border: none; padding: 1.25rem; border-radius: 50px; font-size: 1.05rem; font-weight: 600; cursor: pointer; box-shadow: 0 8px 20px rgba(0, 140, 180, 0.25); transition: all 0.3s ease; }
     .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 140, 180, 0.35); }
     .btn-submit:disabled { background: #CBD5E1; cursor: not-allowed; box-shadow: none; transform: none; }
-    .status-msg { text-align: center; margin-top: 1.25rem; font-size: 0.9rem; font-weight: 600; }
+    .status-msg { text-align: center; margin-top: 1.25rem; font-size: 0.95rem; font-weight: 600; min-height: 24px; }
   </style>
 </head>
 <body>
@@ -134,8 +161,7 @@
         <p>Agendamento de Clientes</p>
         <h1>Solicitar Agendamento</h1>
       </div>
-      <!-- Logo movido para a marcação vermelha e aumentado -->
-      <img src="ALPALE LOGO-01.jpg" alt="Alpale Saúde Ocupacional" class="logo-img-large" onerror="this.src='logo.png'">
+      <img src="logo.png" alt="Alpale Saúde Ocupacional" class="logo-img-large" onerror="this.src='ALPALE LOGO-01.jpg'">
     </div>
   </div>
 
@@ -182,6 +208,7 @@
               <i class="fa-regular fa-calendar"></i>
               <input type="date" id="data" required>
             </div>
+            <div id="dateInfoBadge" class="date-info-badge"></div>
           </div>
 
           <!-- SELEÇÃO DE MÉDICO E HORÁRIO -->
@@ -232,7 +259,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
     const firebaseConfig = {
@@ -251,6 +278,7 @@
     const form = document.getElementById('agendamentoForm');
     const examsGrid = document.getElementById('examsGrid');
     const dataInput = document.getElementById('data');
+    const dateInfoBadge = document.getElementById('dateInfoBadge');
     const medicoSelect = document.getElementById('medico');
     const horarioInput = document.getElementById('horario');
     const divMedico = document.getElementById('divMedico');
@@ -263,6 +291,40 @@
     const btnSubmit = document.getElementById('btnSubmit');
     const statusMsg = document.getElementById('statusMsg');
     const alertBanner = document.getElementById('psicoAlert');
+
+    // Bloquear datas no passado
+    const hojeStr = new Date().toISOString().split('T')[0];
+    dataInput.min = hojeStr;
+
+    // Catálogo padrão sincronizado com index.html
+    const catalogoPadrao = {
+      CLINICO:       { ativo: true,  limiteDia: 35, nome: "Clínico" },
+      AUDIO:         { ativo: true,  limiteDia: 25, nome: "Audiometria" },
+      ACV:           { ativo: true,  limiteDia: 30, nome: "Acuidade Visual" },
+      LAB:           { ativo: true,  limiteDia: 25, nome: "Laboratório (Sangue)" },
+      RX:            { ativo: true,  limiteDia: 20, nome: "Raio-X" },
+      PSICO:         { ativo: true,  limiteDia: 8,  nome: "Psicossocial" },
+      ECG:           { ativo: true,  limiteDia: 15, nome: "ECG" },
+      EEG:           { ativo: true,  limiteDia: 10, nome: "EEG" },
+      ESP:           { ativo: true,  limiteDia: 20, nome: "Espirometria" },
+      ISHI:          { ativo: true,  limiteDia: 30, nome: "Ishihara" },
+      CINESIO:       { ativo: false, limiteDia: 10, nome: "Cinesiológico" },
+      ODONTO:        { ativo: false, limiteDia: 10, nome: "Odontológico" },
+      TOXIC:         { ativo: false, limiteDia: 10, nome: "Toxicológico" },
+      OTOLOGICO:     { ativo: false, limiteDia: 15, nome: "Otológico" },
+      VOCAL:         { ativo: false, limiteDia: 10, nome: "Avaliação Vocal" },
+      "T. SONO":     { ativo: false, limiteDia: 15, nome: "Teste do Sono" },
+      PERICIA:       { ativo: false, limiteDia: 5,  nome: "Perícia" },
+      "PERICIA DOM": { ativo: false, limiteDia: 2,  nome: "Perícia Domiciliar" }
+    };
+
+    let regrasVagas = {
+      limiteTotalDia: 35,
+      datasBloqueadas: [],
+      exames: JSON.parse(JSON.stringify(catalogoPadrao))
+    };
+
+    let agendamentosDoDiaAtual = [];
 
     // ESCALA MÉDICA FIXA
     const escalaSemanal = {
@@ -308,22 +370,144 @@
       }
     }
 
-    dataInput.addEventListener('change', (e) => {
+    // Carregar configurações de limites do Firebase (salvas pelo index.html)
+    async function carregarRegrasVagas() {
+      try {
+        const snap = await getDoc(doc(db, "configuracoes", "limites_agendamento"));
+        if (snap.exists()) {
+          const dados = snap.data();
+          regrasVagas.limiteTotalDia = parseInt(dados.limiteTotalDia, 10) || 35;
+          regrasVagas.datasBloqueadas = Array.isArray(dados.datasBloqueadas) ? dados.datasBloqueadas : [];
+          regrasVagas.exames = { ...catalogoPadrao, ...(dados.exames || {}) };
+        }
+      } catch (err) {
+        console.error("Erro ao carregar regras:", err);
+      }
+      renderizarExames();
+    }
+
+    // Renderizar exames verificando se estão ativos e se estão esgotados no dia
+    function renderizarExames() {
+      // Calcular contagem de exames já agendados no dia selecionado
+      const contagemExames = {};
+      agendamentosDoDiaAtual.forEach(ag => {
+        if (ag.exams) {
+          Object.keys(ag.exams).forEach(cod => {
+            contagemExames[cod] = (contagemExames[cod] || 0) + 1;
+          });
+        }
+      });
+
+      examsGrid.innerHTML = '';
+      Object.keys(regrasVagas.exames).forEach(codigo => {
+        const ex = regrasVagas.exames[codigo];
+        if (!ex || !ex.ativo) return;
+
+        const totalMarcados = contagemExames[codigo] || 0;
+        const limite = parseInt(ex.limiteDia, 10) || 0;
+        const esgotado = (limite > 0 && totalMarcados >= limite);
+
+        const chip = document.createElement('div');
+        chip.className = 'exam-chip' + (codigo === 'CLINICO' ? ' active' : '') + (esgotado ? ' esgotado' : '');
+        chip.setAttribute('data-exam', codigo);
+
+        if (esgotado) {
+          chip.innerHTML = `${ex.nome} <span class="badge-esgotado">Esgotado</span>`;
+          chip.title = `Vagas esgotadas para este exame na data selecionada (${totalMarcados}/${limite})`;
+        } else {
+          chip.textContent = ex.nome;
+        }
+
+        chip.addEventListener('click', () => {
+          if (esgotado) {
+            alert(`As vagas para o exame "${ex.nome}" já se esgotaram nesta data (${totalMarcados}/${limite}). Por favor, escolha outra data se esse exame for obrigatório.`);
+            return;
+          }
+          if (codigo === 'CLINICO') return;
+          chip.classList.toggle('active');
+          if (codigo === 'PSICO') {
+            alertBanner.style.display = chip.classList.contains('active') ? 'flex' : 'none';
+          }
+          atualizarHorario();
+        });
+
+        examsGrid.appendChild(chip);
+      });
+    }
+
+    // Validação ao mudar de data
+    dataInput.addEventListener('change', async (e) => {
       const dataSelecionada = e.target.value;
       if (!dataSelecionada) return;
 
-      const diaSemana = new Date(dataSelecionada).getUTCDay();
-      
+      const [ano, mes, dia] = dataSelecionada.split('-').map(Number);
+      const dataObj = new Date(ano, mes - 1, dia);
+      const diaSemana = dataObj.getDay();
+
+      // 1. Validar final de semana
       if (diaSemana === 0 || diaSemana === 6) {
-        alert('A clínica atende apenas de segunda a sexta-feira.');
+        alert('A clínica Alpale atende apenas de segunda a sexta-feira.');
         e.target.value = '';
+        dateInfoBadge.style.display = 'none';
         divMedico.style.display = 'none';
         divHorario.style.display = 'none';
+        agendamentosDoDiaAtual = [];
+        renderizarExames();
         return;
       }
 
-      const medicosDoDia = escalaSemanal[diaSemana];
+      // 2. Validar feriados / datas bloqueadas configuradas no index.html
+      if (regrasVagas.datasBloqueadas.includes(dataSelecionada)) {
+        alert(`A data ${dataSelecionada.split('-').reverse().join('/')} está bloqueada para novos agendamentos (feriado ou sem atendimento na clínica). Por favor, selecione outra data.`);
+        e.target.value = '';
+        dateInfoBadge.style.display = 'none';
+        divMedico.style.display = 'none';
+        divHorario.style.display = 'none';
+        agendamentosDoDiaAtual = [];
+        renderizarExames();
+        return;
+      }
 
+      // 3. Consultar no Firebase o total de agendamentos já marcados para esse dia
+      dateInfoBadge.style.display = 'block';
+      dateInfoBadge.style.color = 'var(--secondary)';
+      dateInfoBadge.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Verificando vagas disponíveis...`;
+
+      try {
+        const q = query(collection(db, "agendamentos"), where("date", "==", dataSelecionada));
+        const snap = await getDocs(q);
+        agendamentosDoDiaAtual = [];
+        snap.forEach(d => agendamentosDoDiaAtual.push(d.data()));
+
+        const totalNoDia = agendamentosDoDiaAtual.length;
+        const limiteGeral = regrasVagas.limiteTotalDia || 35;
+
+        // Se atingiu o limite geral configurado no painel:
+        if (totalNoDia >= limiteGeral) {
+          alert(`Desculpe, as vagas para o dia ${dataSelecionada.split('-').reverse().join('/')} estão totalmente esgotadas (${totalNoDia}/${limiteGeral} agendamentos). Por favor, escolha outra data.`);
+          e.target.value = '';
+          dateInfoBadge.style.display = 'none';
+          divMedico.style.display = 'none';
+          divHorario.style.display = 'none';
+          agendamentosDoDiaAtual = [];
+          renderizarExames();
+          return;
+        }
+
+        const vagasRestantes = limiteGeral - totalNoDia;
+        dateInfoBadge.style.color = vagasRestantes <= 5 ? 'var(--warning)' : 'var(--success)';
+        dateInfoBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> Data disponível: <strong>${vagasRestantes} vagas restantes</strong> para este dia.`;
+
+        // Renderiza os exames considerando os limites específicos deste dia
+        renderizarExames();
+
+      } catch (err) {
+        console.error("Erro ao verificar vagas:", err);
+        dateInfoBadge.style.display = 'none';
+      }
+
+      // Preencher médicos da escala
+      const medicosDoDia = escalaSemanal[diaSemana] || [];
       divMedico.style.display = 'flex';
       divHorario.style.display = 'flex';
       medicoSelect.innerHTML = '<option value="" disabled selected>Selecione um médico...</option>';
@@ -336,43 +520,13 @@
         medicoSelect.appendChild(option);
       });
 
-      if(medicosDoDia.length > 0) {
+      if (medicosDoDia.length > 0) {
         medicoSelect.selectedIndex = 1;
         atualizarHorario();
       }
     });
 
     medicoSelect.addEventListener('change', atualizarHorario);
-
-    // EXAMES E UPLOAD
-    let regrasVagas = { exames: { CLINICO: { ativo: true, nome: "Clínico" } } };
-    
-    async function carregarExamesLiberados() {
-      try {
-        const snap = await getDoc(doc(db, "configuracoes", "limites_agendamento"));
-        if (snap.exists() && snap.data().exames) regrasVagas.exames = snap.data().exames;
-      } catch (err) {}
-      examsGrid.innerHTML = '';
-      Object.keys(regrasVagas.exames).forEach(codigo => {
-        const ex = regrasVagas.exames[codigo];
-        if (!ex || !ex.ativo) return;
-
-        const chip = document.createElement('div');
-        chip.className = 'exam-chip' + (codigo === 'CLINICO' ? ' active' : '');
-        chip.setAttribute('data-exam', codigo);
-        chip.textContent = ex.nome;
-        chip.addEventListener('click', () => {
-          if (codigo === 'CLINICO') return;
-          chip.classList.toggle('active');
-          if (codigo === 'PSICO') {
-            alertBanner.style.display = chip.classList.contains('active') ? 'flex' : 'none';
-          }
-          atualizarHorario();
-        });
-        examsGrid.appendChild(chip);
-      });
-    }
-    carregarExamesLiberados();
 
     arquivoInput.addEventListener('change', (e) => {
       if (e.target.files.length > 0) {
@@ -435,12 +589,49 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
+      const dataEscolhida = dataInput.value;
+      if (!dataEscolhida) {
+        alert("Por favor, selecione uma data para o agendamento.");
+        return;
+      }
+
       btnSubmit.disabled = true;
       btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> PROCESSANDO...`;
       statusMsg.style.color = 'var(--primary)';
-      statusMsg.textContent = 'A registrar agendamento e a gerar comprovante...';
+      statusMsg.textContent = 'Verificando vagas e registrando agendamento...';
 
       try {
+        // Validação final de segurança no Firebase antes de salvar:
+        if (regrasVagas.datasBloqueadas.includes(dataEscolhida)) {
+          throw new Error("DATA_BLOQUEADA");
+        }
+
+        const qCheck = query(collection(db, "agendamentos"), where("date", "==", dataEscolhida));
+        const snapCheck = await getDocs(qCheck);
+        const docsNoDia = [];
+        snapCheck.forEach(d => docsNoDia.push(d.data()));
+
+        const limiteGeral = regrasVagas.limiteTotalDia || 35;
+        if (docsNoDia.length >= limiteGeral) {
+          throw new Error("VAGAS_ESGOTADAS");
+        }
+
+        const examesSelecionados = {};
+        document.querySelectorAll('.exam-chip.active').forEach(chip => {
+          examesSelecionados[chip.getAttribute('data-exam')] = true;
+        });
+
+        // Conferir se algum exame escolhido estourou a cota
+        for (const cod of Object.keys(examesSelecionados)) {
+          const cfgEx = regrasVagas.exames[cod];
+          if (cfgEx && cfgEx.limiteDia > 0) {
+            const qtdDesseExame = docsNoDia.filter(d => d.exams && d.exams[cod]).length;
+            if (qtdDesseExame >= cfgEx.limiteDia) {
+              throw new Error(`EXAME_ESGOTADO:${cfgEx.nome}`);
+            }
+          }
+        }
+
         let urlArquivo = "";
         const arquivo = arquivoInput.files[0];
         const nomeColab = document.getElementById('funcionario').value.trim();
@@ -452,16 +643,11 @@
           urlArquivo = await getDownloadURL(refArquivo);
         }
 
-        const examesSelecionados = {};
-        document.querySelectorAll('.exam-chip.active').forEach(chip => {
-          examesSelecionados[chip.getAttribute('data-exam')] = true;
-        });
-
         const entryId = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
         const entryData = {
           id: entryId,
-          date: dataInput.value,
+          date: dataEscolhida,
           horario: horarioInput.value,
           medico: medicoSelect.value,
           empresa: document.getElementById('empresa').value.trim(),
@@ -484,18 +670,29 @@
         statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> Agendamento confirmado com sucesso!`;
         
         form.reset();
+        dateInfoBadge.style.display = 'none';
         divMedico.style.display = 'none';
         divHorario.style.display = 'none';
         filePreview.style.display = 'none';
         uploadText.style.display = 'block';
         uploadArea.style.borderColor = 'var(--border-color)';
         alertBanner.style.display = 'none';
-        carregarExamesLiberados();
+        
+        // Recarregar contagens
+        agendamentosDoDiaAtual = [];
+        renderizarExames();
 
       } catch (err) {
         console.error(err);
         statusMsg.style.color = 'var(--danger)';
-        if (err.message === "TIMEOUT") {
+        if (err.message === "DATA_BLOQUEADA") {
+          statusMsg.textContent = 'A data selecionada está bloqueada para agendamentos. Escolha outra data.';
+        } else if (err.message === "VAGAS_ESGOTADAS") {
+          statusMsg.textContent = 'Desculpe, as vagas para este dia acabaram de se esgotar. Por favor, escolha outra data.';
+        } else if (err.message && err.message.startsWith("EXAME_ESGOTADO:")) {
+          const nomeExame = err.message.split(":")[1];
+          statusMsg.textContent = `As vagas para o exame "${nomeExame}" se esgotaram nesta data.`;
+        } else if (err.message === "TIMEOUT") {
           statusMsg.textContent = 'A conexão demorou muito. Verifique a internet e tente novamente.';
         } else {
           statusMsg.textContent = 'Erro ao registrar agendamento. Tente novamente.';
@@ -505,6 +702,9 @@
         btnSubmit.innerHTML = `CONFIRMAR AGENDAMENTO`;
       }
     });
+
+    // Iniciar carregando as regras
+    carregarRegrasVagas();
   </script>
 </body>
 </html>
