@@ -663,7 +663,6 @@
 
     // Renderizar exames verificando se estão ativos e se estão esgotados no dia
     function renderizarExames() {
-      // Calcular contagem de exames já agendados no dia selecionado
       const contagemExames = {};
       agendamentosDoDiaAtual.forEach(ag => {
         if (ag.exams) {
@@ -719,7 +718,6 @@
       const dataObj = new Date(ano, mes - 1, dia);
       const diaSemana = dataObj.getDay();
 
-      // 1. Validar final de semana
       if (diaSemana === 0 || diaSemana === 6) {
         alert('A clínica Alpale atende apenas de segunda a sexta-feira.');
         e.target.value = '';
@@ -731,7 +729,6 @@
         return;
       }
 
-      // 2. Validar feriados / datas bloqueadas configuradas no index.html
       if (regrasVagas.datasBloqueadas.includes(dataSelecionada)) {
         alert(`A data ${dataSelecionada.split('-').reverse().join('/')} está bloqueada para novos agendamentos (feriado ou sem atendimento na clínica). Por favor, selecione outra data.`);
         e.target.value = '';
@@ -743,7 +740,6 @@
         return;
       }
 
-      // 3. Consultar no Firebase o total de agendamentos já marcados para esse dia
       dateInfoBadge.style.display = 'block';
       dateInfoBadge.style.color = 'var(--secondary)';
       dateInfoBadge.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Verificando vagas disponíveis...`;
@@ -757,7 +753,6 @@
         const totalNoDia = agendamentosDoDiaAtual.length;
         const limiteGeral = regrasVagas.limiteTotalDia || 35;
 
-        // Se atingiu o limite geral configurado no painel:
         if (totalNoDia >= limiteGeral) {
           alert(`Desculpe, as vagas para o dia ${dataSelecionada.split('-').reverse().join('/')} estão totalmente esgotadas (${totalNoDia}/${limiteGeral} agendamentos). Por favor, escolha outra data.`);
           e.target.value = '';
@@ -773,7 +768,6 @@
         dateInfoBadge.style.color = vagasRestantes <= 5 ? 'var(--warning)' : 'var(--success)';
         dateInfoBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> Data disponível: <strong>${vagasRestantes} vagas restantes</strong> para este dia.`;
 
-        // Renderiza os exames considerando os limites específicos deste dia
         renderizarExames();
 
       } catch (err) {
@@ -781,7 +775,6 @@
         dateInfoBadge.style.display = 'none';
       }
 
-      // Preencher médicos da escala
       const medicosDoDia = escalaSemanal[diaSemana] || [];
       divMedico.style.display = 'flex';
       divHorario.style.display = 'flex';
@@ -876,7 +869,6 @@
       statusMsg.textContent = 'Verificando vagas e registrando agendamento...';
 
       try {
-        // Validação final de segurança no Firebase antes de salvar:
         if (regrasVagas.datasBloqueadas.includes(dataEscolhida)) {
           throw new Error("DATA_BLOQUEADA");
         }
@@ -896,7 +888,6 @@
           examesSelecionados[chip.getAttribute('data-exam')] = true;
         });
 
-        // Conferir se algum exame escolhido estourou a cota
         for (const cod of Object.keys(examesSelecionados)) {
           const cfgEx = regrasVagas.exames[cod];
           if (cfgEx && cfgEx.limiteDia > 0) {
@@ -953,7 +944,6 @@
         uploadArea.style.borderColor = 'var(--border-color)';
         alertBanner.style.display = 'none';
         
-        // Recarregar contagens
         agendamentosDoDiaAtual = [];
         renderizarExames();
 
@@ -978,7 +968,6 @@
       }
     });
 
-    // Iniciar carregando as regras
     carregarRegrasVagas();
 
     // =====================================================
@@ -1011,7 +1000,7 @@
       ISHI:    'Ishihara',
     };
 
-    let linhasLote = []; // array de objetos processados
+    let linhasLote = [];
 
     // Extrair texto de um PDF
     async function extrairTextoDoPdf(file) {
@@ -1026,7 +1015,7 @@
       return textoFull;
     }
 
-    // Parser de ASO (Neo Safe SST padrão)
+    // Parser de ASO (Aprimorado para extrair apenas Função e Tipo de ASO)
     function analisarAso(texto, nomeArquivo) {
       // Empresa
       let empresa = '';
@@ -1038,22 +1027,34 @@
       const mFunc = texto.match(/Funcion[aá]rio:\s*(.+?)(?:\s+CPF:|\s+RG:|\s+Sexo:|\s+Data Nasc|\n|$)/i);
       if (mFunc) funcionario = mFunc[1].trim();
 
-      // Tipo ASO
+      // --- EXTRAÇÃO LIMPA DO TIPO DE ASO ---
       let tipo = 'Admissional';
-      const mTipo = texto.match(/Tipo\s+Espec[ií]fico:\s*(.+?)(?:\s+Funcion[aá]rio|\n|$)/i);
-      if (mTipo) tipo = mTipo[1].trim();
-
-      // Cargo
-      let cargo = 'Não informado';
-      const mCargo = texto.match(/Cargo:\s*(.+?)(?:\s+Função|\s+Setor|\n|$)/i);
-      if (mCargo) {
-        cargo = mCargo[1].trim();
+      // Busca opção marcada (X)
+      const mTipoX = texto.match(/\(\s*X\s*\)\s*([A-Za-zÀ-ÿ\s]+?)(?=\s*\(|\s*Risco|\s*Exame|\n|$)/i);
+      if (mTipoX) {
+        tipo = mTipoX[1].trim();
       } else {
-        const mCbo = texto.match(/fun[çc][aã]o\(?CBO\)?:\s*(.+?)(?:\s+Setor|\n|$)/i);
-        if (mCbo) cargo = mCbo[1].trim();
+        // Fallback: Busca termos chave conhecidos
+        if (/Admissional/i.test(texto)) tipo = 'Admissional';
+        else if (/Demissional/i.test(texto)) tipo = 'Demissional';
+        else if (/Peri[óo]dico/i.test(texto)) tipo = 'Periódico';
+        else if (/Mudan[çc]a de Risco|Mudan[çc]a de Fun[çc][ãa]o/i.test(texto)) tipo = 'Mudança de Função';
+        else if (/Retorno ao trabalho/i.test(texto)) tipo = 'Retorno ao Trabalho';
       }
 
-      // Data: pegar TODAS as datas DD/MM/AAAA e usar a mais recente/futura
+      // --- EXTRAÇÃO LIMPA DO CARGO / FUNÇÃO ---
+      let cargo = 'Não informado';
+      // 1. Tenta pegar a frase antes de "Tipo Específico"
+      const mCargoAntesTipo = texto.match(/^([A-Za-zÀ-ÿ\s]+?)(?=\s*Tipo\s+Espec[ií]fico)/im);
+      if (mCargoAntesTipo && mCargoAntesTipo[1].trim().length > 2) {
+        cargo = mCargoAntesTipo[1].trim();
+      } else {
+        // 2. Busca padrão Cargo: ou Função:
+        const mCargo = texto.match(/(?:Cargo|Fun[çc][ãa]o\(?CBO\)?):\s*([A-Za-zÀ-ÿ\s\/]+?)(?=\s+Tipo|\s+Fun[çc]ao|\s+Setor|\n|$)/i);
+        if (mCargo) cargo = mCargo[1].trim();
+      }
+
+      // Data: pegar TODAS as datas DD/MM/AAAA e usar a mais recente
       const datas = [...texto.matchAll(/\b(\d{2})\/(\d{2})\/(\d{4})\b/g)];
       let dataFinal = '';
       for (const [, d, m, y] of datas) {
@@ -1250,7 +1251,6 @@
 
       document.getElementById('processandoMsg').style.display = 'none';
 
-      // Adicionar ao array global e validar
       for (const linha of novos) {
         linha.status = 'pendente';
         linhasLote.push(linha);
@@ -1258,7 +1258,6 @@
       renderizarTabelaLote();
       atualizarStatusBar();
 
-      // Validar cada linha
       for (let i = 0; i < linhasLote.length; i++) {
         if (linhasLote[i].status === 'pendente') {
           const r = await validarLinha(linhasLote[i]);
@@ -1304,7 +1303,6 @@
         progressBar.style.width = `${Math.round(((i) / linhasOk.length) * 100)}%`;
 
         try {
-          // Upload do PDF
           let kitUrl = '';
           if (linha.fileObj) {
             const refKit = storageRef(storage, `kits/${Date.now()}_${(linha.funcionario || 'colab').replace(/\s+/g, '')}.pdf`);
@@ -1339,7 +1337,6 @@
       gravMsg.style.display = 'none';
       btn.disabled = false;
 
-      // Limpar lote
       linhasLote = [];
       renderizarTabelaLote();
       atualizarStatusBar();
@@ -1348,7 +1345,6 @@
       btn.style.display = 'none';
       progressBar.style.width = '0%';
 
-      // Modal de sucesso
       document.getElementById('modalSucessoTexto').textContent = `${agendados.length} colaborador${agendados.length !== 1 ? 'es foram agendados' : ' foi agendado'} com sucesso no sistema da Alpale!`;
       const lista = document.getElementById('modalSucessoLista');
       lista.innerHTML = agendados.map(l => `<li>✅ <strong>${l.funcionario}</strong> — ${l.empresa} — ${(l.data || '').split('-').reverse().join('/')} às ${l.horario}</li>`).join('');
