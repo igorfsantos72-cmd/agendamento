@@ -8,12 +8,19 @@
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
   :root{--navy:#1F4E5F;--teal:#2E86AB;--ink:#1A2B32;--paper:#F6F4EF;--line:#DCD6C9;--good-bg:#E4F5EC;--good-fg:#1F8A55;--amber-bg:#FEF3C7;--amber-fg:#92400E;}
   *{box-sizing:border-box;}
+  html,body{overflow-x:hidden;}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;}
   .mono{font-family:'JetBrains Mono',monospace;}
   header{background:linear-gradient(120deg,var(--navy),var(--teal));color:#fff;}
-  .wrap{max-width:1100px;margin:0 auto;padding:24px 20px;}
+
+  /* ---- CENTRALIZAÇÃO ---- */
+  .wrap{max-width:1100px;margin:0 auto;padding:24px 20px;width:100%;}
+  main{max-width:1100px;margin:0 auto;padding:0;width:100%;}
+  .grid5{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:22px;width:100%;align-items:start;}
+  .grid5>*{min-width:0;}
+  @media (max-width:900px){.grid5{grid-template-columns:minmax(0,1fr);}}
+
   h1{font-size:22px;font-weight:800;margin:0;}
-  .sub{color:rgba(255,255,255,.7);font-size:13px;margin:2px 0 0;}
   .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   .top{justify-content:space-between;}
   .tabs{display:flex;background:rgba(255,255,255,.1);border-radius:10px;padding:4px;gap:4px;}
@@ -24,17 +31,14 @@
   .btn-ghost:hover{background:rgba(255,255,255,.2);}
   .datebox{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;}
   .datebox input{background:transparent;border:none;color:#fff;font-weight:600;font-size:13px;outline:none;}
-  main{max-width:1100px;margin:0 auto;padding:24px 20px;}
-  .grid5{display:grid;grid-template-columns:3fr 2fr;gap:22px;}
-  @media (max-width:900px){.grid5{grid-template-columns:1fr;}}
-  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px;min-width:0;}
   .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--navy);font-weight:800;margin:0 0 14px;}
   .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;}
-  label.field{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700;color:#6B7280;}
-  input[type=text],input[type=time],input[type=date],input[type=number],select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;}
-  .exam-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:8px;}
-  @media (max-width:640px){.exam-grid{grid-template-columns:repeat(4,1fr);}}
-  .exam-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid var(--line);background:#fff;color:#6B7280;border-radius:10px;padding:9px 4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;}
+  label.field{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700;color:#6B7280;min-width:0;}
+  input[type=text],input[type=time],input[type=date],input[type=number],select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;min-width:0;width:100%;}
+  .exam-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:8px;}
+  @media (max-width:640px){.exam-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
+  .exam-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid var(--line);background:#fff;color:#6B7280;border-radius:10px;padding:9px 4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;min-width:0;overflow:hidden;text-align:center;}
   .exam-btn.active{background:var(--good-fg);border-color:var(--good-fg);color:#fff;}
   .submit-btn{margin-top:16px;display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;border:none;padding:11px 18px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;}
   .err{margin-top:10px;background:var(--amber-bg);color:var(--amber-fg);padding:9px 12px;border-radius:8px;font-size:13px;}
@@ -43,7 +47,8 @@
   .turno-summary::-webkit-details-marker{display:none;}
   .turno-summary::after{content:'▼';font-size:10px;color:var(--teal);}
   .turno-details[open] .turno-summary::after{transform:rotate(180deg);}
-  .turno-content{padding:0;border-top:1px solid var(--line);overflow-x:auto;}
+  .turno-content{padding:0;border-top:1px solid var(--line);overflow-x:auto;width:100%;}
+  .turno-content table{min-width:520px;}
   table{width:100%;border-collapse:collapse;font-size:14px;}
   th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#9CA3AF;padding:8px 12px;border-bottom:1px solid var(--line);}
   td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle;}
@@ -53,22 +58,22 @@
   .empty{text-align:center;color:#9CA3AF;font-size:14px;padding:36px 10px;}
   .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
   .bar-label{width:70px;font-family:'JetBrains Mono',monospace;font-size:10px;text-align:right;flex-shrink:0;}
-  .bar-track{flex:1;background:#F3F4F6;border-radius:5px;height:12px;overflow:hidden;}
+  .bar-track{flex:1;background:#F3F4F6;border-radius:5px;height:12px;overflow:hidden;min-width:0;}
   .bar-fill{background:var(--teal);height:100%;border-radius:5px;}
   .bar-val{width:26px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#6B7280;}
-  .tips{border-radius:14px;padding:20px;color:#fff;background:linear-gradient(135deg,var(--navy),var(--teal));}
+  .tips{border-radius:14px;padding:20px;color:#fff;background:linear-gradient(135deg,var(--navy),var(--teal));width:100%;}
   .tips p.k{font-size:10.5px;text-transform:uppercase;color:rgba(255,255,255,.7);font-family:'JetBrains Mono',monospace;margin:0 0 6px;}
   .tips ul{margin:0;padding-left:0;list-style:none;font-size:14px;line-height:1.7;}
-  .month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+  .month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;}
   .wk-lbl{text-align:center;font-size:10.5px;text-transform:uppercase;color:#9CA3AF;font-weight:800;font-family:'JetBrains Mono',monospace;margin-bottom:4px;}
   .day-cell{min-height:64px;border:1px solid var(--line);border-radius:9px;padding:8px;text-align:left;background:#fff;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;}
   .day-cell.has{background:var(--good-bg);}
   .day-cell.today{border-width:2px;border-color:var(--navy);}
   .day-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;}
   .day-badge{align-self:flex-start;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;background:var(--good-fg);color:#fff;padding:2px 6px;border-radius:6px;}
-  .year-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-  @media (max-width:800px){.year-grid{grid-template-columns:repeat(2,1fr);}}
-  @media (max-width:520px){.year-grid{grid-template-columns:1fr;}}
+  .year-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+  @media (max-width:800px){.year-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  @media (max-width:520px){.year-grid{grid-template-columns:minmax(0,1fr);}}
   .month-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;text-align:left;}
   .mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
   .mini-cell{aspect-ratio:1;border-radius:2px;}
@@ -109,9 +114,11 @@
   .ai-status{margin-top:8px;font-size:12px;font-weight:700;}
   .ai-status.on{color:var(--good-fg);}
   .ai-status.off{color:#9CA3AF;}
-  .logo-badge img{height:auto;max-height:160px;max-width:100%;display:block;}
+  .logo-badge{display:flex;align-items:center;justify-content:center;}
+  .logo-badge img{height:auto;max-height:90px;max-width:100%;display:block;}
+
   /* Configuração de vagas */
-  #btnAbrirConfigVagas{position:fixed;bottom:24px;right:24px;background:#1E3A5F;color:#fff;border:none;padding:12px 20px;border-radius:50px;font-family:sans-serif;font-weight:600;font-size:14px;cursor:pointer;box-shadow:0 4px 15px rgba(30,58,95,.35);z-index:9998;}
+  #btnAbrirConfigVagas{position:fixed;bottom:24px;right:24px;background:#1E3A5F;color:#fff;border:none;padding:12px 20px;border-radius:50px;font-family:sans-serif;font-weight:600;font-size:14px;cursor:pointer;box-shadow:0 4px 15px rgba(30,58,95,.35);z-index:998;}
   #modalConfigVagas{display:none;position:fixed;inset:0;background:rgba(10,37,64,.65);z-index:9999;justify-content:center;align-items:center;padding:16px;}
   .modal-vagas-card{background:#fff;width:100%;max-width:820px;max-height:90vh;border-radius:14px;display:flex;flex-direction:column;overflow:hidden;font-family:sans-serif;}
   .modal-vagas-header{background:#1E3A5F;color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;}
@@ -128,6 +135,7 @@
   .tabela-exames-config th{text-align:left;padding:10px 8px;border-bottom:2px solid #1E3A5F;color:#1E3A5F;font-size:13px;}
   .tabela-exames-config td{padding:8px;border-bottom:1px solid #E2E8F0;}
   .tabela-exames-config input[type="number"]{width:85px;padding:6px;border:1px solid #CBD5E1;border-radius:6px;text-align:center;font-weight:600;}
+  .tabela-exames-config input[type="checkbox"],.slot-checks input[type="checkbox"]{width:auto;}
   .slot-card{border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:10px;background:#F4F7FA;}
   .slot-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
   .slot-head input{width:80px;padding:6px;border:1px solid #CBD5E1;border-radius:6px;}
@@ -203,7 +211,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-  import { getFirestore, collection, doc, setDoc, deleteDoc, getDoc, getDocs, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAL2xXqo83pWKhyCta4Nk0gockDstxtJY4",
@@ -354,7 +362,11 @@
   };
   let configAtual = { limiteTotalDia:35, datasBloqueadas:[], exames: structuredClone(CATALOGO), slots:{} };
 
-  function setState(patch){ Object.assign(state, patch); render(); }
+  function setState(patch){
+    Object.assign(state, patch);
+    state.entries = state.allEntries.filter(e => e.date === state.date);
+    render();
+  }
 
   if(db){
     onSnapshot(collection(db,"agendamentos"), snap => {
@@ -369,8 +381,8 @@
   /* =========================================================
      AÇÕES DO PAINEL
      ========================================================= */
-  function goToDay(iso){ setState({ date:iso, viewMode:"day", entries: state.allEntries.filter(e=>e.date===iso), form: emptyForm(iso), editForm:null, formError:"" }); }
-  function changeDate(iso){ setState({ date:iso, entries: state.allEntries.filter(e=>e.date===iso), form: emptyForm(iso), editForm:null, formError:"" }); }
+  function goToDay(iso){ setState({ date:iso, viewMode:"day", form: emptyForm(iso), editForm:null, formError:"" }); }
+  function changeDate(iso){ setState({ date:iso, form: emptyForm(iso), editForm:null, formError:"" }); }
   function openMonth(ym){ setState({ monthCursor:ym, viewMode:"month" }); }
   function toggleExam(k){ state.form.exams[k] = !state.form.exams[k]; render(); }
 
@@ -524,14 +536,15 @@
       pushMessage({ role:"assistant", text: prefix+'Não consegui identificar nenhum campo. Tente algo como: "horário 8 horas, empresa Paraty, tipo periódico, exames clínico".' });
       speak("Não entendi. Pode repetir?"); return;
     }
-    const horario = horarioEfetivo(result.horario, Object.fromEntries(exams.map(k=>[k,true])));
+    const examsObj = Object.fromEntries(exams.map(k=>[k,true]));
+    const horario = result.horario ? horarioEfetivo(result.horario, examsObj) : (examsObj.PSICO ? "06:30" : null);
     const slot = horario ? slotPorHorario(state.date, horario) : null;
     const canConfirm = !!horario && (!!result.empresa || !!result.funcionario) && !!slot;
     const displayFields = slot ? [...fields, "médico: "+slot.nome] : fields;
     if(canConfirm){
-      state.pendingAppointment = { horario, empresa: result.empresa||"", funcionario: result.funcionario||"", tipo: result.tipo||"", exams: Object.fromEntries(exams.map(k=>[k,true])) };
+      state.pendingAppointment = { horario, empresa: result.empresa||"", funcionario: result.funcionario||"", tipo: result.tipo||"", exams: examsObj };
       state.awaitingConfirmation = true;
-      const summary = buildSpokenSummary(result, slot?.nome);
+      const summary = buildSpokenSummary({...result, exams: examsObj, horario}, slot?.nome);
       pushMessage({ role:"assistant", text: prefix+"Entendi: "+summary+". Confirma o agendamento?", fields: displayFields, confirm:true });
       speak(`Você quer agendar ${summary}. Confirma?`);
     } else {
@@ -673,7 +686,9 @@ Responda APENAS com JSON válido, sem markdown, no formato:
       <label class="field">🔢 Quantidade<input type="number" id="ef-qtd" value="${f.qtd||1}" min="1" max="100"></label>`;
     form.appendChild(fg);
     fg.querySelector("#ef-data").oninput = e=>f.date=e.target.value;
+    fg.querySelector("#ef-data").onblur = ()=>setState({editForm:f});
     fg.querySelector("#ef-horario").oninput = e=>f.horario=e.target.value;
+    fg.querySelector("#ef-horario").onblur = ()=>setState({editForm:f});
     fg.querySelector("#ef-empresa").oninput = e=>f.empresa=e.target.value;
     fg.querySelector("#ef-tipo").oninput = e=>f.tipo=e.target.value;
     fg.querySelector("#ef-func").oninput = e=>f.funcionario=e.target.value;
@@ -688,7 +703,7 @@ Responda APENAS com JSON válido, sem markdown, no formato:
     });
     form.appendChild(eg);
     const slot = slotPorHorario(f.date, horarioEfetivo(f.horario, f.exams));
-    form.appendChild(el(`<div class="medico-hint" style="margin-top:12px;padding:9px 12px;border-radius:9px;font-size:13px;background:${slot?'var(--good-bg)':'var(--amber-bg)'};color:${slot?'var(--good-fg)':'var(--amber-fg)'};">${slot?`🩺 Médico/turno: <b>${esc(slot.nome)}</b> (${slot.inicio}–${slot.fim})`:'⚠️ Horário fora de qualquer turno.'}</div>`));
+    form.appendChild(el(`<div style="margin-top:12px;padding:9px 12px;border-radius:9px;font-size:13px;background:${slot?'var(--good-bg)':'var(--amber-bg)'};color:${slot?'var(--good-fg)':'var(--amber-fg)'};">${slot?`🩺 Médico/turno: <b>${esc(slot.nome)}</b> (${slot.inicio}–${slot.fim})`:'⚠️ Horário fora de qualquer turno.'}</div>`));
     form.appendChild(el(`<button type="submit" class="submit-btn" style="width:100%;justify-content:center;margin-top:20px;">✓ Salvar Alterações</button>`));
     form.onsubmit = async e=>{ e.preventDefault(); await salvarEdicao(); };
     card.appendChild(form); overlay.appendChild(card);
@@ -712,9 +727,10 @@ Responda APENAS com JSON válido, sem markdown, no formato:
       <label class="field">🛠️ Função<input type="text" id="f-funcao" placeholder="ex: soldador..." value="${esc(state.form.funcao||"")}"></label>
       <label class="field">🔢 Quantidade<input type="number" id="f-qtd" value="${state.form.qtd||1}" min="1" max="100"></label>`;
     form.appendChild(fg);
-    fg.querySelector("#f-data").onchange = e=>{ state.form.date=e.target.value; render(); };
+    fg.querySelector("#f-data").oninput = e=>{ state.form.date=e.target.value; };
+    fg.querySelector("#f-data").onblur = ()=>render();
     fg.querySelector("#f-horario").oninput = e=>{ state.form.horario=e.target.value; };
-    fg.querySelector("#f-horario").onblur = e=>{ state.form.horario=e.target.value; render(); };
+    fg.querySelector("#f-horario").onblur = ()=>render();
     fg.querySelector("#f-empresa").oninput = e=>state.form.empresa=e.target.value;
     fg.querySelector("#f-tipo").oninput = e=>state.form.tipo=e.target.value;
     fg.querySelector("#f-func").oninput = e=>state.form.funcionario=e.target.value;
@@ -732,7 +748,7 @@ Responda APENAS com JSON válido, sem markdown, no formato:
 
     const hrEf = horarioEfetivo(state.form.horario, state.form.exams);
     const slotF = hrEf ? slotPorHorario(state.form.date, hrEf) : null;
-    form.appendChild(el(`<div class="medico-hint" style="margin-top:12px;padding:9px 12px;border-radius:9px;font-size:13px;background:${slotF?'var(--good-bg)':'var(--paper)'};color:${slotF?'var(--good-fg)':'#6B7280'};">${
+    form.appendChild(el(`<div style="margin-top:12px;padding:9px 12px;border-radius:9px;font-size:13px;background:${slotF?'var(--good-bg)':'var(--paper)'};color:${slotF?'var(--good-fg)':'#6B7280'};">${
       state.form.exams.PSICO ? '🧠 Psicossocial: horário fixo 06:30 (1º turno). ' : ''}${slotF ? `🩺 Médico/turno: <b>${esc(slotF.nome)}</b> (${slotF.inicio}–${slotF.fim})` : 'Informe um horário dentro de um turno para identificar o médico.'}</div>`));
 
     if(state.formError) form.appendChild(el(`<div class="err">⚠️ ${esc(state.formError)}</div>`));
@@ -799,9 +815,9 @@ Responda APENAS com JSON válido, sem markdown, no formato:
     // ---- busca ----
     const searchCard = el(`<div class="card" style="padding:14px 20px;border:2px solid var(--teal);"></div>`);
     const searchWrap = el(`<div style="display:flex;align-items:center;gap:10px;">
-      <span>🔍</span><input type="text" id="search-input" placeholder="Buscar por funcionário..." style="flex:1;min-width:0;border:none;outline:none;font-size:14px;font-weight:600;background:transparent;">
-      <span style="width:1px;height:22px;background:var(--line);"></span>
-      <span>🔍</span><input type="text" id="search-empresa" placeholder="Buscar por empresa..." style="flex:1;min-width:0;border:none;outline:none;font-size:14px;font-weight:600;background:transparent;"></div>`);
+      <span>🔍</span><input type="text" id="search-input" placeholder="Buscar por funcionário..." style="flex:1;min-width:0;border:none;outline:none;font-size:14px;font-weight:600;background:transparent;padding:0;">
+      <span style="width:1px;height:22px;background:var(--line);flex-shrink:0;"></span>
+      <span>🔍</span><input type="text" id="search-empresa" placeholder="Buscar por empresa..." style="flex:1;min-width:0;border:none;outline:none;font-size:14px;font-weight:600;background:transparent;padding:0;"></div>`);
     searchCard.appendChild(searchWrap);
     const applySearch = ()=>{
       const tf=stripAccents(searchWrap.querySelector("#search-input").value);
@@ -829,7 +845,7 @@ Responda APENAS com JSON válido, sem markdown, no formato:
       const grand = Object.values(totals).reduce((a,b)=>a+b,0);
       const pessoas = lista.reduce((s,e)=>s+(e.qtd||1),0);
       const sec = el(`<div style="margin-top:16px;border:1px solid var(--line);border-radius:10px;padding:12px;"></div>`);
-      sec.appendChild(el(`<div style="display:flex;justify-content:space-between;margin-bottom:10px;border-bottom:1px solid #E5E7EB;padding-bottom:6px;"><span style="font-size:12.5px;font-weight:800;color:var(--teal);">${esc(t.inicio)} · ${esc(t.nome)}</span><span style="font-size:11px;color:#6B7280;font-weight:600;">${pessoas} pes. / ${grand} exames</span></div>`));
+      sec.appendChild(el(`<div style="display:flex;justify-content:space-between;margin-bottom:10px;border-bottom:1px solid #E5E7EB;padding-bottom:6px;gap:8px;"><span style="font-size:12.5px;font-weight:800;color:var(--teal);">${esc(t.inicio)} · ${esc(t.nome)}</span><span style="font-size:11px;color:#6B7280;font-weight:600;white-space:nowrap;">${pessoas} pes. / ${grand} exames</span></div>`));
       const chartData = Object.keys(CATALOGO).map(k=>({name:k,total:totals[k]})).filter(d=>d.total>0);
       if(chartData.length){
         const max = Math.max(...chartData.map(d=>d.total));
@@ -1018,7 +1034,7 @@ Responda APENAS com JSON válido, sem markdown, no formato:
     Object.keys(CATALOGO).forEach(k=>{
       const item = configAtual.exames[k] || CATALOGO[k];
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td style="text-align:center;"><input type="checkbox" class="switch-ativo" data-key="${k}" ${item.ativo?'checked':''}></td>
+      tr.innerHTML = `<td style="text-align:center;"><input type="checkbox" class="switch-ativo" data-key="${k}" ${item.ativo?'checked':''} ${k==="CLINICO"?'disabled checked':''}></td>
         <td><strong>${item.nome}</strong> <small style="color:#6C7A89;">(${k})</small></td>
         <td><input type="number" class="input-limite-exame" data-key="${k}" min="0" max="300" value="${item.limiteDia}"></td>`;
       tbodyExames.appendChild(tr);
