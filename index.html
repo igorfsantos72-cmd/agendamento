@@ -916,8 +916,13 @@ Responda APENAS com JSON válido, sem markdown, no formato:
   }
 
   function renderMonthView(){
-    const card = el(`<div class="card"></div>`);
-    const wk = el(`<div class="month-grid" style="margin-bottom:2px;"></div>`);
+    const container = el(`<div class="grid5"></div>`);
+    const left = el(`<div></div>`);
+    const right = el(`<div style="display:flex;flex-direction:column;gap:20px;"></div>`);
+
+    // ---- CALENDÁRIO (ESQUERDA) ----
+    const card = el(`<div class="card" style="padding:16px;"></div>`);
+    const wk = el(`<div class="month-grid" style="margin-bottom:6px;"></div>`);
     WEEKDAY_LABELS.forEach(w=>wk.appendChild(el(`<div class="wk-lbl">${w}</div>`)));
     card.appendChild(wk);
     const grid = el(`<div class="month-grid"></div>`);
@@ -928,8 +933,114 @@ Responda APENAS com JSON válido, sem markdown, no formato:
       const cell = el(`<button class="day-cell ${count>0?'has':''} ${iso===today?'today':''}"><span class="day-num">${Number(iso.slice(8,10))}</span>${count>0?`<span class="day-badge">${count}</span>`:""}</button>`);
       cell.onclick = ()=>goToDay(iso); grid.appendChild(cell);
     });
-    card.appendChild(grid); return card;
+    card.appendChild(grid);
+    left.appendChild(card);
+
+    // ---- DASHBOARDS (DIREITA) ----
+    // Filtra todos os agendamentos do mês que está sendo visualizado
+    const monthEntries = state.allEntries.filter(e => e.date && e.date.startsWith(state.monthCursor));
+
+    let totalPessoas = 0;
+    let totalExames = 0;
+    const tipoStats = {};
+    const exameStats = {};
+    const medicoStats = {};
+
+    // Processa os dados
+    monthEntries.forEach(e => {
+      const q = e.qtd || 1;
+      totalPessoas += q;
+      
+      const t = e.tipo || "Não informado";
+      tipoStats[t] = (tipoStats[t] || 0) + q;
+      
+      if (e.medico) {
+        medicoStats[e.medico] = (medicoStats[e.medico] || 0) + q;
+      }
+
+      if (e.exams) {
+        Object.keys(e.exams).forEach(k => {
+          if (e.exams[k]) {
+             exameStats[k] = (exameStats[k] || 0) + q;
+             totalExames += q;
+          }
+        });
+      }
+    });
+
+    // 1. Resumo Geral
+    const dashGeral = el(`<div class="card" style="padding:16px; margin-bottom: 0;"></div>`);
+    dashGeral.innerHTML = `<h2 style="margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;font-size:14px;">📊 Balanço do Mês</h2>
+    <div style="display:flex;justify-content:space-between;gap:10px;">
+      <div style="background:var(--paper);padding:12px;border-radius:10px;flex:1;text-align:center;">
+         <div style="font-size:10.5px;color:#6B7280;font-weight:800;text-transform:uppercase;">Pacientes</div>
+         <div class="mono" style="font-size:24px;color:var(--navy);font-weight:800;margin-top:4px;">${totalPessoas}</div>
+      </div>
+      <div style="background:var(--good-bg);padding:12px;border-radius:10px;flex:1;text-align:center;">
+         <div style="font-size:10.5px;color:var(--good-fg);font-weight:800;text-transform:uppercase;">Exames Feitos</div>
+         <div class="mono" style="font-size:24px;color:var(--good-fg);font-weight:800;margin-top:4px;">${totalExames}</div>
+      </div>
+    </div>`;
+    right.appendChild(dashGeral);
+
+    // 2. Por Médico
+    const dashMedicos = el(`<div class="card" style="padding:16px; margin-bottom: 0;"><h2 style="margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;font-size:13px;">🩺 Atendimentos por Médico</h2></div>`);
+    const medKeys = Object.keys(medicoStats).sort((a,b) => medicoStats[b] - medicoStats[a]);
+    if(medKeys.length === 0) dashMedicos.appendChild(el(`<p style="font-size:12px;color:#9CA3AF;text-align:center;margin:0;">Nenhum atendimento registrado.</p>`));
+    else {
+      const mList = el(`<div style="display:flex;flex-direction:column;gap:6px;"></div>`);
+      medKeys.forEach(m => {
+        mList.appendChild(el(`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--paper);padding:8px 12px;border-radius:8px;">
+          <span style="font-size:12.5px;font-weight:700;color:var(--navy);">${esc(m)}</span>
+          <span class="mono" style="font-size:11px;font-weight:800;background:var(--teal);color:#fff;padding:2px 8px;border-radius:6px;">${medicoStats[m]}</span>
+        </div>`));
+      });
+      dashMedicos.appendChild(mList);
+    }
+    right.appendChild(dashMedicos);
+
+    // 3. Tipos de ASO
+    const dashTipos = el(`<div class="card" style="padding:16px; margin-bottom: 0;"><h2 style="margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;font-size:13px;">📋 Tipos de ASO</h2></div>`);
+    const tipoKeys = Object.keys(tipoStats).sort((a,b) => tipoStats[b] - tipoStats[a]);
+    if(tipoKeys.length === 0) dashTipos.appendChild(el(`<p style="font-size:12px;color:#9CA3AF;text-align:center;margin:0;">Nenhum ASO registrado.</p>`));
+    else {
+      const max = Math.max(...tipoKeys.map(k => tipoStats[k]));
+      const chart = el(`<div></div>`);
+      tipoKeys.forEach(t => {
+         const pct = Math.max(6, Math.round((tipoStats[t]/max)*100));
+         chart.appendChild(el(`<div class="bar-row" style="margin-bottom:6px;">
+           <span class="bar-label" style="width:120px;text-align:left;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;color:#4B5563;">${esc(t)}</span>
+           <div class="bar-track"><div class="bar-fill" style="width:${pct}%;"></div></div>
+           <span class="bar-val">${tipoStats[t]}</span>
+         </div>`));
+      });
+      dashTipos.appendChild(chart);
+    }
+    right.appendChild(dashTipos);
+
+    // 4. Detalhamento de Exames
+    const dashExames = el(`<div class="card" style="padding:16px; margin-bottom: 0;"><h2 style="margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;font-size:13px;">🔬 Volume por Exame</h2></div>`);
+    const exameKeys = Object.keys(exameStats).sort((a,b) => exameStats[b] - exameStats[a]);
+    if(exameKeys.length === 0) dashExames.appendChild(el(`<p style="font-size:12px;color:#9CA3AF;text-align:center;margin:0;">Nenhum exame detalhado.</p>`));
+    else {
+      const maxEx = Math.max(...exameKeys.map(k => exameStats[k]));
+      const chartEx = el(`<div></div>`);
+      exameKeys.forEach(k => {
+         const pct = Math.max(6, Math.round((exameStats[k]/maxEx)*100));
+         chartEx.appendChild(el(`<div class="bar-row" style="margin-bottom:6px;">
+           <span class="bar-label" style="width:75px;text-align:left;font-family:'Inter',sans-serif;font-weight:700;font-size:11px;color:var(--navy);">${esc(k)}</span>
+           <div class="bar-track"><div class="bar-fill" style="background:var(--navy);width:${pct}%;"></div></div>
+           <span class="bar-val">${exameStats[k]}</span>
+         </div>`));
+      });
+      dashExames.appendChild(chartEx);
+    }
+    right.appendChild(dashExames);
+
+    container.append(left, right);
+    return container;
   }
+  
   function renderYearView(){
     const grid = el(`<div class="year-grid"></div>`);
     MONTH_LABELS.forEach((label,mIdx)=>{
