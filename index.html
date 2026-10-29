@@ -13,12 +13,15 @@
   .mono{font-family:'JetBrains Mono',monospace;}
   header{background:linear-gradient(120deg,var(--navy),var(--teal));color:#fff;}
 
-  /* ---- CENTRALIZAÇÃO ---- */
+  /* ---- CENTRALIZAÇÃO E GRIDS ---- */
   .wrap{max-width:1100px;margin:0 auto;padding:24px 20px;width:100%;}
   main{max-width:1100px;margin:0 auto;padding:0;width:100%;}
   .grid5{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:22px;width:100%;align-items:start;}
   .grid5>*{min-width:0;}
   @media (max-width:900px){.grid5{grid-template-columns:minmax(0,1fr);}}
+  
+  .grid-half { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 20px; align-items: start; }
+  @media (max-width: 800px) { .grid-half { grid-template-columns: 1fr; } }
 
   h1{font-size:22px;font-weight:800;margin:0;}
   .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
@@ -916,12 +919,13 @@ Responda APENAS com JSON válido, sem markdown, no formato:
   }
 
   function renderMonthView(){
-    const container = el(`<div class="grid5"></div>`);
+    const mainContainer = el(`<div style="display:flex; flex-direction:column; width:100%;"></div>`);
+    const topGrid = el(`<div class="grid5"></div>`);
     const left = el(`<div></div>`);
     const right = el(`<div style="display:flex;flex-direction:column;gap:20px;"></div>`);
 
     // ---- CALENDÁRIO (ESQUERDA) ----
-    const card = el(`<div class="card" style="padding:16px;"></div>`);
+    const card = el(`<div class="card" style="padding:16px; margin-bottom:0;"></div>`);
     const wk = el(`<div class="month-grid" style="margin-bottom:6px;"></div>`);
     WEEKDAY_LABELS.forEach(w=>wk.appendChild(el(`<div class="wk-lbl">${w}</div>`)));
     card.appendChild(wk);
@@ -935,9 +939,9 @@ Responda APENAS com JSON válido, sem markdown, no formato:
     });
     card.appendChild(grid);
     left.appendChild(card);
+    topGrid.append(left, right);
 
-    // ---- DASHBOARDS (DIREITA) ----
-    // Filtra todos os agendamentos do mês que está sendo visualizado
+    // ---- DASHBOARDS ----
     const monthEntries = state.allEntries.filter(e => e.date && e.date.startsWith(state.monthCursor));
 
     let totalPessoas = 0;
@@ -946,7 +950,6 @@ Responda APENAS com JSON válido, sem markdown, no formato:
     const exameStats = {};
     const medicoStats = {};
 
-    // Processa os dados
     monthEntries.forEach(e => {
       const q = e.qtd || 1;
       totalPessoas += q;
@@ -968,7 +971,7 @@ Responda APENAS com JSON válido, sem markdown, no formato:
       }
     });
 
-    // 1. Resumo Geral
+    // 1. Resumo Geral (Vai no right)
     const dashGeral = el(`<div class="card" style="padding:16px; margin-bottom: 0;"></div>`);
     dashGeral.innerHTML = `<h2 style="margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;font-size:14px;">📊 Balanço do Mês</h2>
     <div style="display:flex;justify-content:space-between;gap:10px;">
@@ -983,7 +986,7 @@ Responda APENAS com JSON válido, sem markdown, no formato:
     </div>`;
     right.appendChild(dashGeral);
 
-    // 2. Por Médico
+    // 2. Por Médico (Vai no right)
     const dashMedicos = el(`<div class="card" style="padding:16px; margin-bottom: 0;"><h2 style="margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;font-size:13px;">🩺 Atendimentos por Médico</h2></div>`);
     const medKeys = Object.keys(medicoStats).sort((a,b) => medicoStats[b] - medicoStats[a]);
     if(medKeys.length === 0) dashMedicos.appendChild(el(`<p style="font-size:12px;color:#9CA3AF;text-align:center;margin:0;">Nenhum atendimento registrado.</p>`));
@@ -999,26 +1002,10 @@ Responda APENAS com JSON válido, sem markdown, no formato:
     }
     right.appendChild(dashMedicos);
 
-    // 3. Tipos de ASO
-    const dashTipos = el(`<div class="card" style="padding:16px; margin-bottom: 0;"><h2 style="margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;font-size:13px;">📋 Tipos de ASO</h2></div>`);
-    const tipoKeys = Object.keys(tipoStats).sort((a,b) => tipoStats[b] - tipoStats[a]);
-    if(tipoKeys.length === 0) dashTipos.appendChild(el(`<p style="font-size:12px;color:#9CA3AF;text-align:center;margin:0;">Nenhum ASO registrado.</p>`));
-    else {
-      const max = Math.max(...tipoKeys.map(k => tipoStats[k]));
-      const chart = el(`<div></div>`);
-      tipoKeys.forEach(t => {
-         const pct = Math.max(6, Math.round((tipoStats[t]/max)*100));
-         chart.appendChild(el(`<div class="bar-row" style="margin-bottom:6px;">
-           <span class="bar-label" style="width:120px;text-align:left;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;color:#4B5563;">${esc(t)}</span>
-           <div class="bar-track"><div class="bar-fill" style="width:${pct}%;"></div></div>
-           <span class="bar-val">${tipoStats[t]}</span>
-         </div>`));
-      });
-      dashTipos.appendChild(chart);
-    }
-    right.appendChild(dashTipos);
-
-    // 4. Detalhamento de Exames
+    // 3. Grid inferior (Exames e Tipos)
+    const bottomGrid = el(`<div class="grid-half"></div>`);
+    
+    // Volume por Exame (ESQUERDA)
     const dashExames = el(`<div class="card" style="padding:16px; margin-bottom: 0;"><h2 style="margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;font-size:13px;">🔬 Volume por Exame</h2></div>`);
     const exameKeys = Object.keys(exameStats).sort((a,b) => exameStats[b] - exameStats[a]);
     if(exameKeys.length === 0) dashExames.appendChild(el(`<p style="font-size:12px;color:#9CA3AF;text-align:center;margin:0;">Nenhum exame detalhado.</p>`));
@@ -1028,17 +1015,36 @@ Responda APENAS com JSON válido, sem markdown, no formato:
       exameKeys.forEach(k => {
          const pct = Math.max(6, Math.round((exameStats[k]/maxEx)*100));
          chartEx.appendChild(el(`<div class="bar-row" style="margin-bottom:6px;">
-           <span class="bar-label" style="width:75px;text-align:left;font-family:'Inter',sans-serif;font-weight:700;font-size:11px;color:var(--navy);">${esc(k)}</span>
+           <span class="bar-label" style="width:100px;text-align:left;font-family:'Inter',sans-serif;font-weight:700;font-size:11px;color:var(--navy);">${esc(k)}</span>
            <div class="bar-track"><div class="bar-fill" style="background:var(--navy);width:${pct}%;"></div></div>
            <span class="bar-val">${exameStats[k]}</span>
          </div>`));
       });
       dashExames.appendChild(chartEx);
     }
-    right.appendChild(dashExames);
 
-    container.append(left, right);
-    return container;
+    // Tipos de ASO (DIREITA)
+    const dashTipos = el(`<div class="card" style="padding:16px; margin-bottom: 0;"><h2 style="margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;font-size:13px;">📋 Tipos de ASO</h2></div>`);
+    const tipoKeys = Object.keys(tipoStats).sort((a,b) => tipoStats[b] - tipoStats[a]);
+    if(tipoKeys.length === 0) dashTipos.appendChild(el(`<p style="font-size:12px;color:#9CA3AF;text-align:center;margin:0;">Nenhum ASO registrado.</p>`));
+    else {
+      const max = Math.max(...tipoKeys.map(k => tipoStats[k]));
+      const chart = el(`<div></div>`);
+      tipoKeys.forEach(t => {
+         const pct = Math.max(6, Math.round((tipoStats[t]/max)*100));
+         chart.appendChild(el(`<div class="bar-row" style="margin-bottom:6px;">
+           <span class="bar-label" style="width:130px;text-align:left;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;color:#4B5563;">${esc(t)}</span>
+           <div class="bar-track"><div class="bar-fill" style="width:${pct}%;"></div></div>
+           <span class="bar-val">${tipoStats[t]}</span>
+         </div>`));
+      });
+      dashTipos.appendChild(chart);
+    }
+
+    bottomGrid.append(dashExames, dashTipos);
+    mainContainer.append(topGrid, bottomGrid);
+
+    return mainContainer;
   }
   
   function renderYearView(){
