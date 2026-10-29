@@ -402,7 +402,11 @@
                 <option value="Periódico">Periódico</option>
                 <option value="Demissional">Demissional</option>
                 <option value="Mudança de Função">Mudança de Função</option>
-                <option value="Retorno">Retorno ao Trabalho</option>
+                <option value="Mudança de Risco">Mudança de Risco</option>
+                <option value="Retorno">Retorno</option>
+                <option value="Revalidação">Revalidação</option>
+                <option value="Perícia">Perícia</option>
+                <option value="Perícia Domiciliar">Perícia Domiciliar</option>
               </select>
             </div>
           </div>
@@ -566,6 +570,7 @@
     const btnSubmit = document.getElementById('btnSubmit');
     const statusMsg = document.getElementById('statusMsg');
     const alertBanner = document.getElementById('psicoAlert');
+    const tipoSelect = document.getElementById('tipo');
 
     // Bloquear datas no passado
     const hojeStr = new Date().toISOString().split('T')[0];
@@ -596,37 +601,19 @@
     let regrasVagas = {
       limiteTotalDia: 35,
       datasBloqueadas: [],
-      exames: JSON.parse(JSON.stringify(catalogoPadrao))
+      exames: JSON.parse(JSON.stringify(catalogoPadrao)),
+      slots: {} // Aqui virá a estrutura criada no Painel
     };
 
     let agendamentosDoDiaAtual = [];
 
-    // ESCALA MÉDICA FIXA
+    // ESCALA MÉDICA FIXA - Usando base unificada para cruzar com o banco em tempo real
     const escalaSemanal = {
-      1: [ // Segunda
-        { nome: "Dra. Gizelle", horarioInicio: "08:30" },
-        { nome: "Dr. Luiz", horarioInicio: "11:00" },
-        { nome: "Dra. Nadia", horarioInicio: "16:00" }
-      ],
-      2: [ // Terça
-        { nome: "Dra. Gizelle", horarioInicio: "08:30" },
-        { nome: "Dra. Nadia", horarioInicio: "11:00" },
-        { nome: "Dr. Luiz", horarioInicio: "14:30" }
-      ],
-      3: [ // Quarta
-        { nome: "Dra. Gizelle", horarioInicio: "08:30" },
-        { nome: "Dr. Luiz", horarioInicio: "11:00" }
-      ],
-      4: [ // Quinta
-        { nome: "Dra. Louane", horarioInicio: "08:30" },
-        { nome: "Dra. Nadia", horarioInicio: "11:00" },
-        { nome: "Dra. Gizelle", horarioInicio: "13:30" }
-      ],
-      5: [ // Sexta
-        { nome: "Dra. Louane", horarioInicio: "08:30" },
-        { nome: "Dra. Nadia", horarioInicio: "11:00" },
-        { nome: "Dr. Guilherme", horarioInicio: "13:30" }
-      ]
+      1: [ { nome: "Dra. Gizelle", horarioInicio: "08:30", slotBase: "06:30" }, { nome: "Dr. Luiz", horarioInicio: "11:00", slotBase: "11:00" }, { nome: "Dra. Nadia", horarioInicio: "16:00", slotBase: "16:00" } ],
+      2: [ { nome: "Dra. Gizelle", horarioInicio: "08:30", slotBase: "06:30" }, { nome: "Dra. Nadia", horarioInicio: "11:00", slotBase: "11:00" }, { nome: "Dr. Luiz", horarioInicio: "14:30", slotBase: "14:30" } ],
+      3: [ { nome: "Dra. Gizelle", horarioInicio: "08:30", slotBase: "06:30" }, { nome: "Dr. Luiz", horarioInicio: "11:00", slotBase: "11:00" } ],
+      4: [ { nome: "Dra. Louane", horarioInicio: "08:30", slotBase: "06:30" }, { nome: "Dra. Nadia", horarioInicio: "11:00", slotBase: "11:00" }, { nome: "Dra. Gizelle", horarioInicio: "13:30", slotBase: "13:30" } ],
+      5: [ { nome: "Dra. Louane", horarioInicio: "08:30", slotBase: "06:30" }, { nome: "Dra. Nadia", horarioInicio: "11:00", slotBase: "11:00" }, { nome: "Dr. Guilherme", horarioInicio: "13:30", slotBase: "13:30" } ]
     };
 
     function atualizarHorario() {
@@ -645,7 +632,7 @@
       }
     }
 
-    // Carregar configurações de limites do Firebase (salvas pelo index.html)
+    // Carregar configurações do Firebase dinamicamente
     async function carregarRegrasVagas() {
       try {
         const snap = await getDoc(doc(db, "configuracoes", "limites_agendamento"));
@@ -654,11 +641,94 @@
           regrasVagas.limiteTotalDia = parseInt(dados.limiteTotalDia, 10) || 35;
           regrasVagas.datasBloqueadas = Array.isArray(dados.datasBloqueadas) ? dados.datasBloqueadas : [];
           regrasVagas.exames = { ...catalogoPadrao, ...(dados.exames || {}) };
+          regrasVagas.slots = dados.slots || {}; 
         }
       } catch (err) {
         console.error("Erro ao carregar regras:", err);
       }
       renderizarExames();
+    }
+
+    function preencherMedicos() {
+      const dataSelecionada = dataInput.value;
+      const tipoSelecionado = tipoSelect.value || "";
+
+      // Listar os exames ativados no HTML agora mesmo
+      const examesSelecionados = [];
+      document.querySelectorAll('.exam-chip.active').forEach(chip => {
+        examesSelecionados.push(chip.getAttribute('data-exam'));
+      });
+
+      if (!dataSelecionada) {
+         divMedico.style.display = 'none';
+         divHorario.style.display = 'none';
+         return;
+      }
+
+      const [ano, mes, dia] = dataSelecionada.split('-').map(Number);
+      const diaSemana = new Date(ano, mes - 1, dia).getDay();
+      const medicosDoDia = escalaSemanal[diaSemana] || [];
+
+      // Cruzamento de Vagas do dia
+      const countPorSlot = {};
+      agendamentosDoDiaAtual.forEach(ag => {
+         let slotKey = ag.slot;
+         if (!slotKey) {
+            let base = ag.horario;
+            if (base === "08:30" || base === "06:30") base = "06:30";
+            slotKey = `${diaSemana}|${base}`;
+         }
+         countPorSlot[slotKey] = (countPorSlot[slotKey] || 0) + (ag.qtd || 1);
+      });
+
+      divMedico.style.display = 'flex';
+      divHorario.style.display = 'flex';
+      medicoSelect.innerHTML = '<option value="" disabled selected>Selecione um médico...</option>';
+
+      let temMedicoDisponivel = false;
+
+      // Iterar e filtrar os médicos do dia usando as restrições salvas pelo index.html
+      medicosDoDia.forEach(medico => {
+        const slotKey = `${diaSemana}|${medico.slotBase}`;
+        const configSlot = regrasVagas.slots[slotKey] || { limite: 0, tiposAso: [], exames: [] };
+        const marcados = countPorSlot[slotKey] || 0;
+
+        const temVaga = configSlot.limite === 0 || marcados < configSlot.limite;
+
+        let permiteTipo = true;
+        if (tipoSelecionado && configSlot.tiposAso && configSlot.tiposAso.length > 0) {
+            permiteTipo = configSlot.tiposAso.includes(tipoSelecionado);
+        }
+
+        let permiteExames = true;
+        if (examesSelecionados.length > 0 && configSlot.exames && configSlot.exames.length > 0) {
+            const exameProibido = examesSelecionados.find(cod => !configSlot.exames.includes(cod));
+            if (exameProibido) permiteExames = false;
+        }
+
+        if (temVaga && permiteTipo && permiteExames) {
+          const option = document.createElement('option');
+          option.value = medico.nome;
+          const labelVagas = configSlot.limite > 0 ? ` (${configSlot.limite - marcados} vagas)` : ` (Sem limite de turno)`;
+          option.textContent = `${medico.nome}${labelVagas}`;
+          option.dataset.horario = medico.horarioInicio;
+          option.dataset.slotkey = slotKey;
+          medicoSelect.appendChild(option);
+          temMedicoDisponivel = true;
+        }
+      });
+
+      if (!temMedicoDisponivel && medicosDoDia.length > 0) {
+         const option = document.createElement('option');
+         option.value = "";
+         option.textContent = "Nenhum médico atende este ASO/Exames ou turno lotado";
+         option.disabled = true;
+         medicoSelect.appendChild(option);
+      } else if (temMedicoDisponivel) {
+        medicoSelect.selectedIndex = 1;
+      }
+
+      atualizarHorario();
     }
 
     // Renderizar exames verificando se estão ativos e se estão esgotados no dia
@@ -702,14 +772,20 @@
           if (codigo === 'PSICO') {
             alertBanner.style.display = chip.classList.contains('active') ? 'flex' : 'none';
           }
-          atualizarHorario();
+          
+          // Re-valida dinamicamente o médico se eu ligar um exame que o médico atual não faça
+          if (dataInput.value) preencherMedicos();
         });
 
         examsGrid.appendChild(chip);
       });
     }
 
-    // Validação ao mudar de data
+    // Ao mudar o tipo de ASO, recalcula os médicos disponíveis
+    tipoSelect.addEventListener('change', () => {
+       if (dataInput.value) preencherMedicos();
+    });
+
     dataInput.addEventListener('change', async (e) => {
       const dataSelecionada = e.target.value;
       if (!dataSelecionada) return;
@@ -769,28 +845,11 @@
         dateInfoBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> Data disponível: <strong>${vagasRestantes} vagas restantes</strong> para este dia.`;
 
         renderizarExames();
+        preencherMedicos();
 
       } catch (err) {
         console.error("Erro ao verificar vagas:", err);
         dateInfoBadge.style.display = 'none';
-      }
-
-      const medicosDoDia = escalaSemanal[diaSemana] || [];
-      divMedico.style.display = 'flex';
-      divHorario.style.display = 'flex';
-      medicoSelect.innerHTML = '<option value="" disabled selected>Selecione um médico...</option>';
-
-      medicosDoDia.forEach(medico => {
-        const option = document.createElement('option');
-        option.value = medico.nome;
-        option.textContent = medico.nome;
-        option.dataset.horario = medico.horarioInicio;
-        medicoSelect.appendChild(option);
-      });
-
-      if (medicosDoDia.length > 0) {
-        medicoSelect.selectedIndex = 1;
-        atualizarHorario();
       }
     });
 
@@ -909,13 +968,17 @@
           urlArquivo = await getDownloadURL(refArquivo);
         }
 
-        const entryId = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        // Pega a exata key (slot) para cruzar direitinho com o contadores do index.html
+        const opcaoSelecionada = medicoSelect.options[medicoSelect.selectedIndex];
+        const slotKeyForm = opcaoSelecionada ? opcaoSelecionada.dataset.slotkey : null;
 
+        const entryId = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
         const entryData = {
           id: entryId,
           date: dataEscolhida,
           horario: horarioInput.value,
           medico: medicoSelect.value,
+          slot: slotKeyForm,
           empresa: document.getElementById('empresa').value.trim(),
           tipo: document.getElementById('tipo').value,
           funcionario: nomeColab,
@@ -929,7 +992,6 @@
         const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("TIMEOUT")), 15000));
         
         await Promise.race([promessaBanco, timeout]);
-
         gerarPdfComprovante(entryData);
 
         statusMsg.style.color = 'var(--success)';
@@ -1015,7 +1077,7 @@
       return textoFull;
     }
 
-    // Parser de ASO (Aprimorado para extrair apenas Função e Tipo de ASO)
+    // Parser de ASO 
     function analisarAso(texto, nomeArquivo) {
       // Empresa
       let empresa = '';
@@ -1029,39 +1091,34 @@
 
       // --- EXTRAÇÃO LIMPA DO TIPO DE ASO ---
       let tipo = 'Admissional';
-      // Busca opção marcada (X)
       const mTipoX = texto.match(/\(\s*X\s*\)\s*([A-Za-zÀ-ÿ\s]+?)(?=\s*\(|\s*Risco|\s*Exame|\n|$)/i);
       if (mTipoX) {
         tipo = mTipoX[1].trim();
       } else {
-        // Fallback: Busca termos chave conhecidos
         if (/Admissional/i.test(texto)) tipo = 'Admissional';
         else if (/Demissional/i.test(texto)) tipo = 'Demissional';
         else if (/Peri[óo]dico/i.test(texto)) tipo = 'Periódico';
-        else if (/Mudan[çc]a de Risco|Mudan[çc]a de Fun[çc][ãa]o/i.test(texto)) tipo = 'Mudança de Função';
-        else if (/Retorno ao trabalho/i.test(texto)) tipo = 'Retorno ao Trabalho';
+        else if (/Mudan[çc]a de Risco/i.test(texto)) tipo = 'Mudança de Risco';
+        else if (/Mudan[çc]a de Fun[çc][ãa]o/i.test(texto)) tipo = 'Mudança de Função';
+        else if (/Retorno/i.test(texto)) tipo = 'Retorno';
       }
 
       // --- EXTRAÇÃO LIMPA DO CARGO / FUNÇÃO ---
       let cargo = 'Não informado';
-      // 1. Tenta pegar a frase antes de "Tipo Específico"
       const mCargoAntesTipo = texto.match(/^([A-Za-zÀ-ÿ\s]+?)(?=\s*Tipo\s+Espec[ií]fico)/im);
       if (mCargoAntesTipo && mCargoAntesTipo[1].trim().length > 2) {
         cargo = mCargoAntesTipo[1].trim();
       } else {
-        // 2. Busca padrão Cargo: ou Função:
         const mCargo = texto.match(/(?:Cargo|Fun[çc][ãa]o\(?CBO\)?):\s*([A-Za-zÀ-ÿ\s\/]+?)(?=\s+Tipo|\s+Fun[çc]ao|\s+Setor|\n|$)/i);
         if (mCargo) cargo = mCargo[1].trim();
       }
 
-      // Data: pegar TODAS as datas DD/MM/AAAA e usar a mais recente
       const datas = [...texto.matchAll(/\b(\d{2})\/(\d{2})\/(\d{4})\b/g)];
       let dataFinal = '';
       for (const [, d, m, y] of datas) {
         if (parseInt(y) >= 2025) { dataFinal = `${y}-${m}-${d}`; break; }
       }
 
-      // Exames
       const t = texto.toLowerCase();
       const exames = { CLINICO: true };
       if (/audiometria|audiom[eé]trico/.test(t)) exames.AUDIO = true;
@@ -1074,31 +1131,12 @@
       if (/espirometria/.test(t)) exames.ESP = true;
       if (/ishihara|teste de cores/.test(t)) exames.ISHI = true;
 
-      return { empresa, funcionario, tipo, cargo, data: dataFinal, exames, arquivo: nomeArquivo, fileObj: null, status: 'pendente', statusMsg: '', medico: '', horario: '' };
+      return { empresa, funcionario, tipo, cargo, data: dataFinal, exames, arquivo: nomeArquivo, fileObj: null, status: 'pendente', statusMsg: '', medico: '', horario: '', slotKey: '' };
     }
 
-    // Calcular médico e horário com base na data e exames
-    function calcularMedicoHorario(data, exames) {
-      if (!data) return { medico: '', horario: '' };
-      const [ano, mes, dia] = data.split('-').map(Number);
-      const dw = new Date(ano, mes - 1, dia).getDay();
-      const escala = {
-        1: [{ nome: "Dra. Gizelle", horarioInicio: "08:30" }, { nome: "Dr. Luiz", horarioInicio: "11:00" }, { nome: "Dra. Nadia", horarioInicio: "16:00" }],
-        2: [{ nome: "Dra. Gizelle", horarioInicio: "08:30" }, { nome: "Dra. Nadia", horarioInicio: "11:00" }, { nome: "Dr. Luiz", horarioInicio: "14:30" }],
-        3: [{ nome: "Dra. Gizelle", horarioInicio: "08:30" }, { nome: "Dr. Luiz", horarioInicio: "11:00" }],
-        4: [{ nome: "Dra. Louane", horarioInicio: "08:30" }, { nome: "Dra. Nadia", horarioInicio: "11:00" }, { nome: "Dra. Gizelle", horarioInicio: "13:30" }],
-        5: [{ nome: "Dra. Louane", horarioInicio: "08:30" }, { nome: "Dra. Nadia", horarioInicio: "11:00" }, { nome: "Dr. Guilherme", horarioInicio: "13:30" }],
-      };
-      const medicos = escala[dw];
-      if (!medicos || medicos.length === 0) return { medico: '—', horario: '—' };
-      const medico = medicos[0].nome;
-      const horario = exames.PSICO ? '06:30' : medicos[0].horarioInicio;
-      return { medico, horario };
-    }
-
-    // Validar uma linha contra as regras de vagas
+    // Validação Avançada da Linha do Lote (Lendo restrições e Slots dinâmicos)
     async function validarLinha(linha) {
-      const { data, exames } = linha;
+      const { data, exames, tipo } = linha;
       if (!data) return { ok: false, msg: 'Data não identificada no PDF' };
 
       const [ano, mes, dia] = data.split('-').map(Number);
@@ -1119,13 +1157,73 @@
           const cfgEx = regrasVagas.exames[cod];
           if (cfgEx && cfgEx.limiteDia > 0) {
             const qtd = agsDoDia.filter(d => d.exams && d.exams[cod]).length;
-            if (qtd >= cfgEx.limiteDia) return { ok: false, msg: `Vaga de ${MAPA_NOMES_EXAMES[cod] || cod} esgotada` };
+            if (qtd >= cfgEx.limiteDia) return { ok: false, msg: `Exame esgotado` };
           }
         }
+
+        // --- ALOCAÇÃO AUTOMÁTICA DO MÉDICO NO LOTE C/ REGRAS DO PAINEL ---
+        const medicosDoDia = escalaSemanal[dw] || [];
+        const countPorSlot = {};
+
+        // Vagas já ocupadas no banco
+        agsDoDia.forEach(ag => {
+            let slotKey = ag.slot;
+            if (!slotKey) {
+                let base = ag.horario;
+                if (base === "08:30" || base === "06:30") base = "06:30";
+                slotKey = `${dw}|${base}`;
+            }
+            countPorSlot[slotKey] = (countPorSlot[slotKey] || 0) + (ag.qtd || 1);
+        });
+
+        // Vagas já consumidas por colaboradores aprovados anteriormente neste mesmo lote
+        linhasLote.forEach(l => {
+           if (l !== linha && l.status === 'ok' && l.data === data && l.slotKey) {
+               countPorSlot[l.slotKey] = (countPorSlot[l.slotKey] || 0) + 1;
+           }
+        });
+
+        let medicoAlocado = null;
+        let horarioAlocado = null;
+        let slotAlocado = null;
+
+        for (const m of medicosDoDia) {
+           const slotKey = `${dw}|${m.slotBase}`;
+           const configSlot = regrasVagas.slots[slotKey] || { limite: 0, tiposAso: [], exames: [] };
+           const marcados = countPorSlot[slotKey] || 0;
+
+           const temVaga = configSlot.limite === 0 || marcados < configSlot.limite;
+
+           let permiteTipo = true;
+           if (tipo && configSlot.tiposAso && configSlot.tiposAso.length > 0) {
+               permiteTipo = configSlot.tiposAso.some(t => t.toLowerCase() === tipo.toLowerCase());
+           }
+
+           let permiteExames = true;
+           if (configSlot.exames && configSlot.exames.length > 0) {
+               const codigosExamesLinha = Object.keys(exames);
+               const exameProibido = codigosExamesLinha.find(cod => !configSlot.exames.includes(cod));
+               if (exameProibido) permiteExames = false;
+           }
+
+           if (temVaga && permiteTipo && permiteExames) {
+               medicoAlocado = m.nome;
+               horarioAlocado = exames.PSICO ? '06:30' : m.horarioInicio;
+               slotAlocado = slotKey;
+               break; 
+           }
+        }
+
+        if (!medicoAlocado) return { ok: false, msg: `Sem médico para ${tipo} ou turno lotado` };
+
+        linha.medico = medicoAlocado;
+        linha.horario = horarioAlocado;
+        linha.slotKey = slotAlocado;
+
         const vagasRestantes = limite - total;
-        return { ok: true, msg: `${vagasRestantes} vaga${vagasRestantes !== 1 ? 's' : ''} disponível${vagasRestantes !== 1 ? 'is' : ''}` };
-      } catch {
-        return { ok: true, msg: 'Disponível' };
+        return { ok: true, msg: `${vagasRestantes} vaga(s) restante(s)` };
+      } catch (e) {
+        return { ok: false, msg: 'Erro de conexão' };
       }
     }
 
@@ -1195,9 +1293,6 @@
         input.addEventListener('change', async (e) => {
           const idx = parseInt(e.target.dataset.idx);
           linhasLote[idx].data = e.target.value;
-          const mh = calcularMedicoHorario(e.target.value, linhasLote[idx].exames);
-          linhasLote[idx].medico = mh.medico;
-          linhasLote[idx].horario = mh.horario;
           linhasLote[idx].status = 'pendente';
           atualizarStatusBar();
           const resultado = await validarLinha(linhasLote[idx]);
@@ -1239,13 +1334,10 @@
           const texto = await extrairTextoDoPdf(file);
           const dados = analisarAso(texto, file.name);
           dados.fileObj = file;
-          const mh = calcularMedicoHorario(dados.data, dados.exames);
-          dados.medico = mh.medico;
-          dados.horario = mh.horario;
           novos.push(dados);
         } catch (e) {
           console.error('Erro ao ler PDF:', file.name, e);
-          novos.push({ empresa: '?', funcionario: file.name, tipo: '?', cargo: '?', data: '', exames: {}, arquivo: file.name, fileObj: file, status: 'erro', statusMsg: 'Erro ao ler PDF', medico: '', horario: '' });
+          novos.push({ empresa: '?', funcionario: file.name, tipo: '?', cargo: '?', data: '', exames: {}, arquivo: file.name, fileObj: file, status: 'erro', statusMsg: 'Erro ao ler PDF', medico: '', horario: '', slotKey: '' });
         }
       }
 
@@ -1316,6 +1408,7 @@
             date: linha.data,
             horario: linha.horario,
             medico: linha.medico,
+            slot: linha.slotKey,
             empresa: linha.empresa,
             tipo: linha.tipo,
             funcionario: linha.funcionario,
