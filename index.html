@@ -789,6 +789,9 @@ Responda APENAS com JSON válido, sem markdown, no formato:
           tr.appendChild(el(`<td>${esc(entry.empresa)||"—"}</td>`));
           tr.appendChild(el(`<td style="color:#6B7280;">${esc(entry.tipo)||"—"}</td>`));
           let funcText = esc(entry.funcionario)||"—";
+          if(entry.kitUrl){
+            funcText += ` <a href="${esc(entry.kitUrl)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:4px;background:#FEE2E2;color:#DC2626;border:1px solid #FCA5A5;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;margin-left:6px;vertical-align:middle;" title="Abrir ASO / Kit anexado">📄 PDF</a>`;
+          }
           if((entry.qtd||1)>1) funcText += ` <span style="font-size:10px;background:var(--teal);color:white;padding:2px 6px;border-radius:10px;font-weight:bold;margin-left:6px;">LOTE: ${entry.qtd}</span>`;
           if(entry.funcao) funcText += `<div style="font-size:11px;color:#6B7280;margin-top:2px;">🛠️ ${esc(entry.funcao)}</div>`;
           tr.appendChild(el(`<td>${funcText}</td>`));
@@ -1209,7 +1212,7 @@ Responda APENAS com JSON válido, sem markdown, no formato:
   document.getElementById("btnAbrirConfigVagas").addEventListener("click", ()=>{ modalCfg.style.display="flex"; carregarConfig(); });
   document.getElementById("btnFecharConfigVagas").addEventListener("click", ()=>{ modalCfg.style.display="none"; });
   document.getElementById("btnCopiarLinkCliente").addEventListener("click", e=>{
-    const url = window.location.origin + window.location.pathname.replace(/\/index\.html$/,'').replace(/\/$/,'') + "/agendar.html";
+    const url = "https://agendamento.alpale.com.br/agendar";
     navigator.clipboard.writeText(url);
     e.target.textContent = "✅ Link Copiado!";
     setTimeout(()=>{ e.target.textContent="🔗 Copiar Link do Cliente"; }, 2000);
