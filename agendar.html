@@ -538,7 +538,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
     const firebaseConfig = {
@@ -606,6 +606,66 @@
     };
 
     let agendamentosDoDiaAtual = [];
+
+    // Nomes amigáveis dos exames
+    const NOMES_EXAMES_MAP = {
+      CLINICO: "Clínico", AUDIO: "Audiometria", ACV: "Acuidade Visual",
+      LAB: "Laboratório", RX: "Raio-X", PSICO: "Psicossocial",
+      ECG: "ECG", EEG: "EEG", ESP: "Espirometria", ISHI: "Ishihara",
+      CINESIO: "Cinesiológico", ODONTO: "Odontológico", TOXIC: "Toxicológico",
+      OTOLOGICO: "Otológico", VOCAL: "Avaliação Vocal", "T. SONO": "Teste do Sono",
+      PERICIA: "Perícia", "PERICIA DOM": "Perícia Domiciliar"
+    };
+
+    function ajustarContadores(c, e, sinal) {
+      const q = (e.qtd || 1) * sinal;
+      c.total = Math.max(0, (c.total || 0) + q);
+      c.slots = c.slots || {};
+      c.exames = c.exames || {};
+      if (e.slot) c.slots[e.slot] = Math.max(0, (c.slots[e.slot] || 0) + q);
+      Object.keys(e.exams || {}).forEach(cod => {
+        if (e.exams[cod]) c.exames[cod] = Math.max(0, (c.exames[cod] || 0) + q);
+      });
+    }
+
+    async function gravarAgendamentoComContador(entryData) {
+      await runTransaction(db, async (tx) => {
+        const cfgSnap = await tx.get(doc(db, "configuracoes", "limites_agendamento"));
+        const cfg = cfgSnap.exists() ? cfgSnap.data() : {};
+        const cRef = doc(db, "contadores", entryData.date);
+        const cSnap = await tx.get(cRef);
+        const c = cSnap.exists() ? cSnap.data() : { total: 0, slots: {}, exames: {} };
+        c.total = c.total || 0;
+        c.slots = c.slots || {};
+        c.exames = c.exames || {};
+
+        // Validar limite total do dia
+        const q = entryData.qtd || 1;
+        const limTotal = parseInt(cfg.limiteTotalDia, 10) || 35;
+        if ((c.total || 0) + q > limTotal) throw new Error("VAGAS_ESGOTADAS");
+
+        // Validar limites por exame
+        const exCatalogo = { ...catalogoPadrao, ...(cfg.exames || {}) };
+        for (const cod of Object.keys(entryData.exams || {})) {
+          const lim = parseInt(exCatalogo[cod]?.limiteDia, 10) || 0;
+          if (lim > 0 && ((c.exames || {})[cod] || 0) + q > lim) {
+            throw new Error("EXAME_ESGOTADO:" + (exCatalogo[cod]?.nome || cod));
+          }
+        }
+
+        // Validar limite do turno do médico
+        if (entryData.slot) {
+          const regSlot = (cfg.slots || {})[entryData.slot] || { limite: 0 };
+          if (regSlot.limite > 0 && ((c.slots || {})[entryData.slot] || 0) + q > regSlot.limite) {
+            throw new Error("TURNO_ESGOTADO");
+          }
+        }
+
+        ajustarContadores(c, entryData, 1);
+        tx.set(cRef, c);
+        tx.set(doc(db, "agendamentos", entryData.id), entryData);
+      });
+    }
 
     // ESCALA MÉDICA FIXA - Usando base unificada para cruzar com o banco em tempo real
     const escalaSemanal = {
@@ -897,7 +957,7 @@
       docPdf.text(`• Data Marcada: ${dados.date.split('-').reverse().join('/')}`, 15, 128);
       docPdf.text(`• Horário de Chegada: ${dados.horario}`, 15, 138);
 
-      const listaExamesStr = Object.keys(dados.exams).join(", ");
+      const listaExamesStr = Object.keys(dados.exams).map(k => NOMES_EXAMES_MAP[k] || k).join(", ");
       docPdf.text(`• Exames Solicitados: ${listaExamesStr}`, 15, 148);
 
       docPdf.setFillColor(240, 244, 248);
@@ -988,7 +1048,7 @@
           criadoEm: new Date().toISOString()
         };
 
-        const promessaBanco = setDoc(doc(db, "agendamentos", entryId), entryData);
+        const promessaBanco = gravarAgendamentoComContador(entryData);
         const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("TIMEOUT")), 15000));
         
         await Promise.race([promessaBanco, timeout]);
@@ -1016,6 +1076,8 @@
           statusMsg.textContent = 'A data selecionada está bloqueada para agendamentos. Escolha outra data.';
         } else if (err.message === "VAGAS_ESGOTADAS") {
           statusMsg.textContent = 'Desculpe, as vagas para este dia acabaram de se esgotar. Por favor, escolha outra data.';
+        } else if (err.message === "TURNO_ESGOTADO") {
+          statusMsg.textContent = 'As vagas para o turno deste médico já se esgotaram. Por favor, selecione outro médico ou data.';
         } else if (err.message && err.message.startsWith("EXAME_ESGOTADO:")) {
           const nomeExame = err.message.split(":")[1];
           statusMsg.textContent = `As vagas para o exame "${nomeExame}" se esgotaram nesta data.`;
@@ -1091,34 +1153,48 @@
 
       // --- EXTRAÇÃO LIMPA DO TIPO DE ASO ---
       let tipo = 'Admissional';
-      const mTipoX = texto.match(/\(\s*X\s*\)\s*([A-Za-zÀ-ÿ\s]+?)(?=\s*\(|\s*Risco|\s*Exame|\n|$)/i);
-      if (mTipoX) {
+      const mTipoX = texto.match(/\(\s*[xX]\s*\)\s*([A-Za-zÀ-ÿ\s]+?)(?=\s*\(|\s*Risco|\s*Exame|\n|\r|$)/i);
+      if (mTipoX && mTipoX[1].trim().length < 30) {
         tipo = mTipoX[1].trim();
       } else {
-        if (/Admissional/i.test(texto)) tipo = 'Admissional';
-        else if (/Demissional/i.test(texto)) tipo = 'Demissional';
-        else if (/Peri[óo]dico/i.test(texto)) tipo = 'Periódico';
-        else if (/Mudan[çc]a de Risco/i.test(texto)) tipo = 'Mudança de Risco';
-        else if (/Mudan[çc]a de Fun[çc][ãa]o/i.test(texto)) tipo = 'Mudança de Função';
-        else if (/Retorno/i.test(texto)) tipo = 'Retorno';
+        const mTipoEsp = texto.match(/Tipo\s+Espec[ií]fico:\s*([^\r\n]+?)(?:\s+Funcion[aá]rio|\s+M[eé]dico|\r|\n|$)/i);
+        if (mTipoEsp) {
+          const val = mTipoEsp[1].trim();
+          const mX2 = val.match(/\(\s*[xX]\s*\)\s*([A-Za-zÀ-ÿ\s]+)/i);
+          if (mX2) {
+            tipo = mX2[1].trim();
+          } else if (!val.includes('(') && val.length < 30) {
+            tipo = val;
+          } else {
+            const padroes = ['Demissional', 'Admissional', 'Periódico', 'Mudança de Risco', 'Mudança de Função', 'Retorno', 'Revalidação', 'Perícia Domiciliar', 'Perícia'];
+            for (const p of padroes) {
+              if (new RegExp('\\b' + p + '\\b', 'i').test(val)) { tipo = p; break; }
+            }
+          }
+        }
       }
 
       // --- EXTRAÇÃO LIMPA DO CARGO / FUNÇÃO ---
       let cargo = 'Não informado';
-      const mCargoAntesTipo = texto.match(/^([A-Za-zÀ-ÿ\s]+?)(?=\s*Tipo\s+Espec[ií]fico)/im);
-      if (mCargoAntesTipo && mCargoAntesTipo[1].trim().length > 2) {
-        cargo = mCargoAntesTipo[1].trim();
+      const mCargo = texto.match(/Cargo:\s*([^\r\n]+?)(?:\s+Tipo|\s+M[eé]dico|\s+Fun[çc][ãa]o|\s+Setor|\s+Riscos|\s+CPF|\r|\n|$)/i);
+      if (mCargo && mCargo[1].trim().length < 40 && !/Tipo\s+Espec/i.test(mCargo[1])) {
+        cargo = mCargo[1].trim();
       } else {
-        const mCargo = texto.match(/(?:Cargo|Fun[çc][ãa]o\(?CBO\)?):\s*([A-Za-zÀ-ÿ\s\/]+?)(?=\s+Tipo|\s+Fun[çc]ao|\s+Setor|\n|$)/i);
-        if (mCargo) cargo = mCargo[1].trim();
+        const mCbo = texto.match(/(?:Trabalhava na |Trabalhar[aá] na )?fun[çc][ãa]o(?:\(CBO\))?:\s*([^\r\n]+?)(?:\s+Setor|\s+Tipo|\r|\n|$)/i);
+        if (mCbo && mCbo[1].trim().length < 40) {
+          cargo = mCbo[1].trim();
+        }
       }
 
       const datas = [...texto.matchAll(/\b(\d{2})\/(\d{2})\/(\d{4})\b/g)];
       let dataFinal = '';
+      const hojeStr = new Date().toISOString().split('T')[0];
       for (const [, d, m, y] of datas) {
-        if (parseInt(y) >= 2025) { dataFinal = `${y}-${m}-${d}`; break; }
+        const cand = ${y}--;
+        if (cand >= hojeStr) { dataFinal = cand; break; }
       }
-
+      if (!dataFinal) dataFinal = hojeStr;
+      
       const t = texto.toLowerCase();
       const exames = { CLINICO: true };
       if (/audiometria|audiom[eé]trico/.test(t)) exames.AUDIO = true;
@@ -1403,7 +1479,7 @@
           }
 
           const entryId = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-          await setDoc(doc(db, "agendamentos", entryId), {
+          const entryData = {
             id: entryId,
             date: linha.data,
             horario: linha.horario,
@@ -1417,7 +1493,8 @@
             qtd: 1,
             kitUrl,
             criadoEm: new Date().toISOString()
-          });
+          };
+          await gravarAgendamentoComContador(entryData);
           agendados.push(linha);
         } catch (e) {
           console.error('Erro ao gravar linha:', linha.funcionario, e);
