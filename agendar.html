@@ -1186,11 +1186,11 @@
         }
       }
 
-      const datas = [...texto.matchAll(/\b(\d{2})\/(\d{2})\/(\d{4})\b/g)];
+     const datas = [...texto.matchAll(/\b(\d{2})\/(\d{2})\/(\d{4})\b/g)];
       let dataFinal = '';
       const hojeStr = new Date().toISOString().split('T')[0];
       for (const [, d, m, y] of datas) {
-        const cand = ${y}--;
+        const cand = `${y}-${m}-${d}`; // ✅ CORRIGIDO
         if (cand >= hojeStr) { dataFinal = cand; break; }
       }
       if (!dataFinal) dataFinal = hojeStr;
