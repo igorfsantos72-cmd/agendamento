@@ -1,1271 +1,1538 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Agenda de Exames Ocupacionais</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
-  :root{--navy:#1F4E5F;--teal:#2E86AB;--ink:#1A2B32;--paper:#F6F4EF;--line:#DCD6C9;--good-bg:#E4F5EC;--good-fg:#1F8A55;--amber-bg:#FEF3C7;--amber-fg:#92400E;}
-  *{box-sizing:border-box;}
-  html,body{overflow-x:hidden;}
-  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;}
-  .mono{font-family:'JetBrains Mono',monospace;}
-  header{background:linear-gradient(120deg,var(--navy),var(--teal));color:#fff;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solicitar Agendamento - Alpale Saúde Ocupacional</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
-  /* ---- CENTRALIZAÇÃO E GRIDS ---- */
-  .wrap{max-width:1100px;margin:0 auto;padding:24px 20px;width:100%;}
-  main{max-width:1100px;margin:0 auto;padding:0;width:100%;}
-  .grid5{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:22px;width:100%;align-items:start;}
-  .grid5>*{min-width:0;}
-  @media (max-width:900px){.grid5{grid-template-columns:minmax(0,1fr);}}
-  
-  .grid-half { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 20px; align-items: start; }
-  @media (max-width: 800px) { .grid-half { grid-template-columns: 1fr; } }
+  <style>
+    :root {
+      --primary: #1E3A5F;
+      --secondary: #008CB4;
+      --bg-light: #F4F7FA;
+      --border-color: #CBD5E1;
+      --white: #FFFFFF;
+      --success: #2EC4B6;
+      --danger: #EF4444;
+      --warning: #F59E0B;
+    }
 
-  h1{font-size:22px;font-weight:800;margin:0;}
-  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-  .top{justify-content:space-between;}
-  .tabs{display:flex;background:rgba(255,255,255,.1);border-radius:10px;padding:4px;gap:4px;}
-  .tab{border:none;background:transparent;color:rgba(255,255,255,.8);font-weight:600;font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;}
-  .tab.active{background:#fff;color:var(--navy);}
-  .nav{margin-top:18px;}
-  .btn-ghost{background:rgba(255,255,255,.1);border:none;color:#fff;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:14px;}
-  .btn-ghost:hover{background:rgba(255,255,255,.2);}
-  .datebox{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;}
-  .datebox input{background:transparent;border:none;color:#fff;font-weight:600;font-size:13px;outline:none;}
-  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px;min-width:0;}
-  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--navy);font-weight:800;margin:0 0 14px;}
-  .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;}
-  label.field{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700;color:#6B7280;min-width:0;}
-  input[type=text],input[type=time],input[type=date],input[type=number],select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;min-width:0;width:100%;}
-  .exam-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:8px;}
-  @media (max-width:640px){.exam-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
-  .exam-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid var(--line);background:#fff;color:#6B7280;border-radius:10px;padding:9px 4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;min-width:0;overflow:hidden;text-align:center;}
-  .exam-btn.active{background:var(--good-fg);border-color:var(--good-fg);color:#fff;}
-  .submit-btn{margin-top:16px;display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;border:none;padding:11px 18px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;}
-  .err{margin-top:10px;background:var(--amber-bg);color:var(--amber-fg);padding:9px 12px;border-radius:8px;font-size:13px;}
-  .turno-details{margin-bottom:12px;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden;}
-  .turno-summary{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;cursor:pointer;background:var(--paper);font-weight:800;color:var(--navy);font-size:13px;list-style:none;}
-  .turno-summary::-webkit-details-marker{display:none;}
-  .turno-summary::after{content:'▼';font-size:10px;color:var(--teal);}
-  .turno-details[open] .turno-summary::after{transform:rotate(180deg);}
-  .turno-content{padding:0;border-top:1px solid var(--line);overflow-x:auto;width:100%;}
-  .turno-content table{min-width:520px;}
-  table{width:100%;border-collapse:collapse;font-size:14px;}
-  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#9CA3AF;padding:8px 12px;border-bottom:1px solid var(--line);}
-  td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle;}
-  .chip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;background:var(--good-bg);color:var(--good-fg);border:1px solid var(--good-fg);margin:1px;}
-  .icon-btn{border:none;background:transparent;cursor:pointer;padding:6px;border-radius:6px;color:#6B7280;}
-  .icon-btn:hover{background:#F3F4F6;}
-  .empty{text-align:center;color:#9CA3AF;font-size:14px;padding:36px 10px;}
-  .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
-  .bar-label{width:70px;font-family:'JetBrains Mono',monospace;font-size:10px;text-align:right;flex-shrink:0;}
-  .bar-track{flex:1;background:#F3F4F6;border-radius:5px;height:12px;overflow:hidden;min-width:0;}
-  .bar-fill{background:var(--teal);height:100%;border-radius:5px;}
-  .bar-val{width:26px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#6B7280;}
-  .tips{border-radius:14px;padding:20px;color:#fff;background:linear-gradient(135deg,var(--navy),var(--teal));width:100%;}
-  .tips p.k{font-size:10.5px;text-transform:uppercase;color:rgba(255,255,255,.7);font-family:'JetBrains Mono',monospace;margin:0 0 6px;}
-  .tips ul{margin:0;padding-left:0;list-style:none;font-size:14px;line-height:1.7;}
-  .month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;}
-  .wk-lbl{text-align:center;font-size:10.5px;text-transform:uppercase;color:#9CA3AF;font-weight:800;font-family:'JetBrains Mono',monospace;margin-bottom:4px;}
-  .day-cell{min-height:64px;border:1px solid var(--line);border-radius:9px;padding:8px;text-align:left;background:#fff;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;}
-  .day-cell.has{background:var(--good-bg);}
-  .day-cell.today{border-width:2px;border-color:var(--navy);}
-  .day-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;}
-  .day-badge{align-self:flex-start;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;background:var(--good-fg);color:#fff;padding:2px 6px;border-radius:6px;}
-  .year-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
-  @media (max-width:800px){.year-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
-  @media (max-width:520px){.year-grid{grid-template-columns:minmax(0,1fr);}}
-  .month-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;text-align:left;}
-  .mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
-  .mini-cell{aspect-ratio:1;border-radius:2px;}
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;}
-  .modal-card{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;position:relative;}
-  .modal-close{position:absolute;top:16px;right:16px;background:var(--paper);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;}
-  .fab{position:fixed;left:22px;bottom:22px;width:60px;height:60px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;font-size:24px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:1000;}
-  .fab.listening{background:#DC2626;}
-  .fab.thinking{background:var(--teal);}
-  .fab-dot{position:absolute;top:2px;right:2px;width:14px;height:14px;border-radius:50%;background:var(--good-fg);border:2px solid #fff;}
-  .chat-panel{position:fixed;left:22px;bottom:94px;width:340px;max-width:calc(100vw - 44px);max-height:70vh;background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.22);display:flex;flex-direction:column;overflow:hidden;z-index:1000;border:1px solid var(--line);}
-  .chat-head{background:linear-gradient(120deg,var(--navy),var(--teal));color:#fff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
-  .chat-head .title{font-weight:800;font-size:13.5px;}
-  .chat-head .status{font-size:11px;color:rgba(255,255,255,.8);}
-  .chat-head-btns{display:flex;gap:4px;}
-  .chat-head-btns button{background:rgba(255,255,255,.15);border:none;color:#fff;width:26px;height:26px;border-radius:7px;cursor:pointer;}
-  .chat-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--paper);}
-  .bubble-row{display:flex;}
-  .bubble-row.user{justify-content:flex-end;}
-  .bubble{max-width:85%;padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.5;}
-  .bubble.user{background:var(--navy);color:#fff;}
-  .bubble.assistant{background:#fff;border:1px solid var(--line);}
-  .bubble.error{background:var(--amber-bg);color:var(--amber-fg);}
-  .bubble .fields{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
-  .chat-empty{text-align:center;color:#9CA3AF;font-size:12.5px;padding:24px 10px;}
-  .chat-foot{padding:12px;border-top:1px solid var(--line);background:#fff;}
-  .talk-btn{width:100%;border:none;border-radius:10px;padding:11px;font-weight:700;font-size:13.5px;cursor:pointer;background:var(--navy);color:#fff;}
-  .talk-btn.listening{background:#DC2626;}
-  .talk-btn:disabled{opacity:.5;cursor:not-allowed;}
-  .chat-foot-hint{font-size:10.5px;color:#9CA3AF;text-align:center;margin:6px 0 0;}
-  .ai-panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 12px 0;}
-  .ai-panel p{font-size:12.5px;color:#4B5563;line-height:1.6;margin:0 0 10px;}
-  .ai-key-row{display:flex;gap:8px;flex-wrap:wrap;}
-  .ai-key-row input{flex:1;min-width:200px;}
-  .ai-key-row button{border:none;border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;}
-  .ai-save{background:var(--navy);color:#fff;}
-  .ai-remove{background:#FEE2E2;color:#DC2626;}
-  .ai-status{margin-top:8px;font-size:12px;font-weight:700;}
-  .ai-status.on{color:var(--good-fg);}
-  .ai-status.off{color:#9CA3AF;}
-  .logo-badge{display:flex;align-items:center;justify-content:center;}
-  .logo-badge img{height:auto;max-height:180px;max-width:100%;display:block;}
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body { background-color: var(--bg-light); color: var(--primary); min-height: 100vh; }
 
-  /* Configuração de vagas */
-  #btnAbrirConfigVagas{position:fixed;bottom:24px;right:24px;background:#1E3A5F;color:#fff;border:none;padding:12px 20px;border-radius:50px;font-family:sans-serif;font-weight:600;font-size:14px;cursor:pointer;box-shadow:0 4px 15px rgba(30,58,95,.35);z-index:998;}
-  #modalConfigVagas{display:none;position:fixed;inset:0;background:rgba(10,37,64,.65);z-index:9999;justify-content:center;align-items:center;padding:16px;}
-  .modal-vagas-card{background:#fff;width:100%;max-width:820px;max-height:90vh;border-radius:14px;display:flex;flex-direction:column;overflow:hidden;font-family:sans-serif;}
-  .modal-vagas-header{background:#1E3A5F;color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;}
-  .modal-vagas-header h3{margin:0;font-size:17px;}
-  .btn-copiar-link{background:#008CB4;color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
-  .btn-fechar-vagas{background:transparent;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1;}
-  .modal-vagas-body{padding:20px 24px;overflow-y:auto;color:#2C3E50;}
-  .config-grid-top{display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:18px;}
-  @media (max-width:600px){.config-grid-top{grid-template-columns:1fr;}}
-  .config-section{background:#F4F7FA;padding:14px 16px;border-radius:10px;border:1px solid #E2E8F0;}
-  .config-section label{display:block;font-weight:700;font-size:13px;color:#1E3A5F;margin-bottom:6px;}
-  .config-section input{width:100%;padding:8px 10px;border:1px solid #CBD5E1;border-radius:6px;font-size:14px;box-sizing:border-box;}
-  .tabela-exames-config{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:18px;}
-  .tabela-exames-config th{text-align:left;padding:10px 8px;border-bottom:2px solid #1E3A5F;color:#1E3A5F;font-size:13px;}
-  .tabela-exames-config td{padding:8px;border-bottom:1px solid #E2E8F0;}
-  .tabela-exames-config input[type="number"]{width:85px;padding:6px;border:1px solid #CBD5E1;border-radius:6px;text-align:center;font-weight:600;}
-  .tabela-exames-config input[type="checkbox"],.slot-checks input[type="checkbox"]{width:auto;}
-  .slot-card{border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:10px;background:#F4F7FA;}
-  .slot-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
-  .slot-head input{width:80px;padding:6px;border:1px solid #CBD5E1;border-radius:6px;}
-  .slot-group{font-size:12px;color:#1E3A5F;font-weight:700;margin-top:8px;}
-  .slot-checks{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;margin-top:4px;font-weight:400;color:#2C3E50;}
-  .modal-vagas-footer{padding:14px 24px;background:#F8FAFC;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
-  .btn-salvar-vagas{background:#008CB4;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;}
-  .btn-recalc{background:#E2E8F0;color:#1E3A5F;border:none;padding:10px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;}
-</style>
+    /* FAIXA AZUL COM O LOGO GRANDE ALINHADO À DIREITA */
+    .blue-band {
+      background: var(--primary);
+      color: var(--white);
+      padding: 3.5rem 5% 8.5rem 5%;
+    }
+    .band-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2rem;
+    }
+    .band-text p { font-size: 0.95rem; color: #CBD5E1; margin-bottom: 0.2rem; }
+    .band-text h1 { font-size: 2.4rem; font-weight: 700; }
+
+    .logo-img-large {
+      height: 130px;
+      max-width: 350px;
+      object-fit: contain;
+      background: var(--white);
+      padding: 15px 25px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .main-container {
+      margin-top: -5.5rem;
+      padding: 0 5% 3rem 5%;
+      display: flex;
+      justify-content: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* CARD EXPANDIDO NA HORIZONTAL */
+    .form-card {
+      background: var(--white);
+      width: 100%;
+      max-width: 1100px; 
+      border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+      padding: 3rem;
+    }
+
+    .card-title { font-size: 1.6rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; }
+
+    /* GRID REFORMULADO */
+    .form-grid { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 1.5rem; 
+      margin-bottom: 2rem; 
+    }
+    
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-card { padding: 1.8rem; }
+      .band-content { flex-direction: column-reverse; text-align: center; }
+      .blue-band { padding: 2.5rem 5% 6.5rem 5%; }
+      .band-text h1 { font-size: 1.8rem; }
+      .logo-img-large { height: 100px; }
+    }
+
+    /* INPUTS */
+    .input-group { display: flex; flex-direction: column; }
+    .input-group label { font-size: 0.85rem; font-weight: 600; color: var(--primary); margin-bottom: 0.5rem; }
+    .input-wrapper { position: relative; }
+    .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #6C7A89; }
+    .input-wrapper input, .input-wrapper select {
+      width: 100%; padding: 0.9rem 1rem 0.9rem 2.6rem; border: 1.5px solid var(--border-color); border-radius: 12px; font-size: 0.95rem; color: #333; background: var(--white); transition: all 0.3s;
+    }
+    .input-wrapper input:focus, .input-wrapper select:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px rgba(0, 140, 180, 0.15); }
+    
+    .input-wrapper input[readonly] { background-color: #F8FAFC; color: #1E3A5F; font-weight: 700; cursor: not-allowed; }
+
+    .date-info-badge {
+      font-size: 0.8rem;
+      margin-top: 6px;
+      font-weight: 600;
+      display: none;
+    }
+
+    /* CHIPS DOS EXAMES */
+    .exams-title { font-size: 0.95rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem; }
+    .exams-grid { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-bottom: 2rem; }
+    .exam-chip {
+      background: var(--white); border: 1.5px solid var(--border-color); padding: 0.65rem 1.25rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; color: var(--primary); cursor: pointer; user-select: none; transition: all 0.2s ease;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .exam-chip:hover { border-color: var(--secondary); background: rgba(0, 140, 180, 0.04); }
+    .exam-chip.active { background: var(--primary); border-color: var(--primary); color: var(--white); }
+    
+    /* CHIP ESGOTADO */
+    .exam-chip.esgotado {
+      background-color: #F1F5F9 !important;
+      border-color: #CBD5E1 !important;
+      color: #94A3B8 !important;
+      cursor: not-allowed !important;
+      opacity: 0.65;
+    }
+    .badge-esgotado {
+      font-size: 0.72rem;
+      background: #E2E8F0;
+      color: #64748B;
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .alert-banner { background: #E0F2FE; border-left: 4px solid var(--secondary); color: #0369A1; padding: 1rem; border-radius: 10px; font-size: 0.85rem; margin-bottom: 1.5rem; display: none; align-items: center; gap: 0.65rem; }
+
+    /* UPLOAD */
+    .upload-area { border: 2px dashed var(--border-color); background: var(--bg-light); border-radius: 16px; padding: 2rem; text-align: center; cursor: pointer; position: relative; margin-bottom: 2rem; transition: all 0.3s; }
+    .upload-area:hover { border-color: var(--secondary); background: rgba(0, 140, 180, 0.03); }
+    .upload-area input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .upload-icon { font-size: 2.2rem; color: var(--secondary); margin-bottom: 0.5rem; }
+    .upload-text { font-size: 0.9rem; font-weight: 600; color: var(--primary); }
+    .file-preview { display: none; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.85rem; color: var(--success); font-weight: 600; margin-top: 0.5rem; }
+
+    /* BOTÃO */
+    .btn-submit { width: 100%; background: linear-gradient(135deg, #00B4D8 0%, var(--secondary) 100%); color: var(--white); border: none; padding: 1.25rem; border-radius: 50px; font-size: 1.05rem; font-weight: 600; cursor: pointer; box-shadow: 0 8px 20px rgba(0, 140, 180, 0.25); transition: all 0.3s ease; }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 140, 180, 0.35); }
+    .btn-submit:disabled { background: #CBD5E1; cursor: not-allowed; box-shadow: none; transform: none; }
+    .status-msg { text-align: center; margin-top: 1.25rem; font-size: 0.95rem; font-weight: 600; min-height: 24px; }
+
+    /* ===== ABAS ===== */
+    .tabs-nav {
+      display: flex;
+      gap: 0;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+    .tab-btn {
+      padding: 0.8rem 1.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #6C7A89;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: var(--secondary); }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* ===== DROPZONE LOTE ===== */
+    .dropzone-lote {
+      border: 2.5px dashed var(--secondary);
+      background: #EFF9FD;
+      border-radius: 18px;
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.3s;
+      margin-bottom: 1.5rem;
+    }
+    .dropzone-lote:hover, .dropzone-lote.dragover { background: #D6F0FA; border-color: var(--primary); }
+    .dropzone-lote input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .dropzone-icon { font-size: 2.8rem; color: var(--secondary); margin-bottom: 0.75rem; }
+    .dropzone-text { font-size: 1rem; font-weight: 600; color: var(--primary); }
+    .dropzone-sub { font-size: 0.82rem; color: #6C7A89; margin-top: 4px; }
+
+    /* ===== TABELA DE CONFERÊNCIA ===== */
+    .lote-status-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: #F8FAFC;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 0.85rem 1.2rem;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .lote-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
+    .lote-badge.ok { background: #D1FAE5; color: #065F46; }
+    .lote-badge.warn { background: #FEF3C7; color: #92400E; }
+    .lote-badge.err { background: #FEE2E2; color: #991B1B; }
+
+    .tabela-lote-wrap { overflow-x: auto; margin-bottom: 1.5rem; }
+    .tabela-lote {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+    }
+    .tabela-lote th {
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .tabela-lote td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #F1F5F9;
+      vertical-align: middle;
+    }
+    .tabela-lote tr:hover td { background: #F8FAFC; }
+    .tabela-lote tr.linha-erro td { background: #FFF5F5; }
+    .tabela-lote tr.linha-aviso td { background: #FFFBEB; }
+    .tabela-lote tr.linha-ok td { background: #F0FAFA; }
+
+    .exame-tag {
+      display: inline-block;
+      background: #E0F2FE;
+      color: #0369A1;
+      border-radius: 20px;
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin: 2px 2px 2px 0;
+    }
+    .status-icon { font-size: 1rem; }
+
+    .input-data-lote {
+      border: 1.5px solid var(--border-color);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 0.82rem;
+      font-family: inherit;
+      color: var(--primary);
+      width: 130px;
+    }
+    .input-data-lote.erro { border-color: var(--danger); background: #FFF5F5; }
+
+    .btn-remover-linha {
+      background: none;
+      border: none;
+      color: #94A3B8;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .btn-remover-linha:hover { color: var(--danger); background: #FEE2E2; }
+
+    /* ===== BARRA DE PROGRESSO ===== */
+    .progress-wrap {
+      display: none;
+      background: #F1F5F9;
+      border-radius: 12px;
+      overflow: hidden;
+      height: 10px;
+      margin-bottom: 1rem;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--secondary), var(--success));
+      border-radius: 12px;
+      transition: width 0.4s;
+      width: 0%;
+    }
+
+    /* ===== BOTÃO LOTE ===== */
+    .btn-confirmar-lote {
+      width: 100%;
+      background: linear-gradient(135deg, #1E3A5F 0%, #008CB4 100%);
+      color: #fff;
+      border: none;
+      padding: 1.25rem;
+      border-radius: 50px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(30, 58, 95, 0.25);
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-confirmar-lote:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(30,58,95,0.3); }
+    .btn-confirmar-lote:disabled { background: #CBD5E1; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    /* ===== MODAL SUCESSO ===== */
+    .modal-sucesso {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-sucesso.aberto { display: flex; }
+    .modal-sucesso-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 480px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal-sucesso-icon { font-size: 3.5rem; color: var(--success); margin-bottom: 1rem; }
+    .modal-sucesso h3 { font-size: 1.4rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
+    .modal-sucesso p { font-size: 0.9rem; color: #6C7A89; margin-bottom: 1.5rem; }
+    .modal-lista { text-align: left; background: #F8FAFC; border-radius: 12px; padding: 1rem; max-height: 200px; overflow-y: auto; margin-bottom: 1.5rem; }
+    .modal-lista li { font-size: 0.83rem; padding: 4px 0; color: var(--primary); list-style: none; display: flex; gap: 8px; }
+    .btn-fechar-modal {
+      background: var(--primary); color: #fff; border: none; padding: 0.85rem 2.5rem;
+      border-radius: 50px; font-weight: 700; cursor: pointer; font-size: 0.95rem;
+    }
+  </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <div class="row top">
-      <div><h1>Agenda de Exames Ocupacionais</h1></div>
-      <div class="logo-badge"><img src="logo.png" alt="Alpale Saúde Ocupacional"></div>
-      <div class="tabs" id="tabs"></div>
-    </div>
-    <div class="row nav" id="nav"></div>
-  </div>
-</header>
-<main id="main"><div style="text-align:center;padding:40px;color:#1F4E5F;"><h2>Carregando sistema...</h2></div></main>
-<div id="voice-widget"></div>
 
-<!-- MODAL DE CONFIGURAÇÃO DE VAGAS -->
-<button id="btnAbrirConfigVagas" type="button">⚙️ Configurar Vagas Online</button>
-<div id="modalConfigVagas">
-  <div class="modal-vagas-card">
-    <div class="modal-vagas-header">
-      <h3>⚙️ Controle de Vagas e Exames (Site do Cliente)</h3>
-      <div style="display:flex;gap:12px;align-items:center;">
-        <button class="btn-copiar-link" id="btnCopiarLinkCliente" type="button">🔗 Copiar Link do Cliente</button>
-        <button class="btn-fechar-vagas" id="btnFecharConfigVagas" type="button">&times;</button>
+  <!-- FAIXA AZUL COM LOGO -->
+  <div class="blue-band">
+    <div class="band-content">
+      <div class="band-text">
+        <p>Agendamento de Clientes</p>
+        <h1>Solicitar Agendamento</h1>
       </div>
-    </div>
-    <div class="modal-vagas-body">
-      <div class="config-grid-top">
-        <div class="config-section">
-          <label for="cfgLimiteTotal">Limite geral / dia</label>
-          <input type="number" id="cfgLimiteTotal" min="1" max="300" value="35">
-          <small style="color:#6C7A89;font-size:11px;">Total máximo de pacientes por dia.</small>
-        </div>
-        <div class="config-section">
-          <label for="cfgDatasBloqueadas">Feriados / datas bloqueadas (AAAA-MM-DD)</label>
-          <input type="text" id="cfgDatasBloqueadas" placeholder="Ex: 2026-11-02, 2026-12-25">
-          <small style="color:#6C7A89;font-size:11px;">Separe por vírgula. Sábados e domingos já são bloqueados.</small>
-        </div>
-      </div>
-
-      <h4 style="margin:0 0 8px;color:#1E3A5F;">Exames no site</h4>
-      <table class="tabela-exames-config">
-        <thead><tr>
-          <th style="text-align:center;width:130px;">Liberado no site?</th>
-          <th>Exame ocupacional</th>
-          <th style="width:160px;">Limite diário</th>
-        </tr></thead>
-        <tbody id="listaExamesConfig"></tbody>
-      </table>
-
-      <h4 style="margin:0 0 8px;color:#1E3A5F;">Vagas e exames por médico / turno</h4>
-      <small style="color:#6C7A89;font-size:11px;display:block;margin-bottom:10px;">Limite 0 = sem limite no turno (vale só o limite geral). Tipos e exames desmarcados = todos permitidos.</small>
-      <div id="listaSlotsConfig"></div>
-    </div>
-    <div class="modal-vagas-footer">
-      <span id="statusConfigVagas" style="font-size:13px;font-weight:600;"></span>
-      <div style="display:flex;gap:8px;">
-        <button class="btn-recalc" id="btnRecalcContadores" type="button">🔄 Recalcular contadores</button>
-        <button class="btn-salvar-vagas" id="btnSalvarConfigVagas" type="button">💾 Salvar Alterações</button>
-      </div>
+      <img src="logo.png" alt="Alpale Saúde Ocupacional" class="logo-img-large" onerror="this.src='ALPALE LOGO-01.jpg'">
     </div>
   </div>
-</div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-  import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  <main class="main-container">
+    <div class="form-card">
+      <h2 class="card-title">Agendar Exame Ocupacional</h2>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAL2xXqo83pWKhyCta4Nk0gockDstxtJY4",
-    authDomain: "agendamento-alpale.firebaseapp.com",
-    projectId: "agendamento-alpale",
-    storageBucket: "agendamento-alpale.firebasestorage.app",
-    messagingSenderId: "491340347533",
-    appId: "1:491340347533:web:0983b4dba5bbdcc534cac4"
-  };
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  window.db = db;
+      <!-- ABAS DE NAVEGAÇÃO -->
+      <div class="tabs-nav">
+        <button class="tab-btn active" data-tab="individual">
+          <i class="fa-solid fa-user"></i> Agendamento Individual
+        </button>
+        <button class="tab-btn" data-tab="lote">
+          <i class="fa-solid fa-file-pdf"></i> Agendamento em Lote (PDFs)
+        </button>
+      </div>
 
-  /* =========================================================
-     REGRAS COMPARTILHADAS (idênticas em index.html e agendar.html)
-     ========================================================= */
-  const CATALOGO = {
-    CLINICO:{ativo:true,limiteDia:35,nome:"Clínico"}, AUDIO:{ativo:true,limiteDia:25,nome:"Audiometria"},
-    ACV:{ativo:true,limiteDia:30,nome:"Acuidade Visual"}, LAB:{ativo:true,limiteDia:25,nome:"Laboratório (Sangue)"},
-    RX:{ativo:true,limiteDia:20,nome:"Raio-X"}, PSICO:{ativo:true,limiteDia:8,nome:"Psicossocial"},
-    ECG:{ativo:true,limiteDia:15,nome:"ECG"}, EEG:{ativo:true,limiteDia:10,nome:"EEG"},
-    ESP:{ativo:true,limiteDia:20,nome:"Espirometria"}, ISHI:{ativo:true,limiteDia:30,nome:"Ishihara"},
-    CINESIO:{ativo:false,limiteDia:10,nome:"Cinesiológico"}, ODONTO:{ativo:false,limiteDia:10,nome:"Odontológico"},
-    TOXIC:{ativo:false,limiteDia:10,nome:"Toxicológico"}, OTOLOGICO:{ativo:false,limiteDia:15,nome:"Otológico"},
-    VOCAL:{ativo:false,limiteDia:10,nome:"Avaliação Vocal"}, "T. SONO":{ativo:false,limiteDia:15,nome:"Teste do Sono"},
-    PERICIA:{ativo:false,limiteDia:5,nome:"Perícia"}, "PERICIA DOM":{ativo:false,limiteDia:2,nome:"Perícia Domiciliar"}
-  };
-  const TIPOS_ASO = ["Admissional","Periódico","Demissional","Mudança de Função","Mudança de Risco","Retorno","Revalidação","Perícia","Perícia Domiciliar"];
-  const ESCALA = {
-    1:[{nome:"Dra. Gizelle",inicio:"06:30",fim:"10:30"},{nome:"Dr. Luiz",inicio:"11:00",fim:"13:00"},{nome:"Dra. Nadia",inicio:"16:00",fim:"17:00"}],
-    2:[{nome:"Dra. Gizelle",inicio:"06:30",fim:"10:30"},{nome:"Dr. Luiz",inicio:"11:00",fim:"13:00"},{nome:"Dr. Luiz",inicio:"14:30",fim:"16:00"}],
-    3:[{nome:"Dra. Gizelle",inicio:"06:30",fim:"10:30"},{nome:"Dr. Luiz",inicio:"11:00",fim:"13:00"}],
-    4:[{nome:"Dra. Louane",inicio:"06:30",fim:"10:30"},{nome:"Dra. Nadia",inicio:"11:00",fim:"13:00"},{nome:"Dra. Gizelle",inicio:"13:30",fim:"17:00"}],
-    5:[{nome:"Dra. Louane",inicio:"06:30",fim:"10:30"},{nome:"Dra. Nadia",inicio:"11:00",fim:"13:00"},{nome:"Dr. Guilherme",inicio:"13:30",fim:"16:00"}]
-  };
-  const hm = s => { const [h,m]=s.split(":").map(Number); return h*60+m; };
-  const pad2 = n => String(n).padStart(2,"0");
-  const diaSemana = iso => new Date(iso+"T12:00:00").getDay();
-  function slotsDoDia(iso){
-    const wd = diaSemana(iso);
-    return (ESCALA[wd]||[]).map((s,idx)=>({...s, idx, wd, key:`${wd}|${s.inicio}`}));
-  }
-  function slotPorHorario(iso, horario){
-    if(!horario) return null;
-    const t = hm(horario);
-    return slotsDoDia(iso).find(s => t>=hm(s.inicio) && t<hm(s.fim)) || null;
-  }
-  function regraDoSlot(cfg, key){ return (cfg.slots||{})[key] || {limite:0,tiposAso:[],exames:[]}; }
-  function ajustarContadores(c, e, sinal){
-    const q = (e.qtd||1)*sinal;
-    c.total = Math.max(0,(c.total||0)+q);
-    c.slots = c.slots||{}; c.exames = c.exames||{};
-    if(e.slot) c.slots[e.slot] = Math.max(0,(c.slots[e.slot]||0)+q);
-    Object.keys(e.exams||{}).forEach(cod => { if(e.exams[cod]) c.exames[cod] = Math.max(0,(c.exames[cod]||0)+q); });
-  }
-  function validarContra(c, cfg, e, admin){
-    if(admin) return null;
-    const q = e.qtd||1;
-    const limTotal = parseInt(cfg.limiteTotalDia,10)||35;
-    if((c.total||0)+q > limTotal) return "VAGAS_ESGOTADAS";
-    const ex = {...CATALOGO, ...(cfg.exames||{})};
-    for(const cod of Object.keys(e.exams||{})){
-      const lim = parseInt(ex[cod]?.limiteDia,10)||0;
-      if(lim>0 && ((c.exames||{})[cod]||0)+q > lim) return "EXAME_ESGOTADO:"+(ex[cod]?.nome||cod);
-    }
-    const r = regraDoSlot(cfg, e.slot);
-    if(r.limite>0 && ((c.slots||{})[e.slot]||0)+q > r.limite) return "TURNO_ESGOTADO";
-    if(r.tiposAso?.length && !r.tiposAso.includes(e.tipo)) return "TIPO_NAO_PERMITIDO";
-    const proibido = Object.keys(e.exams||{}).find(cod => r.exames?.length && !r.exames.includes(cod));
-    if(proibido) return "EXAME_NAO_PERMITIDO:"+proibido;
-    return null;
-  }
-  // Grava agendamento e atualiza contadores em uma transação. admin=true ignora limites (uso do painel).
-  async function gravarAgendamento(e, {admin=false, anterior=null}={}){
-    await runTransaction(db, async (tx) => {
-      const cfgSnap = await tx.get(doc(db,"configuracoes","limites_agendamento"));
-      const cfg = cfgSnap.exists() ? cfgSnap.data() : {};
-      const cRef = doc(db,"contadores",e.date);
-      const cSnap = await tx.get(cRef);
-      const c = cSnap.exists() ? cSnap.data() : {};
-      c.total ??= 0; c.slots ??= {}; c.exames ??= {};
-      let cOldRef=null, cOld=null;
-      if(anterior && anterior.date !== e.date){
-        cOldRef = doc(db,"contadores",anterior.date);
-        const s = await tx.get(cOldRef);
-        cOld = s.exists() ? s.data() : {total:0,slots:{},exames:{}};
-      }
-      if(anterior){
-        if(anterior.date===e.date) ajustarContadores(c, anterior, -1);
-        else ajustarContadores(cOld, anterior, -1);
-      }
-      const erro = validarContra(c, cfg, e, admin);
-      if(erro) throw new Error(erro);
-      ajustarContadores(c, e, 1);
-      tx.set(cRef, c);
-      if(cOldRef) tx.set(cOldRef, cOld);
-      tx.set(doc(db,"agendamentos",e.id), e);
-    });
-  }
-  async function apagarAgendamento(e){
-    await runTransaction(db, async (tx) => {
-      const cRef = doc(db,"contadores",e.date);
-      const s = await tx.get(cRef);
-      const c = s.exists() ? s.data() : {total:0,slots:{},exames:{}};
-      ajustarContadores(c, e, -1);
-      tx.set(cRef, c);
-      tx.delete(doc(db,"agendamentos",e.id));
-    });
-  }
+      <!-- ABA INDIVIDUAL (formulário original) -->
+      <div class="tab-pane active" id="tab-individual">
 
-  /* =========================================================
-     ESTADO E UTILITÁRIOS DO PAINEL
-     ========================================================= */
-  const WEEKDAY_LABELS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-  const WEEKDAY_FULL = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
-  const MONTH_LABELS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-  const DIAS_CFG = ["", "Seg", "Ter", "Qua", "Qui", "Sex"];
+      <form id="agendamentoForm">
+        <div class="form-grid">
+          <div class="input-group">
+            <label for="empresa">Buscar empresa *</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="empresa" placeholder="Nome da empresa solicitante" required>
+            </div>
+          </div>
 
-  function todayISO(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
-  function fmtWeekday(iso){ const s=new Date(iso+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"}); return s.charAt(0).toUpperCase()+s.slice(1); }
-  function shiftDate(iso,delta){ const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+delta); return d.toISOString().slice(0,10); }
-  function shiftMonth(ym,delta){ const [y,m]=ym.split("-").map(Number); const d=new Date(y,m-1+delta,1); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`; }
-  function monthMatrix(ym){
-    const [y,m]=ym.split("-").map(Number);
-    const cells=[]; for(let i=0;i<new Date(y,m-1,1).getDay();i++) cells.push(null);
-    const n=new Date(y,m,0).getDate(); for(let d=1;d<=n;d++) cells.push(`${y}-${pad2(m)}-${pad2(d)}`);
-    while(cells.length%7) cells.push(null);
-    return cells;
-  }
-  function miniMonthMatrix(year, m0){
-    const cells=[]; for(let i=0;i<new Date(year,m0,1).getDay();i++) cells.push(null);
-    const n=new Date(year,m0+1,0).getDate(); for(let d=1;d<=n;d++) cells.push(`${year}-${pad2(m0+1)}-${pad2(d)}`);
-    return cells;
-  }
-  function emptyExams(){ const o={}; Object.keys(CATALOGO).forEach(k=>o[k]=false); return o; }
-  function emptyForm(d){ return { date:d||todayISO(), horario:"", empresa:"", tipo:"", funcionario:"", funcao:"", qtd:1, exams:emptyExams() }; }
-  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
-  function stripAccents(s){ return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(); }
-  function esc(s){ return (s??"").toString().replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
-  function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstChild; }
+          <div class="input-group">
+            <label for="funcionario">Nome do colaborador *</label>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-user"></i>
+              <input type="text" id="funcionario" placeholder="Nome completo do colaborador" required>
+            </div>
+          </div>
 
-  const state = {
-    date: todayISO(), viewMode:"day", monthCursor: todayISO().slice(0,7), yearCursor: Number(todayISO().slice(0,4)),
-    allEntries:[], entries:[], index:{}, form: emptyForm(todayISO()), editForm:null, editOriginal:null,
-    formError:"", confirmDeleteId:null, error:"", listening:false, aiThinking:false,
-    apiKey: localStorage.getItem("claude-api-key")||"", showAiPanel:false, apiKeyDraft:"",
-    widgetOpen:false, chatMessages:[], speechEnabled:true, pendingAppointment:null, awaitingConfirmation:false
-  };
-  let configAtual = { limiteTotalDia:35, datasBloqueadas:[], exames: structuredClone(CATALOGO), slots:{} };
+          <div class="input-group">
+            <label for="funcao">Função / Cargo (Opcional)</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-helmet-safety"></i>
+              <input type="text" id="funcao" placeholder="Ex: Soldador, Motorista...">
+            </div>
+          </div>
 
-  function setState(patch){
-    Object.assign(state, patch);
-    state.entries = state.allEntries.filter(e => e.date === state.date);
-    render();
-  }
+          <div class="input-group">
+            <label for="tipo">Tipo de Exame (ASO) *</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-notes-medical"></i>
+              <select id="tipo" required>
+                <option value="" disabled selected>Selecione o tipo do ASO...</option>
+                <option value="Admissional">Admissional</option>
+                <option value="Periódico">Periódico</option>
+                <option value="Demissional">Demissional</option>
+                <option value="Mudança de Função">Mudança de Função</option>
+                <option value="Mudança de Risco">Mudança de Risco</option>
+                <option value="Retorno">Retorno</option>
+                <option value="Revalidação">Revalidação</option>
+                <option value="Perícia">Perícia</option>
+                <option value="Perícia Domiciliar">Perícia Domiciliar</option>
+              </select>
+            </div>
+          </div>
 
-  if(db){
-    onSnapshot(collection(db,"agendamentos"), snap => {
-      const all=[], idx={};
-      snap.forEach(d => { const data=d.data(); all.push(data); idx[data.date]=(idx[data.date]||0)+(data.qtd||1); });
-      state.allEntries = all; state.index = idx;
-      state.entries = all.filter(e => e.date === state.date);
-      render();
-    });
-  }
+          <div class="input-group">
+            <label for="data">Data pretendida *</label>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-calendar"></i>
+              <input type="date" id="data" required>
+            </div>
+            <div id="dateInfoBadge" class="date-info-badge"></div>
+          </div>
 
-  /* =========================================================
-     AÇÕES DO PAINEL
-     ========================================================= */
-  function goToDay(iso){ setState({ date:iso, viewMode:"day", form: emptyForm(iso), editForm:null, formError:"" }); }
-  function changeDate(iso){ setState({ date:iso, form: emptyForm(iso), editForm:null, formError:"" }); }
-  function openMonth(ym){ setState({ monthCursor:ym, viewMode:"month" }); }
-  function toggleExam(k){ state.form.exams[k] = !state.form.exams[k]; render(); }
+          <!-- SELEÇÃO DE MÉDICO E HORÁRIO -->
+          <div class="input-group" id="divMedico" style="display: none;">
+            <label for="medico">Médico Disponível *</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-user-doctor"></i>
+              <select id="medico" required>
+                <option value="" disabled selected>Selecione a data primeiro...</option>
+              </select>
+            </div>
+          </div>
 
-  // PSICO sempre no 1º turno: força horário 06:30
-  function horarioEfetivo(horario, exams){
-    return exams.PSICO ? "06:30" : horario;
-  }
+          <div class="input-group" id="divHorario" style="display: none;">
+            <label for="horario">Horário de Chegada *</label>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-clock"></i>
+              <input type="text" id="horario" value="" readonly required>
+            </div>
+          </div>
+        </div>
 
-  async function submitForm(e){
-    e.preventDefault();
-    const f = state.form;
-    if(!f.empresa.trim() && !f.funcionario.trim()){ setState({formError:"Informe ao menos a empresa ou o funcionário."}); return; }
-    const horario = horarioEfetivo(f.horario, f.exams);
-    if(!horario){ setState({formError:"Informe o horário de chegada."}); return; }
-    const slot = slotPorHorario(f.date, horario);
-    const exams = {}; Object.keys(f.exams).forEach(k=>{ if(f.exams[k]) exams[k]=1; });
-    if(!Object.keys(exams).length){ setState({formError:"Marque pelo menos um exame."}); return; }
-    const entry = { id:uid(), date:f.date, horario, medico: slot?.nome||null, slot: slot?.key||null,
-      empresa:f.empresa, tipo:f.tipo, funcionario:f.funcionario, funcao:f.funcao||"", exams, qtd: parseInt(f.qtd,10)||1, kitUrl:"", criadoEm:new Date().toISOString() };
-    try{
-      await gravarAgendamento(entry, {admin:true});
-      setState({ date:f.date, form: emptyForm(f.date), formError:"" });
-    }catch(err){
-      setState({ formError: "Erro ao salvar na nuvem: " + err.message });
-    }
-  }
+        <h3 class="exams-title">Exames ocupacionais solicitados</h3>
+        <div class="exams-grid" id="examsGrid"></div>
 
-  function startEdit(entry){
-    const loaded = emptyExams();
-    Object.keys(CATALOGO).forEach(k => { loaded[k] = !!entry.exams?.[k]; });
-    setState({
-      editOriginal: structuredClone(entry),
-      editForm: { id:entry.id, date:entry.date, horario:entry.horario||"", empresa:entry.empresa||"", tipo:entry.tipo||"",
-        funcionario:entry.funcionario||"", funcao:entry.funcao||"", qtd:entry.qtd||1, exams:loaded }
-    });
-  }
+        <div class="alert-banner" id="psicoAlert">
+          <i class="fa-solid fa-circle-info"></i>
+          <span><strong>Atenção:</strong> Devido ao exame Psicossocial, o horário foi atualizado automaticamente para as <strong>06:30</strong>.</span>
+        </div>
 
-  async function salvarEdicao(){
-    const f = state.editForm;
-    const exams = {}; Object.keys(f.exams).forEach(k=>{ if(f.exams[k]) exams[k]=1; });
-    const horario = horarioEfetivo(f.horario, f.exams);
-    const slot = slotPorHorario(f.date, horario);
-    const entry = { id:f.id, date:f.date, horario, medico: slot?.nome||null, slot: slot?.key||null,
-      empresa:f.empresa, tipo:f.tipo, funcionario:f.funcionario, funcao:f.funcao||"", exams, qtd:f.qtd||1,
-      kitUrl: state.editOriginal?.kitUrl||"", criadoEm: state.editOriginal?.criadoEm||new Date().toISOString() };
-    try{
-      await gravarAgendamento(entry, {admin:true, anterior: state.editOriginal});
-      setState({ editForm:null, editOriginal:null });
-    }catch(err){ alert("Erro ao salvar: "+err.message); }
-  }
+        <div class="input-group">
+          <label style="margin-top: 1rem;">Anexar arquivos (Opcional)</label>
+          <div class="upload-area" id="uploadArea">
+            <input type="file" id="arquivoKit" accept=".pdf, .png, .jpg, .jpeg">
+            <div class="upload-icon"><i class="fa-solid fa-paperclip"></i></div>
+            <div class="upload-text" id="uploadText">Clique ou arraste a Guia / Kit de Atendimento (PDF, PNG, JPG)</div>
+            <div class="file-preview" id="filePreview">
+              <i class="fa-solid fa-circle-check"></i> <span id="fileName">arquivo.pdf</span>
+            </div>
+          </div>
+        </div>
 
-  async function deleteEntry(entry){
-    try{
-      await apagarAgendamento(entry);
-      setState({ confirmDeleteId:null });
-    }catch(err){ setState({ error:"Erro ao excluir da nuvem: "+err.message }); }
-  }
+        <button type="submit" class="btn-submit" id="btnSubmit">CONFIRMAR AGENDAMENTO</button>
+        <div class="status-msg" id="statusMsg"></div>
+      </form>
+    </div><!-- /tab-individual -->
 
-  /* =========================================================
-     VOZ / ASSISTENTE
-     ========================================================= */
-  const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const MIC_SUPPORTED = !!SpeechRecognitionCtor;
-  let recognition = null;
+    <!-- ABA LOTE -->
+    <div class="tab-pane" id="tab-lote">
 
-  const EXAM_SYNONYMS = {
-    CLINICO:["clinico","consulta"], AUDIO:["audio","audiometria"], EEG:["eeg","eletroencefalograma"],
-    ECG:["ecg","eletrocardiograma"], ACV:["acv","acuidade visual"], ESP:["esp","espirometria"],
-    ISHI:["ishi","ishihara"], RX:["rx","raio x","raio-x","raiox"], LAB:["lab","laboratorial","laboratorio"],
-    PSICO:["psico","psicotecnico"], CINESIO:["cinesio","cinesioteste","cinesiologico"],
-    ODONTO:["odonto","odontologico","dental"], TOXIC:["toxic","toxicologico"], OTOLOGICO:["otologico","otologia"],
-    "PERICIA DOM":["pericia domiciliar","domiciliar"], PERICIA:["pericia"], "T. SONO":["teste do sono"]
-  };
-  const TIME_WORDS = { "meio dia":"12:00","meio-dia":"12:00","meia noite":"00:00","meia-noite":"00:00" };
+      <!-- DROPZONE -->
+      <div class="dropzone-lote" id="dropzoneLote">
+        <input type="file" id="inputPdfsLote" multiple accept=".pdf">
+        <div class="dropzone-icon"><i class="fa-solid fa-file-arrow-up"></i></div>
+        <div class="dropzone-text">Arraste ou selecione os PDFs dos ASOs aqui</div>
+        <div class="dropzone-sub">Você pode selecionar vários arquivos de uma vez (cada um representa um colaborador)</div>
+      </div>
 
-  function roundToHalfHourVoice(hhmm){
-    const [h,m]=hhmm.split(":").map(Number);
-    let t=Math.round((h*60+m)/30)*30; t=((t%1440)+1440)%1440;
-    return `${pad2(Math.floor(t/60))}:${pad2(t%60)}`;
-  }
-  function extractHorario(norm){
-    for(const [w,v] of Object.entries(TIME_WORDS)) if(norm.includes(w)) return roundToHalfHourVoice(v);
-    const m = norm.match(/(\d{1,2})\s*(?:h|:|horas?)\s*(\d{1,2})?/);
-    if(m) return roundToHalfHourVoice(`${pad2(Math.min(23,parseInt(m[1],10)))}:${pad2(m[2]?Math.min(59,parseInt(m[2],10)):0)}`);
-    return null;
-  }
-  function extractMarkedSegment(norm, raw, markers){
-    const all = ["horario","hora","empresa","funcionario","funcionaria","paciente","tipo","exame","exames"];
-    for(const marker of markers){
-      const idx = norm.indexOf(marker); if(idx===-1) continue;
-      const start = idx+marker.length; let end = raw.length;
-      for(const o of all){ if(o===marker) continue; const oi=norm.indexOf(o,start); if(oi!==-1 && oi<end) end=oi; }
-      const seg = raw.slice(start,end).trim().replace(/^[:,-]\s*/,"");
-      if(seg) return seg;
-    }
-    return null;
-  }
-  function parseVoiceCommand(raw){
-    const norm = stripAccents(raw);
-    const fields=[]; const result={horario:null,empresa:null,funcionario:null,tipo:null,exams:{}};
-    const h = extractHorario(norm); if(h){ result.horario=h; fields.push("horário "+h); }
-    const emp = extractMarkedSegment(norm,raw,["empresa"]); if(emp){ result.empresa=emp; fields.push("empresa: "+emp); }
-    const fun = extractMarkedSegment(norm,raw,["funcionario","funcionaria","paciente"]); if(fun){ result.funcionario=fun; fields.push("funcionário: "+fun); }
-    for(const t of TIPOS_ASO){ if(norm.includes(stripAccents(t))){ result.tipo=t; fields.push("tipo: "+t); break; } }
-    const found=[];
-    for(const [code,syns] of Object.entries(EXAM_SYNONYMS)){ if(syns.some(s=>norm.includes(s))){ result.exams[code]=true; found.push(code); } }
-    if(found.length) fields.push("exames: "+found.join(", "));
-    return { result, fields };
-  }
-  function pushMessage(msg){
-    state.chatMessages = [...state.chatMessages, msg];
-    render();
-    const body = document.querySelector(".chat-body"); if(body) body.scrollTop = body.scrollHeight;
-  }
-  function speak(text){
-    if(!state.speechEnabled || !("speechSynthesis" in window)) return;
-    try{ window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="pt-BR"; window.speechSynthesis.speak(u); }catch(_){}
-  }
-  function buildSpokenSummary(r, medico){
-    const p=[];
-    if(r.empresa) p.push(`empresa ${r.empresa}`);
-    if(r.funcionario) p.push(`funcionário ${r.funcionario}`);
-    if(r.tipo) p.push(`tipo ${r.tipo}`);
-    if(r.horario) p.push(`às ${r.horario}`);
-    const ex = Object.keys(r.exams||{}); if(ex.length) p.push(`exames ${ex.join(", ")}`);
-    if(medico) p.push(`médico ${medico}`);
-    return p.join(", ");
-  }
-  async function confirmAppointment(){
-    const p = state.pendingAppointment; if(!p) return;
-    const horario = horarioEfetivo(p.horario, p.exams);
-    const slot = slotPorHorario(state.date, horario);
-    const exams = {}; Object.keys(p.exams||{}).forEach(k=>{ if(p.exams[k]) exams[k]=1; });
-    const entry = { id:uid(), date:state.date, horario, medico: slot?.nome||null, slot: slot?.key||null,
-      empresa:p.empresa, tipo:p.tipo, funcionario:p.funcionario, funcao:"", exams, qtd:1, kitUrl:"", criadoEm:new Date().toISOString() };
-    try{
-      await gravarAgendamento(entry, {admin:true});
-      state.pendingAppointment=null; state.awaitingConfirmation=false;
-      pushMessage({ role:"assistant", text: slot ? `✅ Agendamento adicionado com ${slot.nome}!` : "✅ Agendamento adicionado!" });
-      speak(slot ? `Agendamento confirmado com ${slot.nome}.` : "Agendamento confirmado.");
-    }catch(err){ pushMessage({ role:"error", text:"Erro ao salvar na nuvem: "+err.message }); }
-  }
-  function cancelPendingAppointment(){
-    state.pendingAppointment=null; state.awaitingConfirmation=false;
-    pushMessage({ role:"assistant", text:"Ok, não adicionei esse agendamento." }); speak("Tudo bem, cancelado.");
-  }
-  function applyParsedResult(result, fields, source){
-    const exams = result.exames || Object.keys(result.exams||{});
-    const prefix = source==="ai" ? "🤖 " : "🔤 ";
-    if(!fields.length){
-      pushMessage({ role:"assistant", text: prefix+'Não consegui identificar nenhum campo. Tente algo como: "horário 8 horas, empresa Paraty, tipo periódico, exames clínico".' });
-      speak("Não entendi. Pode repetir?"); return;
-    }
-    const examsObj = Object.fromEntries(exams.map(k=>[k,true]));
-    const horario = result.horario ? horarioEfetivo(result.horario, examsObj) : (examsObj.PSICO ? "06:30" : null);
-    const slot = horario ? slotPorHorario(state.date, horario) : null;
-    const canConfirm = !!horario && (!!result.empresa || !!result.funcionario) && !!slot;
-    const displayFields = slot ? [...fields, "médico: "+slot.nome] : fields;
-    if(canConfirm){
-      state.pendingAppointment = { horario, empresa: result.empresa||"", funcionario: result.funcionario||"", tipo: result.tipo||"", exams: examsObj };
-      state.awaitingConfirmation = true;
-      const summary = buildSpokenSummary({...result, exams: examsObj, horario}, slot?.nome);
-      pushMessage({ role:"assistant", text: prefix+"Entendi: "+summary+". Confirma o agendamento?", fields: displayFields, confirm:true });
-      speak(`Você quer agendar ${summary}. Confirma?`);
-    } else {
-      if(result.horario) state.form.horario = result.horario;
-      if(result.empresa) state.form.empresa = result.empresa;
-      if(result.funcionario) state.form.funcionario = result.funcionario;
-      if(result.tipo) state.form.tipo = result.tipo;
-      exams.forEach(k=>{ if(k in CATALOGO) state.form.exams[k]=true; });
-      if(state.viewMode!=="day") state.viewMode="day";
-      pushMessage({ role:"assistant", text: prefix+"Preenchi o formulário. Falta horário válido, empresa ou funcionário para confirmar direto.", fields: displayFields });
-      speak("Preenchi o formulário. Confira e adicione manualmente.");
-    }
-  }
-  async function interpretWithAI(raw){
-    state.aiThinking=true; render();
-    try{
-      const system = `Você extrai dados de agendamentos de exames ocupacionais ditados por voz em português do Brasil.
-Responda APENAS com JSON válido, sem markdown, no formato:
-{"horario":"HH:MM" ou null,"empresa":string ou null,"funcionario":string ou null,"tipo":um destes exatamente ou null [${TIPOS_ASO.map(t=>`"${t}"`).join(", ")}],"exames":array de zero ou mais destes códigos exatos [${Object.keys(CATALOGO).map(e=>`"${e}"`).join(", ")}]}
-"consulta" = CLINICO. Interprete sinônimos. Se a pessoa se corrigir, use a versão corrigida.`;
-      const resp = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST",
-        headers:{ "content-type":"application/json", "x-api-key":state.apiKey, "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true" },
-        body: JSON.stringify({ model:"claude-haiku-4-5-20251001", max_tokens:300, system, messages:[{role:"user",content:raw}] })
-      });
-      if(!resp.ok) throw new Error(resp.status===401 ? "Chave de API inválida ou expirada." : "Erro na API");
-      const data = await resp.json();
-      const txt = (data.content||[]).map(b=>b.text||"").join("").trim().replace(/```json|```/g,"").trim();
-      const parsed = JSON.parse(txt);
-      if(parsed.horario) parsed.horario = roundToHalfHourVoice(parsed.horario);
-      const fields=[];
-      if(parsed.horario) fields.push("horário "+parsed.horario);
-      if(parsed.empresa) fields.push("empresa: "+parsed.empresa);
-      if(parsed.funcionario) fields.push("funcionário: "+parsed.funcionario);
-      if(parsed.tipo) fields.push("tipo: "+parsed.tipo);
-      if(parsed.exames?.length) fields.push("exames: "+parsed.exames.join(", "));
-      applyParsedResult(parsed, fields, "ai");
-    }catch(err){
-      pushMessage({ role:"error", text:"⚠️ IA indisponível: "+err.message+" Usando palavras-chave." });
-      const {result,fields} = parseVoiceCommand(raw);
-      applyParsedResult({...result, exames:Object.keys(result.exams)}, fields, "rules");
-    }finally{ state.aiThinking=false; render(); }
-  }
-  function handleTranscript(raw){
-    pushMessage({ role:"user", text:raw });
-    if(state.awaitingConfirmation){
-      const norm = stripAccents(raw);
-      if(/\b(sim|confirma|confirmar|pode|isso mesmo|correto|positivo|exato)\b/.test(norm)){ confirmAppointment(); return; }
-      if(/\b(nao|cancela|cancelar|errado|negativo|espera)\b/.test(norm)){ cancelPendingAppointment(); return; }
-      pushMessage({ role:"assistant", text:'Não entendi. Diga "sim" para confirmar ou "não" para cancelar.' }); return;
-    }
-    if(state.apiKey) interpretWithAI(raw);
-    else { const {result,fields}=parseVoiceCommand(raw); applyParsedResult({...result, exames:Object.keys(result.exams)}, fields, "rules"); }
-  }
-  function saveApiKey(){ const k=state.apiKeyDraft.trim(); if(!k) return; localStorage.setItem("claude-api-key",k); state.apiKey=k; state.apiKeyDraft=""; render(); }
-  function removeApiKey(){ localStorage.removeItem("claude-api-key"); state.apiKey=""; render(); }
-  function startListening(){
-    if(!MIC_SUPPORTED){ pushMessage({ role:"error", text:"Seu navegador não tem suporte a ditado. Use Chrome ou Edge." }); return; }
-    if(!recognition){
-      recognition = new SpeechRecognitionCtor();
-      recognition.lang="pt-BR"; recognition.interimResults=false; recognition.maxAlternatives=1;
-      recognition.onstart = ()=>{ state.listening=true; render(); };
-      recognition.onresult = e => { const t=e.results[0][0]?.transcript||""; if(t.trim()) handleTranscript(t); };
-      recognition.onerror = e => {
-        const msgs={"not-allowed":"Permissão de microfone negada.","network":"Falha de rede no reconhecimento.","no-speech":"Não ouvi nada. Toque e fale novamente.","audio-capture":"Nenhum microfone encontrado."};
-        if(msgs[e.error]) pushMessage({ role:"error", text:"⚠️ "+msgs[e.error] });
-        state.listening=false; render();
-      };
-      recognition.onend = ()=>{ state.listening=false; render(); };
-    }
-    try{ recognition.start(); state.listening=true; render(); }catch(_){ state.listening=false; render(); }
-  }
-  function stopListening(){ if(recognition){ try{ recognition.stop(); }catch(_){} } state.listening=false; render(); }
-  function toggleWidget(){ state.widgetOpen=!state.widgetOpen; render(); }
+      <!-- BARRA DE PROCESSAMENTO PDF -->
+      <div id="processandoMsg" style="display:none; text-align:center; color:var(--secondary); font-weight:600; margin-bottom:1rem;">
+        <i class="fa-solid fa-spinner fa-spin"></i> Lendo arquivos PDF...
+      </div>
 
-  /* =========================================================
-     RENDERIZAÇÃO
-     ========================================================= */
-  function renderTabs(){
-    const tabs = document.getElementById("tabs"); tabs.innerHTML="";
-    [["day","Dia"],["month","Mês"],["year","Ano"]].forEach(([id,label])=>{
-      const b = el(`<button class="tab ${state.viewMode===id?'active':''}">${label}</button>`);
-      b.onclick = ()=>{
-        if(id==="month") state.monthCursor = state.date.slice(0,7);
-        if(id==="year") state.yearCursor = Number(state.date.slice(0,4));
-        setState({ viewMode:id });
-      };
-      tabs.appendChild(b);
-    });
-  }
-  function renderNav(){
-    const nav = document.getElementById("nav"); nav.innerHTML="";
-    if(state.viewMode==="day"){
-      const prev=el(`<button class="btn-ghost">‹</button>`); prev.onclick=()=>changeDate(shiftDate(state.date,-1));
-      const box=el(`<div class="datebox">📅 <input type="date" value="${state.date}"></div>`);
-      box.querySelector("input").onchange = e=>changeDate(e.target.value);
-      const next=el(`<button class="btn-ghost">›</button>`); next.onclick=()=>changeDate(shiftDate(state.date,1));
-      const today=el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Hoje</button>`); today.onclick=()=>changeDate(todayISO());
-      nav.append(prev,box,next,today,el(`<span style="font-size:14px;color:rgba(255,255,255,.9);margin-left:4px;">${fmtWeekday(state.date)}</span>`));
-    } else if(state.viewMode==="month"){
-      const prev=el(`<button class="btn-ghost">‹</button>`); prev.onclick=()=>setState({monthCursor:shiftMonth(state.monthCursor,-1)});
-      const label=el(`<span class="mono" style="font-weight:800;min-width:160px;font-size:14px;">${MONTH_LABELS[Number(state.monthCursor.slice(5,7))-1]} ${state.monthCursor.slice(0,4)}</span>`);
-      const next=el(`<button class="btn-ghost">›</button>`); next.onclick=()=>setState({monthCursor:shiftMonth(state.monthCursor,1)});
-      const today=el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Mês atual</button>`); today.onclick=()=>setState({monthCursor:todayISO().slice(0,7)});
-      const total=Object.entries(state.index).filter(([d])=>d.startsWith(state.monthCursor)).reduce((s,[,c])=>s+c,0);
-      nav.append(prev,label,next,today,el(`<span class="mono" style="color:rgba(255,255,255,.8);font-size:13px;">${total} exame${total!==1?"s":""} no mês</span>`));
-    } else {
-      const prev=el(`<button class="btn-ghost">‹</button>`); prev.onclick=()=>setState({yearCursor:state.yearCursor-1});
-      const label=el(`<span class="mono" style="font-weight:800;min-width:70px;font-size:14px;">${state.yearCursor}</span>`);
-      const next=el(`<button class="btn-ghost">›</button>`); next.onclick=()=>setState({yearCursor:state.yearCursor+1});
-      const today=el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Ano atual</button>`); today.onclick=()=>setState({yearCursor:Number(todayISO().slice(0,4))});
-      const total=Object.entries(state.index).filter(([d])=>d.startsWith(String(state.yearCursor))).reduce((s,[,c])=>s+c,0);
-      nav.append(prev,label,next,today,el(`<span class="mono" style="color:rgba(255,255,255,.8);font-size:13px;">${total} exame${total!==1?"s":""} no ano</span>`));
-    }
-  }
+      <!-- STATUS BAR -->
+      <div class="lote-status-bar" id="loteStatusBar" style="display:none;">
+        <i class="fa-solid fa-list-check"></i>
+        <span id="loteContador"></span>
+        <span id="loteBadges"></span>
+      </div>
 
-  function computeTotals(entries){
-    const t={}; Object.keys(CATALOGO).forEach(k=>t[k]=0);
-    entries.forEach(e=>{ const q=e.qtd||1; Object.keys(CATALOGO).forEach(k=>{ if(e.exams?.[k]) t[k]+=Number(e.exams[k])*q; }); });
-    return t;
-  }
+      <!-- TABELA CONFERÊNCIA -->
+      <div class="tabela-lote-wrap" id="tabelaLoteWrap" style="display:none;">
+        <table class="tabela-lote" id="tabelaLote">
+          <thead>
+            <tr>
+              <th style="width:32px;"></th>
+              <th>Colaborador</th>
+              <th>Empresa</th>
+              <th>Cargo / Tipo ASO</th>
+              <th>Exames Identificados</th>
+              <th>Data Pretendida</th>
+              <th>Médico / Horário</th>
+              <th>Status</th>
+              <th style="width:36px;"></th>
+            </tr>
+          </thead>
+          <tbody id="corpoTabelaLote"></tbody>
+        </table>
+      </div>
 
-  function renderEditModal(){
-    if(!state.editForm) return null;
-    const f = state.editForm;
-    const overlay = el(`<div class="overlay"></div>`);
-    const card = el(`<div class="modal-card"></div>`);
-    card.innerHTML = `<button type="button" class="modal-close">✕</button><h2 style="margin:0 0 16px;color:var(--navy);font-size:18px;font-weight:800;">✏️ Editar Agendamento</h2>`;
-    card.querySelector(".modal-close").onclick = ()=>setState({editForm:null, editOriginal:null});
-    const form = el(`<form></form>`);
-    const fg = el(`<div class="field-grid"></div>`);
-    fg.innerHTML = `
-      <label class="field">📅 Data<input type="date" id="ef-data" class="mono" value="${esc(f.date)}"></label>
-      <label class="field">⏰ Horário<input type="time" id="ef-horario" class="mono" value="${esc(f.horario)}"></label>
-      <label class="field">🏢 Empresa<input type="text" id="ef-empresa" value="${esc(f.empresa)}"></label>
-      <label class="field">📋 Tipo<input type="text" id="ef-tipo" list="tipos-exame" value="${esc(f.tipo)}"></label>
-      <label class="field">👤 Funcionário(a)<input type="text" id="ef-func" value="${esc(f.funcionario)}"></label>
-      <label class="field">🛠️ Função<input type="text" id="ef-funcao" value="${esc(f.funcao||"")}"></label>
-      <label class="field">🔢 Quantidade<input type="number" id="ef-qtd" value="${f.qtd||1}" min="1" max="100"></label>`;
-    form.appendChild(fg);
-    fg.querySelector("#ef-data").oninput = e=>f.date=e.target.value;
-    fg.querySelector("#ef-data").onblur = ()=>setState({editForm:f});
-    fg.querySelector("#ef-horario").oninput = e=>f.horario=e.target.value;
-    fg.querySelector("#ef-horario").onblur = ()=>setState({editForm:f});
-    fg.querySelector("#ef-empresa").oninput = e=>f.empresa=e.target.value;
-    fg.querySelector("#ef-tipo").oninput = e=>f.tipo=e.target.value;
-    fg.querySelector("#ef-func").oninput = e=>f.funcionario=e.target.value;
-    fg.querySelector("#ef-funcao").oninput = e=>f.funcao=e.target.value;
-    fg.querySelector("#ef-qtd").oninput = e=>f.qtd=parseInt(e.target.value,10)||1;
-    const eg = el(`<div class="exam-grid" style="margin-top:14px;"></div>`);
-    Object.keys(CATALOGO).forEach(k=>{
-      const active=!!f.exams[k];
-      const btn=el(`<button type="button" class="exam-btn ${active?'active':''}">${active?"✓":"&nbsp;"}<span>${k}</span></button>`);
-      btn.onclick=()=>{ f.exams[k]=!f.exams[k]; setState({editForm:f}); };
-      eg.appendChild(btn);
-    });
-    form.appendChild(eg);
-    const slot = slotPorHorario(f.date, horarioEfetivo(f.horario, f.exams));
-    form.appendChild(el(`<div style="margin-top:12px;padding:9px 12px;border-radius:9px;font-size:13px;background:${slot?'var(--good-bg)':'var(--amber-bg)'};color:${slot?'var(--good-fg)':'var(--amber-fg)'};">${slot?`🩺 Médico/turno: <b>${esc(slot.nome)}</b> (${slot.inicio}–${slot.fim})`:'⚠️ Horário fora de qualquer turno.'}</div>`));
-    form.appendChild(el(`<button type="submit" class="submit-btn" style="width:100%;justify-content:center;margin-top:20px;">✓ Salvar Alterações</button>`));
-    form.onsubmit = async e=>{ e.preventDefault(); await salvarEdicao(); };
-    card.appendChild(form); overlay.appendChild(card);
-    return overlay;
-  }
+      <!-- PROGRESSO DE GRAVAÇÃO -->
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div id="loteGravacaoMsg" style="text-align:center; font-size:0.85rem; font-weight:600; color:var(--secondary); margin-bottom:1rem; display:none;"></div>
 
-  function renderDayView(){
-    const container = el(`<div class="grid5"></div>`);
-    const left = el(`<div></div>`), right = el(`<div></div>`);
+      <!-- BOTÃO CONFIRMAR LOTE -->
+      <button class="btn-confirmar-lote" id="btnConfirmarLote" style="display:none;" disabled>
+        <i class="fa-solid fa-calendar-check"></i>
+        <span id="btnLoteLabel">Confirmar Agendamentos em Lote</span>
+      </button>
 
-    // ---- formulário ----
-    const form = el(`<form class="card"><h2>✨ Novo Agendamento</h2></form>`);
-    const fg = el(`<div class="field-grid"></div>`);
-    fg.innerHTML = `
-      <label class="field">📅 Data<input type="date" id="f-data" class="mono" value="${esc(state.form.date)}"></label>
-      <label class="field">⏰ Horário<input type="time" id="f-horario" class="mono" value="${esc(state.form.horario)}"></label>
-      <label class="field">🏢 Empresa<input type="text" id="f-empresa" placeholder="ex: paraty" value="${esc(state.form.empresa)}"></label>
-      <label class="field">📋 Tipo<input type="text" id="f-tipo" list="tipos-exame" placeholder="periódico…" value="${esc(state.form.tipo)}">
-        <datalist id="tipos-exame">${TIPOS_ASO.map(t=>`<option value="${esc(t)}">`).join("")}</datalist></label>
-      <label class="field">👤 Func./Lote<input type="text" id="f-func" placeholder="nome..." value="${esc(state.form.funcionario)}"></label>
-      <label class="field">🛠️ Função<input type="text" id="f-funcao" placeholder="ex: soldador..." value="${esc(state.form.funcao||"")}"></label>
-      <label class="field">🔢 Quantidade<input type="number" id="f-qtd" value="${state.form.qtd||1}" min="1" max="100"></label>`;
-    form.appendChild(fg);
-    fg.querySelector("#f-data").oninput = e=>{ state.form.date=e.target.value; };
-    fg.querySelector("#f-data").onblur = ()=>render();
-    fg.querySelector("#f-horario").oninput = e=>{ state.form.horario=e.target.value; };
-    fg.querySelector("#f-horario").onblur = ()=>render();
-    fg.querySelector("#f-empresa").oninput = e=>state.form.empresa=e.target.value;
-    fg.querySelector("#f-tipo").oninput = e=>state.form.tipo=e.target.value;
-    fg.querySelector("#f-func").oninput = e=>state.form.funcionario=e.target.value;
-    fg.querySelector("#f-funcao").oninput = e=>state.form.funcao=e.target.value;
-    fg.querySelector("#f-qtd").oninput = e=>state.form.qtd=parseInt(e.target.value,10)||1;
+    </div><!-- /tab-lote -->
 
-    const examBlock = el(`<div style="margin-top:16px;"><p style="font-size:12px;font-weight:700;color:#6B7280;margin:0 0 6px;">Exames — clique para marcar</p></div>`);
-    const eg = el(`<div class="exam-grid"></div>`);
-    Object.keys(CATALOGO).forEach(k=>{
-      const active=!!state.form.exams[k];
-      const btn=el(`<button type="button" class="exam-btn ${active?'active':''}">${active?"✓":"&nbsp;"}<span>${k}</span></button>`);
-      btn.onclick=()=>toggleExam(k); eg.appendChild(btn);
-    });
-    examBlock.appendChild(eg); form.appendChild(examBlock);
+    </div><!-- /form-card -->
+  </main>
 
-    const hrEf = horarioEfetivo(state.form.horario, state.form.exams);
-    const slotF = hrEf ? slotPorHorario(state.form.date, hrEf) : null;
-    form.appendChild(el(`<div style="margin-top:12px;padding:9px 12px;border-radius:9px;font-size:13px;background:${slotF?'var(--good-bg)':'var(--paper)'};color:${slotF?'var(--good-fg)':'#6B7280'};">${
-      state.form.exams.PSICO ? '🧠 Psicossocial: horário fixo 06:30 (1º turno). ' : ''}${slotF ? `🩺 Médico/turno: <b>${esc(slotF.nome)}</b> (${slotF.inicio}–${slotF.fim})` : 'Informe um horário dentro de um turno para identificar o médico.'}</div>`));
+  <!-- MODAL DE SUCESSO -->
+  <div class="modal-sucesso" id="modalSucesso">
+    <div class="modal-sucesso-card">
+      <div class="modal-sucesso-icon"><i class="fa-solid fa-circle-check"></i></div>
+      <h3>Lote Confirmado!</h3>
+      <p id="modalSucessoTexto"></p>
+      <ul class="modal-lista" id="modalSucessoLista"></ul>
+      <button class="btn-fechar-modal" id="btnFecharModal">Fechar</button>
+    </div>
+  </div>
 
-    if(state.formError) form.appendChild(el(`<div class="err">⚠️ ${esc(state.formError)}</div>`));
-    const submitBtn = el(`<button type="submit" class="submit-btn">+ Adicionar Agendamento</button>`);
-    form.appendChild(submitBtn); form.onsubmit = submitForm; left.appendChild(form);
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
-    // ---- lista do dia por turno ----
-    const totalAg = state.entries.reduce((s,e)=>s+(e.qtd||1),0);
-    const turnos = slotsDoDia(state.date);
-    const byTurno = {}; turnos.forEach(t=>byTurno[t.key]=[]); byTurno["sem"]=[];
-    const sorted = [...state.entries].sort((a,b)=>{ if(!a.horario) return 1; if(!b.horario) return -1; return a.horario.localeCompare(b.horario); });
-    sorted.forEach(e=>{
-      const s = e.slot ? turnos.find(t=>t.key===e.slot) : slotPorHorario(state.date, e.horario);
-      (byTurno[s?.key] || byTurno["sem"]).push(e);
-    });
-
-    const tableCard = el(`<div class="card" style="padding:0;overflow:hidden;"></div>`);
-    tableCard.appendChild(el(`<div style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;"><h2 style="margin:0;">Agendamentos do dia</h2><span class="mono entry-count" style="font-size:12px;color:#9CA3AF;">${totalAg} exames no total</span></div>`));
-    if(state.error) tableCard.appendChild(el(`<div class="empty" style="color:var(--amber-fg);">⚠️ ${esc(state.error)}</div>`));
-    else if(sorted.length===0) tableCard.appendChild(el(`<div class="empty">Nenhum agendamento para ${esc(fmtWeekday(state.date).toLowerCase())}.</div>`));
-    else {
-      const listWrap = el(`<div style="padding:16px 20px;background:var(--paper);"></div>`);
-      [...turnos.map(t=>t.key),"sem"].forEach(key=>{
-        const lista = byTurno[key]; if(!lista || !lista.length) return;
-        const slot = turnos.find(t=>t.key===key);
-        const label = slot ? `${slot.inicio} · ${slot.nome}` : "Fora de turno";
-        const det = el(`<details class="turno-details" open></details>`);
-        det.appendChild(el(`<summary class="turno-summary"><span>${esc(label)}</span><span class="mono" style="font-weight:700;color:#6B7280;font-size:11px;background:#E5E7EB;padding:3px 8px;border-radius:6px;">${lista.length} agend.</span></summary>`));
-        const content = el(`<div class="turno-content"></div>`);
-        const table = el(`<table><thead><tr><th>Hora</th><th>Empresa</th><th>Tipo</th><th>Funcionário(a)</th><th>Exames</th><th></th></tr></thead><tbody></tbody></table>`);
-        const tbody = table.querySelector("tbody");
-        lista.forEach((entry,i)=>{
-          const tr = el(`<tr class="entry-row" data-name="${esc(entry.funcionario).toLowerCase()}" data-empresa="${esc(entry.empresa).toLowerCase()}" data-qtd="${entry.qtd||1}" style="background:${i%2?'#FBFAF7':'white'};"></tr>`);
-          tr.appendChild(el(`<td class="mono" style="font-weight:700;color:var(--navy);">${esc(entry.horario)||"—"}${entry.medico?`<div style="font-family:'Inter',sans-serif;font-weight:600;font-size:10.5px;color:var(--good-fg);margin-top:2px;">🩺 ${esc(entry.medico)}</div>`:""}</td>`));
-          tr.appendChild(el(`<td>${esc(entry.empresa)||"—"}</td>`));
-          tr.appendChild(el(`<td style="color:#6B7280;">${esc(entry.tipo)||"—"}</td>`));
-          let funcText = esc(entry.funcionario)||"—";
-          if(entry.kitUrl){
-            funcText += ` <a href="${esc(entry.kitUrl)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:4px;background:#FEE2E2;color:#DC2626;border:1px solid #FCA5A5;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;margin-left:6px;vertical-align:middle;" title="Abrir ASO / Kit anexado">📄 PDF</a>`;
-          }
-          if((entry.qtd||1)>1) funcText += ` <span style="font-size:10px;background:var(--teal);color:white;padding:2px 6px;border-radius:10px;font-weight:bold;margin-left:6px;">LOTE: ${entry.qtd}</span>`;
-          if(entry.funcao) funcText += `<div style="font-size:11px;color:#6B7280;margin-top:2px;">🛠️ ${esc(entry.funcao)}</div>`;
-          tr.appendChild(el(`<td>${funcText}</td>`));
-          const examsTd = el(`<td></td>`);
-          const marked = Object.keys(CATALOGO).filter(k=>entry.exams?.[k]);
-          if(!marked.length) examsTd.innerHTML = `<span style="color:#D1D5DB;font-size:12px;">—</span>`;
-          else marked.forEach(k=>examsTd.appendChild(el(`<span class="chip">${k}</span>`)));
-          tr.appendChild(examsTd);
-          const actionsRow = el(`<div style="display:flex;gap:4px;justify-content:flex-end;"></div>`);
-          const editBtn = el(`<button class="icon-btn">✏️</button>`); editBtn.onclick=()=>startEdit(entry); actionsRow.appendChild(editBtn);
-          if(state.confirmDeleteId===entry.id){
-            const conf=el(`<button class="mono" style="font-size:11px;font-weight:700;padding:5px 8px;border:none;border-radius:6px;background:#FEE2E2;color:#DC2626;cursor:pointer;">confirmar</button>`); conf.onclick=()=>deleteEntry(entry);
-            const cancelDel=el(`<button class="icon-btn">✕</button>`); cancelDel.onclick=()=>setState({confirmDeleteId:null});
-            actionsRow.append(conf,cancelDel);
-          } else {
-            const delBtn=el(`<button class="icon-btn">🗑️</button>`); delBtn.onclick=()=>setState({confirmDeleteId:entry.id}); actionsRow.appendChild(delBtn);
-          }
-          const actionsTd = el(`<td></td>`); actionsTd.appendChild(actionsRow); tr.appendChild(actionsTd);
-          tbody.appendChild(tr);
-        });
-        content.appendChild(table); det.appendChild(content); listWrap.appendChild(det);
-      });
-      tableCard.appendChild(listWrap);
-    }
-    left.appendChild(tableCard);
-
-    // ---- busca ----
-    const searchCard = el(`<div class="card" style="padding:14px 20px;border:2px solid var(--teal);"></div>`);
-    const searchWrap = el(`<div style="display:flex;align-items:center;gap:10px;">
-      <span>🔍</span><input type="text" id="search-input" placeholder="Buscar por funcionário..." style="flex:1;min-width:0;border:none;outline:none;font-size:14px;font-weight:600;background:transparent;padding:0;">
-      <span style="width:1px;height:22px;background:var(--line);flex-shrink:0;"></span>
-      <span>🔍</span><input type="text" id="search-empresa" placeholder="Buscar por empresa..." style="flex:1;min-width:0;border:none;outline:none;font-size:14px;font-weight:600;background:transparent;padding:0;"></div>`);
-    searchCard.appendChild(searchWrap);
-    const applySearch = ()=>{
-      const tf=stripAccents(searchWrap.querySelector("#search-input").value);
-      const te=stripAccents(searchWrap.querySelector("#search-empresa").value);
-      let count=0;
-      left.querySelectorAll(".entry-row").forEach(r=>{
-        const ok = stripAccents(r.getAttribute("data-name")||"").includes(tf) && stripAccents(r.getAttribute("data-empresa")||"").includes(te);
-        r.style.display = ok ? "" : "none";
-        if(ok){ count+=parseInt(r.getAttribute("data-qtd")||1,10); if(tf||te){ const d=r.closest("details"); if(d) d.open=true; } }
-      });
-      const c = left.querySelector(".entry-count"); if(c) c.textContent = `${count} exame${count!==1?"s":""} no total`;
+    const firebaseConfig = {
+      apiKey: "AIzaSyAL2xXqo83pWKhyCta4Nk0gockDstxtJY4",
+      authDomain: "agendamento-alpale.firebaseapp.com",
+      projectId: "agendamento-alpale",
+      storageBucket: "agendamento-alpale.firebasestorage.app",
+      messagingSenderId: "491340347533",
+      appId: "1:491340347533:web:0983b4dba5bbdcc534cac4"
     };
-    searchWrap.querySelector("#search-input").oninput = applySearch;
-    searchWrap.querySelector("#search-empresa").oninput = applySearch;
-    right.appendChild(searchCard);
 
-    // ---- resumo por turno ----
-    const summaryCard = el(`<div class="card"></div>`);
-    summaryCard.appendChild(el(`<div style="display:flex;justify-content:space-between;align-items:center;"><h2 style="margin:0;">Resumo do Dia</h2><span class="mono" style="font-size:11px;background:var(--paper);padding:4px 8px;border-radius:6px;color:var(--navy);font-weight:700;">${totalAg} exames</span></div>`));
-    let hasData=false;
-    turnos.forEach(t=>{
-      const lista = byTurno[t.key]; if(!lista.length) return;
-      hasData=true;
-      const totals = computeTotals(lista);
-      const grand = Object.values(totals).reduce((a,b)=>a+b,0);
-      const pessoas = lista.reduce((s,e)=>s+(e.qtd||1),0);
-      const sec = el(`<div style="margin-top:16px;border:1px solid var(--line);border-radius:10px;padding:12px;"></div>`);
-      sec.appendChild(el(`<div style="display:flex;justify-content:space-between;margin-bottom:10px;border-bottom:1px solid #E5E7EB;padding-bottom:6px;gap:8px;"><span style="font-size:12.5px;font-weight:800;color:var(--teal);">${esc(t.inicio)} · ${esc(t.nome)}</span><span style="font-size:11px;color:#6B7280;font-weight:600;white-space:nowrap;">${pessoas} pes. / ${grand} exames</span></div>`));
-      const chartData = Object.keys(CATALOGO).map(k=>({name:k,total:totals[k]})).filter(d=>d.total>0);
-      if(chartData.length){
-        const max = Math.max(...chartData.map(d=>d.total));
-        const chart = el(`<div></div>`);
-        chartData.forEach(d=>{ const pct=Math.max(6,Math.round((d.total/max)*100)); chart.appendChild(el(`<div class="bar-row"><span class="bar-label">${d.name}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%;"></div></div><span class="bar-val">${d.total}</span></div>`)); });
-        sec.appendChild(chart);
-      } else sec.appendChild(el(`<p style="font-size:11px;color:#9CA3AF;margin:0;">Nenhum exame marcado.</p>`));
-      summaryCard.appendChild(sec);
-    });
-    if(!hasData) summaryCard.appendChild(el(`<p style="text-align:center;color:#9CA3AF;font-size:14px;padding:32px 0;">Sem exames marcados ainda.</p>`));
-    right.appendChild(summaryCard);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
-    // ---- atendimentos por médico ----
-    const docCard = el(`<div class="card"><h2>🩺 Atendimentos por Médico</h2></div>`);
-    const docStats = {};
-    sorted.forEach(e=>{ if(!e.medico) return; const q=e.qtd||1; docStats[e.medico] ??= {total:0,tipos:{}}; docStats[e.medico].total+=q; const t=e.tipo||"Sem tipo"; docStats[e.medico].tipos[t]=(docStats[e.medico].tipos[t]||0)+q; });
-    const docKeys = Object.keys(docStats);
-    if(!docKeys.length) docCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;text-align:center;padding:16px 0;">Nenhum atendimento por médico hoje.</p>`));
-    else {
-      const list = el(`<div style="display:flex;flex-direction:column;gap:10px;"></div>`);
-      docKeys.forEach(m=>{
-        const item = el(`<div style="background:var(--paper);border-radius:8px;padding:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:13.5px;font-weight:700;color:var(--navy);">${esc(m)}</span><span class="mono" style="font-size:11px;font-weight:800;background:var(--teal);color:#fff;padding:2px 8px;border-radius:6px;">${docStats[m].total}</span></div></div>`);
-        const tipos = el(`<div style="display:flex;flex-wrap:wrap;gap:6px;"></div>`);
-        Object.entries(docStats[m].tipos).forEach(([t,q])=>tipos.appendChild(el(`<span style="font-size:11px;color:#4B5563;background:#E5E7EB;padding:4px 8px;border-radius:6px;">${esc(t)}: <b>${q}</b></span>`)));
-        item.appendChild(tipos); list.appendChild(item);
+    const form = document.getElementById('agendamentoForm');
+    const examsGrid = document.getElementById('examsGrid');
+    const dataInput = document.getElementById('data');
+    const dateInfoBadge = document.getElementById('dateInfoBadge');
+    const medicoSelect = document.getElementById('medico');
+    const horarioInput = document.getElementById('horario');
+    const divMedico = document.getElementById('divMedico');
+    const divHorario = document.getElementById('divHorario');
+    const arquivoInput = document.getElementById('arquivoKit');
+    const uploadArea = document.getElementById('uploadArea');
+    const uploadText = document.getElementById('uploadText');
+    const filePreview = document.getElementById('filePreview');
+    const fileNameSpan = document.getElementById('fileName');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const statusMsg = document.getElementById('statusMsg');
+    const alertBanner = document.getElementById('psicoAlert');
+    const tipoSelect = document.getElementById('tipo');
+
+    // Bloquear datas no passado
+    const hojeStr = new Date().toISOString().split('T')[0];
+    dataInput.min = hojeStr;
+
+    // Catálogo padrão sincronizado com index.html
+    const catalogoPadrao = {
+      CLINICO:       { ativo: true,  limiteDia: 35, nome: "Clínico" },
+      AUDIO:         { ativo: true,  limiteDia: 25, nome: "Audiometria" },
+      ACV:           { ativo: true,  limiteDia: 30, nome: "Acuidade Visual" },
+      LAB:           { ativo: true,  limiteDia: 25, nome: "Laboratório (Sangue)" },
+      RX:            { ativo: true,  limiteDia: 20, nome: "Raio-X" },
+      PSICO:         { ativo: true,  limiteDia: 8,  nome: "Psicossocial" },
+      ECG:           { ativo: true,  limiteDia: 15, nome: "ECG" },
+      EEG:           { ativo: true,  limiteDia: 10, nome: "EEG" },
+      ESP:           { ativo: true,  limiteDia: 20, nome: "Espirometria" },
+      ISHI:          { ativo: true,  limiteDia: 30, nome: "Ishihara" },
+      CINESIO:       { ativo: false, limiteDia: 10, nome: "Cinesiológico" },
+      ODONTO:        { ativo: false, limiteDia: 10, nome: "Odontológico" },
+      TOXIC:         { ativo: false, limiteDia: 10, nome: "Toxicológico" },
+      OTOLOGICO:     { ativo: false, limiteDia: 15, nome: "Otológico" },
+      VOCAL:         { ativo: false, limiteDia: 10, nome: "Avaliação Vocal" },
+      "T. SONO":     { ativo: false, limiteDia: 15, nome: "Teste do Sono" },
+      PERICIA:       { ativo: false, limiteDia: 5,  nome: "Perícia" },
+      "PERICIA DOM": { ativo: false, limiteDia: 2,  nome: "Perícia Domiciliar" }
+    };
+
+    let regrasVagas = {
+      limiteTotalDia: 35,
+      datasBloqueadas: [],
+      exames: JSON.parse(JSON.stringify(catalogoPadrao)),
+      slots: {} // Aqui virá a estrutura criada no Painel
+    };
+
+    let agendamentosDoDiaAtual = [];
+
+    // Nomes amigáveis dos exames
+    const NOMES_EXAMES_MAP = {
+      CLINICO: "Clínico", AUDIO: "Audiometria", ACV: "Acuidade Visual",
+      LAB: "Laboratório", RX: "Raio-X", PSICO: "Psicossocial",
+      ECG: "ECG", EEG: "EEG", ESP: "Espirometria", ISHI: "Ishihara",
+      CINESIO: "Cinesiológico", ODONTO: "Odontológico", TOXIC: "Toxicológico",
+      OTOLOGICO: "Otológico", VOCAL: "Avaliação Vocal", "T. SONO": "Teste do Sono",
+      PERICIA: "Perícia", "PERICIA DOM": "Perícia Domiciliar"
+    };
+
+    function ajustarContadores(c, e, sinal) {
+      const q = (e.qtd || 1) * sinal;
+      c.total = Math.max(0, (c.total || 0) + q);
+      c.slots = c.slots || {};
+      c.exames = c.exames || {};
+      if (e.slot) c.slots[e.slot] = Math.max(0, (c.slots[e.slot] || 0) + q);
+      Object.keys(e.exams || {}).forEach(cod => {
+        if (e.exams[cod]) c.exames[cod] = Math.max(0, (c.exames[cod] || 0) + q);
       });
-      docCard.appendChild(list);
     }
-    right.appendChild(docCard);
 
-    // ---- escala ----
-    const scheduleCard = el(`<div class="card"><h2>📋 Escala de ${esc(WEEKDAY_FULL[diaSemana(state.date)])}</h2></div>`);
-    if(!turnos.length) scheduleCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Sem escala neste dia.</p>`));
-    else {
-      const list = el(`<div style="display:flex;flex-direction:column;gap:8px;"></div>`);
-      turnos.forEach(s=>list.appendChild(el(`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--paper);border-radius:8px;padding:8px 10px;"><span class="mono" style="font-size:12px;color:var(--navy);font-weight:700;">${s.inicio}–${s.fim}</span><span style="font-size:13px;font-weight:600;">${esc(s.nome)}</span></div>`)));
-      scheduleCard.appendChild(list);
-    }
-    right.appendChild(scheduleCard);
+    async function gravarAgendamentoComContador(entryData) {
+      await runTransaction(db, async (tx) => {
+        const cfgSnap = await tx.get(doc(db, "configuracoes", "limites_agendamento"));
+        const cfg = cfgSnap.exists() ? cfgSnap.data() : {};
+        const cRef = doc(db, "contadores", entryData.date);
+        const cSnap = await tx.get(cRef);
+        const c = cSnap.exists() ? cSnap.data() : { total: 0, slots: {}, exames: {} };
+        c.total = c.total || 0;
+        c.slots = c.slots || {};
+        c.exames = c.exames || {};
 
-    // ---- lista PSICO ----
-    const psicoEntries = sorted.filter(e=>e.exams?.PSICO);
-    const psicoCard = el(`<div class="card"></div>`);
-    const psicoHead = el(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><h2 style="margin:0;">🧠 Lista PSICO do dia</h2></div>`);
-    if(psicoEntries.length){
-      const printBtn = el(`<button class="btn-ghost mono" style="background:var(--navy);color:#fff;font-size:11px;padding:6px 10px;font-weight:700;">🖨️ IMPRIMIR</button>`);
-      printBtn.onclick = ()=>{
-        const w = window.open('', '_blank');
-        let h = `<html><head><title>Lista PSICO - ${fmtWeekday(state.date)}</title><style>body{font-family:sans-serif;padding:20px;color:#1A2B32;}h1{font-size:20px;border-bottom:2px solid #1F4E5F;padding-bottom:10px;margin-bottom:20px;}table{width:100%;border-collapse:collapse;font-size:14px;}th,td{border:1px solid #DCD6C9;padding:12px;text-align:left;}th{background:#F6F4EF;color:#1F4E5F;text-transform:uppercase;font-size:12px;}</style></head><body><h1>Lista de Exames Psicológicos - ${fmtWeekday(state.date)}</h1><table><thead><tr><th>Horário</th><th>Funcionário(a)</th><th>Empresa</th><th>Tipo</th></tr></thead><tbody>`;
-        psicoEntries.forEach(e=>{ h += `<tr><td style="font-family:monospace;font-weight:bold;">${esc(e.horario)||'--:--'}</td><td><b>${esc(e.funcionario)||'—'}</b>${(e.qtd||1)>1?` (LOTE: ${e.qtd})`:''}${e.funcao?`<br><small>${esc(e.funcao)}</small>`:''}</td><td>${esc(e.empresa)||'—'}</td><td>${esc(e.tipo)||'—'}</td></tr>`; });
-        h += `</tbody></table><scr`+`ipt>window.onload=function(){window.print();window.close();}</scr`+`ipt></body></html>`;
-        w.document.write(h); w.document.close();
-      };
-      psicoHead.appendChild(printBtn);
-    }
-    psicoCard.appendChild(psicoHead);
-    if(!psicoEntries.length) psicoCard.appendChild(el(`<p style="font-size:13px;color:#9CA3AF;margin:0;">Nenhum agendamento com PSICO hoje.</p>`));
-    else {
-      const list = el(`<div style="display:flex;flex-direction:column;gap:8px;"></div>`);
-      psicoEntries.forEach(e=>list.appendChild(el(`<div style="background:var(--paper);border-radius:8px;padding:8px 10px;"><div style="display:flex;justify-content:space-between;gap:8px;"><span style="font-size:13px;font-weight:700;">${esc(e.funcionario)||"—"}${(e.qtd||1)>1?` <span style="font-size:10px;background:var(--teal);color:#fff;padding:2px 6px;border-radius:10px;">LOTE: ${e.qtd}</span>`:""}</span><span class="mono" style="font-size:11px;color:var(--navy);font-weight:700;">${esc(e.horario)||""}</span></div><div style="font-size:12px;color:#6B7280;margin-top:2px;">${esc(e.tipo)||"tipo não informado"} · ${esc(e.empresa)||"empresa não informada"}</div></div>`)));
-      psicoCard.appendChild(list);
-    }
-    right.appendChild(psicoCard);
+        // Validar limite total do dia
+        const q = entryData.qtd || 1;
+        const limTotal = parseInt(cfg.limiteTotalDia, 10) || 35;
+        if ((c.total || 0) + q > limTotal) throw new Error("VAGAS_ESGOTADAS");
 
-    right.appendChild(el(`<div class="tips"><p class="k">como funciona</p><ul><li>• Digite o horário; o sistema identifica o turno e o médico.</li><li>• PSICO é sempre no 1º turno (06:30).</li><li>• Limites por médico/turno são configurados em ⚙️ Configurar Vagas.</li><li>• ☁️ Dados salvos no Firebase.</li></ul></div>`));
-    container.append(left,right);
-    return container;
-  }
-
-  function renderMonthView(){
-    const mainContainer = el(`<div style="display:flex; flex-direction:column; width:100%;"></div>`);
-    const topGrid = el(`<div class="grid5"></div>`);
-    const left = el(`<div></div>`);
-    const right = el(`<div style="display:flex;flex-direction:column;gap:20px;"></div>`);
-
-    // ---- CALENDÁRIO (ESQUERDA) ----
-    const card = el(`<div class="card" style="padding:16px; margin-bottom:0;"></div>`);
-    const wk = el(`<div class="month-grid" style="margin-bottom:6px;"></div>`);
-    WEEKDAY_LABELS.forEach(w=>wk.appendChild(el(`<div class="wk-lbl">${w}</div>`)));
-    card.appendChild(wk);
-    const grid = el(`<div class="month-grid"></div>`);
-    const today = todayISO();
-    monthMatrix(state.monthCursor).forEach(iso=>{
-      if(!iso){ grid.appendChild(el(`<div></div>`)); return; }
-      const count = state.index[iso]||0;
-      const cell = el(`<button class="day-cell ${count>0?'has':''} ${iso===today?'today':''}"><span class="day-num">${Number(iso.slice(8,10))}</span>${count>0?`<span class="day-badge">${count}</span>`:""}</button>`);
-      cell.onclick = ()=>goToDay(iso); grid.appendChild(cell);
-    });
-    card.appendChild(grid);
-    left.appendChild(card);
-    topGrid.append(left, right);
-
-    // ---- DASHBOARDS ----
-    const monthEntries = state.allEntries.filter(e => e.date && e.date.startsWith(state.monthCursor));
-
-    let totalPessoas = 0;
-    let totalExames = 0;
-    const tipoStats = {};
-    const exameStats = {};
-    const medicoStats = {};
-
-    monthEntries.forEach(e => {
-      const q = e.qtd || 1;
-      totalPessoas += q;
-      
-      const t = e.tipo || "Não informado";
-      tipoStats[t] = (tipoStats[t] || 0) + q;
-      
-      if (e.medico) {
-        medicoStats[e.medico] = (medicoStats[e.medico] || 0) + q;
-      }
-
-      if (e.exams) {
-        Object.keys(e.exams).forEach(k => {
-          if (e.exams[k]) {
-             exameStats[k] = (exameStats[k] || 0) + q;
-             totalExames += q;
+        // Validar limites por exame
+        const exCatalogo = { ...catalogoPadrao, ...(cfg.exames || {}) };
+        for (const cod of Object.keys(entryData.exams || {})) {
+          const lim = parseInt(exCatalogo[cod]?.limiteDia, 10) || 0;
+          if (lim > 0 && ((c.exames || {})[cod] || 0) + q > lim) {
+            throw new Error("EXAME_ESGOTADO:" + (exCatalogo[cod]?.nome || cod));
           }
-        });
-      }
-    });
+        }
 
-    // 1. Resumo Geral (Vai no right)
-    const dashGeral = el(`<div class="card" style="padding:16px; margin-bottom: 0;"></div>`);
-    dashGeral.innerHTML = `<h2 style="margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;font-size:14px;">📊 Balanço do Mês</h2>
-    <div style="display:flex;justify-content:space-between;gap:10px;">
-      <div style="background:var(--paper);padding:12px;border-radius:10px;flex:1;text-align:center;">
-         <div style="font-size:10.5px;color:#6B7280;font-weight:800;text-transform:uppercase;">Pacientes</div>
-         <div class="mono" style="font-size:24px;color:var(--navy);font-weight:800;margin-top:4px;">${totalPessoas}</div>
-      </div>
-      <div style="background:var(--good-bg);padding:12px;border-radius:10px;flex:1;text-align:center;">
-         <div style="font-size:10.5px;color:var(--good-fg);font-weight:800;text-transform:uppercase;">Exames Feitos</div>
-         <div class="mono" style="font-size:24px;color:var(--good-fg);font-weight:800;margin-top:4px;">${totalExames}</div>
-      </div>
-    </div>`;
-    right.appendChild(dashGeral);
-
-    // 2. Por Médico (Vai no right)
-    const dashMedicos = el(`<div class="card" style="padding:16px; margin-bottom: 0;"><h2 style="margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;font-size:13px;">🩺 Atendimentos por Médico</h2></div>`);
-    const medKeys = Object.keys(medicoStats).sort((a,b) => medicoStats[b] - medicoStats[a]);
-    if(medKeys.length === 0) dashMedicos.appendChild(el(`<p style="font-size:12px;color:#9CA3AF;text-align:center;margin:0;">Nenhum atendimento registrado.</p>`));
-    else {
-      const mList = el(`<div style="display:flex;flex-direction:column;gap:6px;"></div>`);
-      medKeys.forEach(m => {
-        mList.appendChild(el(`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--paper);padding:8px 12px;border-radius:8px;">
-          <span style="font-size:12.5px;font-weight:700;color:var(--navy);">${esc(m)}</span>
-          <span class="mono" style="font-size:11px;font-weight:800;background:var(--teal);color:#fff;padding:2px 8px;border-radius:6px;">${medicoStats[m]}</span>
-        </div>`));
-      });
-      dashMedicos.appendChild(mList);
-    }
-    right.appendChild(dashMedicos);
-
-    // 3. Grid inferior (Exames e Tipos)
-    const bottomGrid = el(`<div class="grid-half"></div>`);
-    
-    // Volume por Exame (ESQUERDA)
-    const dashExames = el(`<div class="card" style="padding:16px; margin-bottom: 0;"><h2 style="margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;font-size:13px;">🔬 Volume por Exame</h2></div>`);
-    const exameKeys = Object.keys(exameStats).sort((a,b) => exameStats[b] - exameStats[a]);
-    if(exameKeys.length === 0) dashExames.appendChild(el(`<p style="font-size:12px;color:#9CA3AF;text-align:center;margin:0;">Nenhum exame detalhado.</p>`));
-    else {
-      const maxEx = Math.max(...exameKeys.map(k => exameStats[k]));
-      const chartEx = el(`<div></div>`);
-      exameKeys.forEach(k => {
-         const pct = Math.max(6, Math.round((exameStats[k]/maxEx)*100));
-         chartEx.appendChild(el(`<div class="bar-row" style="margin-bottom:6px;">
-           <span class="bar-label" style="width:100px;text-align:left;font-family:'Inter',sans-serif;font-weight:700;font-size:11px;color:var(--navy);">${esc(k)}</span>
-           <div class="bar-track"><div class="bar-fill" style="background:var(--navy);width:${pct}%;"></div></div>
-           <span class="bar-val">${exameStats[k]}</span>
-         </div>`));
-      });
-      dashExames.appendChild(chartEx);
-    }
-
-    // Tipos de ASO (DIREITA)
-    const dashTipos = el(`<div class="card" style="padding:16px; margin-bottom: 0;"><h2 style="margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;font-size:13px;">📋 Tipos de ASO</h2></div>`);
-    const tipoKeys = Object.keys(tipoStats).sort((a,b) => tipoStats[b] - tipoStats[a]);
-    if(tipoKeys.length === 0) dashTipos.appendChild(el(`<p style="font-size:12px;color:#9CA3AF;text-align:center;margin:0;">Nenhum ASO registrado.</p>`));
-    else {
-      const max = Math.max(...tipoKeys.map(k => tipoStats[k]));
-      const chart = el(`<div></div>`);
-      tipoKeys.forEach(t => {
-         const pct = Math.max(6, Math.round((tipoStats[t]/max)*100));
-         chart.appendChild(el(`<div class="bar-row" style="margin-bottom:6px;">
-           <span class="bar-label" style="width:130px;text-align:left;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;color:#4B5563;">${esc(t)}</span>
-           <div class="bar-track"><div class="bar-fill" style="width:${pct}%;"></div></div>
-           <span class="bar-val">${tipoStats[t]}</span>
-         </div>`));
-      });
-      dashTipos.appendChild(chart);
-    }
-
-    bottomGrid.append(dashExames, dashTipos);
-    mainContainer.append(topGrid, bottomGrid);
-
-    return mainContainer;
-  }
-  
-  function renderYearView(){
-    const grid = el(`<div class="year-grid"></div>`);
-    MONTH_LABELS.forEach((label,mIdx)=>{
-      const ym = `${state.yearCursor}-${pad2(mIdx+1)}`;
-      const total = Object.entries(state.index).filter(([d])=>d.startsWith(ym)).reduce((s,[,c])=>s+c,0);
-      const card = el(`<button class="month-card"></button>`);
-      card.appendChild(el(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-weight:800;font-size:13px;color:var(--navy);">${label}</span>${total>0?`<span class="mono" style="font-size:10px;font-weight:800;background:var(--good-bg);color:var(--good-fg);padding:2px 6px;border-radius:6px;">${total}</span>`:""}</div>`));
-      const mini = el(`<div class="mini-grid"></div>`);
-      miniMonthMatrix(state.yearCursor, mIdx).forEach(iso=>{ const has=iso&&state.index[iso]; mini.appendChild(el(`<div class="mini-cell" style="background:${iso?(has?'var(--teal)':'var(--line)'):'transparent'};opacity:${iso?(has?1:.35):0};"></div>`)); });
-      card.appendChild(mini); card.onclick=()=>openMonth(ym); grid.appendChild(card);
-    });
-    return grid;
-  }
-
-  function renderVoiceWidget(){
-    const host = document.getElementById("voice-widget"); host.innerHTML="";
-    if(state.widgetOpen){
-      const panel = el(`<div class="chat-panel"></div>`);
-      const head = el(`<div class="chat-head"><div><div class="title">🎙️ Assistente de voz</div><div class="status">${state.listening?'ouvindo…':(state.aiThinking?'pensando…':(state.apiKey?'IA ativada':'modo palavras-chave'))}</div></div></div>`);
-      const btns = el(`<div class="chat-head-btns"></div>`);
-      const muteBtn = el(`<button title="Respostas por áudio">${state.speechEnabled?'🔊':'🔇'}</button>`);
-      muteBtn.onclick = ()=>{ state.speechEnabled=!state.speechEnabled; if(!state.speechEnabled) window.speechSynthesis?.cancel(); render(); };
-      const gearBtn = el(`<button title="Configurar IA">⚙️</button>`); gearBtn.onclick=()=>setState({showAiPanel:!state.showAiPanel});
-      const closeBtn = el(`<button title="Fechar">✕</button>`); closeBtn.onclick=toggleWidget;
-      btns.append(muteBtn,gearBtn,closeBtn); head.appendChild(btns); panel.appendChild(head);
-
-      if(state.showAiPanel){
-        const aip = el(`<div class="ai-panel"></div>`);
-        aip.innerHTML = `<p>Com uma chave de API da Anthropic, o áudio é interpretado por IA. A chave fica só neste navegador. Crie em <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>.</p>
-          <div class="ai-key-row"><input type="password" id="api-key-input" placeholder="Cole sua chave" value="${esc(state.apiKeyDraft)}"><button class="ai-save">Salvar</button>${state.apiKey?`<button class="ai-remove">Remover</button>`:""}</div>
-          <p class="ai-status ${state.apiKey?'on':'off'}">${state.apiKey?'✅ IA ativada':'○ Nenhuma chave configurada'}</p>`;
-        aip.querySelector("#api-key-input").oninput = e=>{ state.apiKeyDraft=e.target.value; };
-        aip.querySelector(".ai-save").onclick = saveApiKey;
-        const rm = aip.querySelector(".ai-remove"); if(rm) rm.onclick = removeApiKey;
-        panel.appendChild(aip);
-      }
-
-      const body = el(`<div class="chat-body"></div>`);
-      if(!state.chatMessages.length) body.appendChild(el(`<div class="chat-empty">Toque no microfone e fale, ex.:<br>"horário 8 horas, empresa Paraty, tipo periódico, exames clínico e audiometria"</div>`));
-      else state.chatMessages.forEach((msg,idx)=>{
-        if(msg.role==="user") body.appendChild(el(`<div class="bubble-row user"><div class="bubble user">🗣️ “${esc(msg.text)}”</div></div>`));
-        else if(msg.role==="error") body.appendChild(el(`<div class="bubble-row"><div class="bubble error">${esc(msg.text)}</div></div>`));
-        else {
-          const b = el(`<div class="bubble assistant">${esc(msg.text)}</div>`);
-          if(msg.fields?.length){ const fw=el(`<div class="fields"></div>`); msg.fields.forEach(f=>fw.appendChild(el(`<span class="chip">${esc(f)}</span>`))); b.appendChild(fw); }
-          if(msg.confirm && idx===state.chatMessages.length-1 && state.awaitingConfirmation){
-            const actions = el(`<div style="display:flex;gap:6px;margin-top:8px;"></div>`);
-            const okBtn=el(`<button style="flex:1;border:none;border-radius:7px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;background:var(--good-fg);color:#fff;">✅ Confirmar</button>`); okBtn.onclick=confirmAppointment;
-            const noBtn=el(`<button style="flex:1;border:none;border-radius:7px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;background:#FEE2E2;color:#DC2626;">✖️ Cancelar</button>`); noBtn.onclick=cancelPendingAppointment;
-            actions.append(okBtn,noBtn); b.appendChild(actions);
+        // Validar limite do turno do médico
+        if (entryData.slot) {
+          const regSlot = (cfg.slots || {})[entryData.slot] || { limite: 0 };
+          if (regSlot.limite > 0 && ((c.slots || {})[entryData.slot] || 0) + q > regSlot.limite) {
+            throw new Error("TURNO_ESGOTADO");
           }
-          const row = el(`<div class="bubble-row"></div>`); row.appendChild(b); body.appendChild(row);
+        }
+
+        ajustarContadores(c, entryData, 1);
+        tx.set(cRef, c);
+        tx.set(doc(db, "agendamentos", entryData.id), entryData);
+      });
+    }
+
+    // ESCALA MÉDICA FIXA - Usando base unificada para cruzar com o banco em tempo real
+    const escalaSemanal = {
+      1: [ { nome: "Dra. Gizelle", horarioInicio: "08:30", slotBase: "06:30" }, { nome: "Dr. Luiz", horarioInicio: "11:00", slotBase: "11:00" }, { nome: "Dra. Nadia", horarioInicio: "16:00", slotBase: "16:00" } ],
+      2: [ { nome: "Dra. Gizelle", horarioInicio: "08:30", slotBase: "06:30" }, { nome: "Dr. Luiz", horarioInicio: "11:00", slotBase: "11:00" }, { nome: "Dr. Luiz", horarioInicio: "14:30", slotBase: "14:30" } ],
+      3: [ { nome: "Dra. Gizelle", horarioInicio: "08:30", slotBase: "06:30" }, { nome: "Dr. Luiz", horarioInicio: "11:00", slotBase: "11:00" } ],
+      4: [ { nome: "Dra. Louane", horarioInicio: "08:30", slotBase: "06:30" }, { nome: "Dra. Nadia", horarioInicio: "11:00", slotBase: "11:00" }, { nome: "Dra. Gizelle", horarioInicio: "13:30", slotBase: "13:30" } ],
+      5: [ { nome: "Dra. Louane", horarioInicio: "08:30", slotBase: "06:30" }, { nome: "Dra. Nadia", horarioInicio: "11:00", slotBase: "11:00" }, { nome: "Dr. Guilherme", horarioInicio: "13:30", slotBase: "13:30" } ]
+    };
+
+    function atualizarHorario() {
+      const chipPsico = document.querySelector('.exam-chip[data-exam="PSICO"]');
+      const isPsico = chipPsico && chipPsico.classList.contains('active');
+
+      if (isPsico) {
+        horarioInput.value = "06:30";
+      } else {
+        if (medicoSelect.selectedIndex > 0) {
+          const opcaoSelecionada = medicoSelect.options[medicoSelect.selectedIndex];
+          horarioInput.value = opcaoSelecionada.dataset.horario;
+        } else {
+          horarioInput.value = "";
+        }
+      }
+    }
+
+    // Carregar configurações do Firebase dinamicamente
+    async function carregarRegrasVagas() {
+      try {
+        const snap = await getDoc(doc(db, "configuracoes", "limites_agendamento"));
+        if (snap.exists()) {
+          const dados = snap.data();
+          regrasVagas.limiteTotalDia = parseInt(dados.limiteTotalDia, 10) || 35;
+          regrasVagas.datasBloqueadas = Array.isArray(dados.datasBloqueadas) ? dados.datasBloqueadas : [];
+          regrasVagas.exames = { ...catalogoPadrao, ...(dados.exames || {}) };
+          regrasVagas.slots = dados.slots || {}; 
+        }
+      } catch (err) {
+        console.error("Erro ao carregar regras:", err);
+      }
+      renderizarExames();
+    }
+
+    function preencherMedicos() {
+      const dataSelecionada = dataInput.value;
+      const tipoSelecionado = tipoSelect.value || "";
+
+      // Listar os exames ativados no HTML agora mesmo
+      const examesSelecionados = [];
+      document.querySelectorAll('.exam-chip.active').forEach(chip => {
+        examesSelecionados.push(chip.getAttribute('data-exam'));
+      });
+
+      if (!dataSelecionada) {
+         divMedico.style.display = 'none';
+         divHorario.style.display = 'none';
+         return;
+      }
+
+      const [ano, mes, dia] = dataSelecionada.split('-').map(Number);
+      const diaSemana = new Date(ano, mes - 1, dia).getDay();
+      const medicosDoDia = escalaSemanal[diaSemana] || [];
+
+      // Cruzamento de Vagas do dia
+      const countPorSlot = {};
+      agendamentosDoDiaAtual.forEach(ag => {
+         let slotKey = ag.slot;
+         if (!slotKey) {
+            let base = ag.horario;
+            if (base === "08:30" || base === "06:30") base = "06:30";
+            slotKey = `${diaSemana}|${base}`;
+         }
+         countPorSlot[slotKey] = (countPorSlot[slotKey] || 0) + (ag.qtd || 1);
+      });
+
+      divMedico.style.display = 'flex';
+      divHorario.style.display = 'flex';
+      medicoSelect.innerHTML = '<option value="" disabled selected>Selecione um médico...</option>';
+
+      let temMedicoDisponivel = false;
+
+      // Iterar e filtrar os médicos do dia usando as restrições salvas pelo index.html
+      medicosDoDia.forEach(medico => {
+        const slotKey = `${diaSemana}|${medico.slotBase}`;
+        const configSlot = regrasVagas.slots[slotKey] || { limite: 0, tiposAso: [], exames: [] };
+        const marcados = countPorSlot[slotKey] || 0;
+
+        const temVaga = configSlot.limite === 0 || marcados < configSlot.limite;
+
+        let permiteTipo = true;
+        if (tipoSelecionado && configSlot.tiposAso && configSlot.tiposAso.length > 0) {
+            permiteTipo = configSlot.tiposAso.includes(tipoSelecionado);
+        }
+
+        let permiteExames = true;
+        if (examesSelecionados.length > 0 && configSlot.exames && configSlot.exames.length > 0) {
+            const exameProibido = examesSelecionados.find(cod => !configSlot.exames.includes(cod));
+            if (exameProibido) permiteExames = false;
+        }
+
+        if (temVaga && permiteTipo && permiteExames) {
+          const option = document.createElement('option');
+          option.value = medico.nome;
+          const labelVagas = configSlot.limite > 0 ? ` (${configSlot.limite - marcados} vagas)` : ` (Sem limite de turno)`;
+          option.textContent = `${medico.nome}${labelVagas}`;
+          option.dataset.horario = medico.horarioInicio;
+          option.dataset.slotkey = slotKey;
+          medicoSelect.appendChild(option);
+          temMedicoDisponivel = true;
         }
       });
-      if(state.aiThinking) body.appendChild(el(`<div class="bubble-row"><div class="bubble assistant">…</div></div>`));
-      panel.appendChild(body);
 
-      const foot = el(`<div class="chat-foot"></div>`);
-      const talkBtn = el(`<button type="button" class="talk-btn ${state.listening?'listening':''}" ${state.aiThinking?'disabled':''}>${state.listening?'⏺️ Ouvindo… toque para parar':'🎙️ Toque e fale'}</button>`);
-      talkBtn.onclick = ()=>state.listening?stopListening():startListening();
-      foot.appendChild(talkBtn);
-      foot.appendChild(el(`<p class="chat-foot-hint">Funciona melhor no Chrome/Edge, com internet.</p>`));
-      panel.appendChild(foot);
-      host.appendChild(panel);
-      requestAnimationFrame(()=>{ const b=host.querySelector(".chat-body"); if(b) b.scrollTop=b.scrollHeight; });
-    }
-    const fab = el(`<button class="fab ${state.listening?'listening':''} ${state.aiThinking?'thinking':''}" title="Assistente de voz">${state.listening?'⏺️':(state.aiThinking?'🤖':'🎙️')}</button>`);
-    fab.onclick = toggleWidget;
-    if(state.apiKey) fab.appendChild(el(`<span class="fab-dot"></span>`));
-    host.appendChild(fab);
-  }
-
-  function render(){
-    renderTabs(); renderNav();
-    const main = document.getElementById("main"); main.innerHTML="";
-    const wrap = el(`<div class="wrap" style="padding-top:0;"></div>`);
-    if(state.viewMode==="day") wrap.appendChild(renderDayView());
-    else if(state.viewMode==="month") wrap.appendChild(renderMonthView());
-    else wrap.appendChild(renderYearView());
-    main.appendChild(wrap);
-    renderVoiceWidget();
-    const modal = renderEditModal(); if(modal) main.appendChild(modal);
-  }
-
-  /* =========================================================
-     CONFIGURAÇÃO DE VAGAS
-     ========================================================= */
-  const modalCfg = document.getElementById("modalConfigVagas");
-  const tbodyExames = document.getElementById("listaExamesConfig");
-  const inputTotal = document.getElementById("cfgLimiteTotal");
-  const inputDatas = document.getElementById("cfgDatasBloqueadas");
-  const statusCfg = document.getElementById("statusConfigVagas");
-  const boxSlots = document.getElementById("listaSlotsConfig");
-
-  function slotsParaConfig(){
-    const out=[];
-    Object.keys(ESCALA).forEach(wd=>ESCALA[wd].forEach((s,idx)=>out.push({...s, idx, wd:Number(wd), key:`${wd}|${s.inicio}`})));
-    return out;
-  }
-  function renderizarExamesCfg(){
-    tbodyExames.innerHTML="";
-    Object.keys(CATALOGO).forEach(k=>{
-      const item = configAtual.exames[k] || CATALOGO[k];
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td style="text-align:center;"><input type="checkbox" class="switch-ativo" data-key="${k}" ${item.ativo?'checked':''} ${k==="CLINICO"?'disabled checked':''}></td>
-        <td><strong>${item.nome}</strong> <small style="color:#6C7A89;">(${k})</small></td>
-        <td><input type="number" class="input-limite-exame" data-key="${k}" min="0" max="300" value="${item.limiteDia}"></td>`;
-      tbodyExames.appendChild(tr);
-    });
-  }
-  function renderizarSlots(){
-    const salvos = configAtual.slots || {};
-    boxSlots.innerHTML = slotsParaConfig().map(s=>{
-      const r = salvos[s.key] || {limite:0,tiposAso:[],exames:[]};
-      return `<div class="slot-card" data-key="${s.key}">
-        <div class="slot-head">
-          <strong>${DIAS_CFG[s.wd]} · ${esc(s.nome)} <small>(${s.inicio}–${s.fim})</small></strong>
-          <label style="font-size:12px;font-weight:700;">Vagas no turno <input type="number" class="slot-limite" min="0" value="${r.limite}"></label>
-        </div>
-        <div class="slot-group">Tipos de ASO que realiza (nenhum marcado = todos)</div>
-        <div class="slot-checks">${TIPOS_ASO.map(t=>`<label><input type="checkbox" class="slot-tipo" value="${t}" ${r.tiposAso.includes(t)?'checked':''}> ${t}</label>`).join("")}</div>
-        <div class="slot-group">Exames que realiza (nenhum marcado = todos)</div>
-        <div class="slot-checks">${Object.keys(CATALOGO).map(k=>`<label><input type="checkbox" class="slot-exame" value="${k}" ${r.exames.includes(k)?'checked':''}> ${k}</label>`).join("")}</div>
-      </div>`;
-    }).join("");
-  }
-  function coletarSlots(){
-    const out={};
-    boxSlots.querySelectorAll(".slot-card").forEach(card=>{
-      out[card.dataset.key] = {
-        limite: parseInt(card.querySelector(".slot-limite").value,10)||0,
-        tiposAso: [...card.querySelectorAll(".slot-tipo:checked")].map(i=>i.value),
-        exames: [...card.querySelectorAll(".slot-exame:checked")].map(i=>i.value)
-      };
-    });
-    return out;
-  }
-  async function carregarConfig(){
-    statusCfg.style.color="#008CB4"; statusCfg.textContent="Carregando configurações...";
-    try{
-      const snap = await getDoc(doc(db,"configuracoes","limites_agendamento"));
-      if(snap.exists()){
-        const d = snap.data();
-        configAtual = {
-          limiteTotalDia: d.limiteTotalDia ?? 35,
-          datasBloqueadas: d.datasBloqueadas ?? [],
-          exames: {...structuredClone(CATALOGO), ...(d.exames||{})},
-          slots: d.slots || {}
-        };
+      if (!temMedicoDisponivel && medicosDoDia.length > 0) {
+         const option = document.createElement('option');
+         option.value = "";
+         option.textContent = "Nenhum médico atende este ASO/Exames ou turno lotado";
+         option.disabled = true;
+         medicoSelect.appendChild(option);
+      } else if (temMedicoDisponivel) {
+        medicoSelect.selectedIndex = 1;
       }
-      statusCfg.textContent="";
-    }catch(e){
-      console.error(e); statusCfg.style.color="#EF4444"; statusCfg.textContent="Padrão local carregado.";
+
+      atualizarHorario();
     }
-    inputTotal.value = configAtual.limiteTotalDia;
-    inputDatas.value = (configAtual.datasBloqueadas||[]).join(", ");
-    renderizarExamesCfg(); renderizarSlots();
-  }
 
-  document.getElementById("btnAbrirConfigVagas").addEventListener("click", ()=>{ modalCfg.style.display="flex"; carregarConfig(); });
-  document.getElementById("btnFecharConfigVagas").addEventListener("click", ()=>{ modalCfg.style.display="none"; });
-  document.getElementById("btnCopiarLinkCliente").addEventListener("click", e=>{
-    const url = "https://agendamento.alpale.com.br/agendar";
-    navigator.clipboard.writeText(url);
-    e.target.textContent = "✅ Link Copiado!";
-    setTimeout(()=>{ e.target.textContent="🔗 Copiar Link do Cliente"; }, 2000);
-  });
-
-  document.getElementById("btnSalvarConfigVagas").addEventListener("click", async ()=>{
-    const btn = document.getElementById("btnSalvarConfigVagas");
-    btn.disabled=true; statusCfg.style.color="#1E3A5F"; statusCfg.textContent="Salvando...";
-    const exames = structuredClone(CATALOGO);
-    document.querySelectorAll(".switch-ativo").forEach(c=>{ const k=c.dataset.key; exames[k].ativo = k==="CLINICO" ? true : c.checked; });
-    document.querySelectorAll(".input-limite-exame").forEach(i=>{ exames[i.dataset.key].limiteDia = parseInt(i.value,10)||0; });
-    const datas = inputDatas.value.split(",").map(d=>d.trim()).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d));
-    try{
-      await setDoc(doc(db,"configuracoes","limites_agendamento"), {
-        limiteTotalDia: parseInt(inputTotal.value,10)||35,
-        datasBloqueadas: datas,
-        exames,
-        slots: coletarSlots(),
-        atualizadoEm: new Date().toISOString()
+    // Renderizar exames verificando se estão ativos e se estão esgotados no dia
+    function renderizarExames() {
+      const contagemExames = {};
+      agendamentosDoDiaAtual.forEach(ag => {
+        if (ag.exams) {
+          Object.keys(ag.exams).forEach(cod => {
+            contagemExames[cod] = (contagemExames[cod] || 0) + 1;
+          });
+        }
       });
-      statusCfg.style.color="#2EC4B6"; statusCfg.textContent="✅ Configurações salvas e ativas no site!";
-      setTimeout(()=>{ modalCfg.style.display="none"; }, 1200);
-    }catch(err){
-      console.error(err); statusCfg.style.color="#EF4444"; statusCfg.textContent="❌ Erro ao salvar: "+err.message;
-    }finally{ btn.disabled=false; }
-  });
 
-  // Reconstrói contadores a partir de todos os agendamentos (migração e correção)
-  document.getElementById("btnRecalcContadores").addEventListener("click", async ()=>{
-    const btn = document.getElementById("btnRecalcContadores");
-    btn.disabled=true; statusCfg.style.color="#1E3A5F"; statusCfg.textContent="Recalculando contadores...";
-    try{
-      const snap = await getDocs(collection(db,"agendamentos"));
-      const porData = {};
-      const updates = [];
-      snap.forEach(d=>{
-        const e = d.data();
-        const slot = e.slot ? {key:e.slot} : slotPorHorario(e.date, e.horario);
-        const entrada = {...e, slot: slot?.key || null};
-        porData[e.date] ??= {total:0,slots:{},exames:{}};
-        ajustarContadores(porData[e.date], entrada, 1);
-        if(!e.slot && slot) updates.push(setDoc(doc(db,"agendamentos",d.id), {slot:slot.key}, {merge:true}));
+      examsGrid.innerHTML = '';
+      Object.keys(regrasVagas.exames).forEach(codigo => {
+        const ex = regrasVagas.exames[codigo];
+        if (!ex || !ex.ativo) return;
+
+        const totalMarcados = contagemExames[codigo] || 0;
+        const limite = parseInt(ex.limiteDia, 10) || 0;
+        const esgotado = (limite > 0 && totalMarcados >= limite);
+
+        const chip = document.createElement('div');
+        chip.className = 'exam-chip' + (codigo === 'CLINICO' ? ' active' : '') + (esgotado ? ' esgotado' : '');
+        chip.setAttribute('data-exam', codigo);
+
+        if (esgotado) {
+          chip.innerHTML = `${ex.nome} <span class="badge-esgotado">Esgotado</span>`;
+          chip.title = `Vagas esgotadas para este exame na data selecionada (${totalMarcados}/${limite})`;
+        } else {
+          chip.textContent = ex.nome;
+        }
+
+        chip.addEventListener('click', () => {
+          if (esgotado) {
+            alert(`As vagas para o exame "${ex.nome}" já se esgotaram nesta data (${totalMarcados}/${limite}). Por favor, escolha outra data se esse exame for obrigatório.`);
+            return;
+          }
+          if (codigo === 'CLINICO') return;
+          chip.classList.toggle('active');
+          if (codigo === 'PSICO') {
+            alertBanner.style.display = chip.classList.contains('active') ? 'flex' : 'none';
+          }
+          
+          // Re-valida dinamicamente o médico se eu ligar um exame que o médico atual não faça
+          if (dataInput.value) preencherMedicos();
+        });
+
+        examsGrid.appendChild(chip);
       });
-      await Promise.all(updates);
-      for(const [iso,c] of Object.entries(porData)) await setDoc(doc(db,"contadores",iso), c);
-      statusCfg.style.color="#2EC4B6";
-      statusCfg.textContent = `✅ ${Object.keys(porData).length} dia(s) recalculado(s).`;
-    }catch(err){
-      console.error(err); statusCfg.style.color="#EF4444"; statusCfg.textContent="❌ Erro: "+err.message;
-    }finally{ btn.disabled=false; }
-  });
+    }
 
-  render();
-</script>
+    // Ao mudar o tipo de ASO, recalcula os médicos disponíveis
+    tipoSelect.addEventListener('change', () => {
+       if (dataInput.value) preencherMedicos();
+    });
+
+    dataInput.addEventListener('change', async (e) => {
+      const dataSelecionada = e.target.value;
+      if (!dataSelecionada) return;
+
+      const [ano, mes, dia] = dataSelecionada.split('-').map(Number);
+      const dataObj = new Date(ano, mes - 1, dia);
+      const diaSemana = dataObj.getDay();
+
+      if (diaSemana === 0 || diaSemana === 6) {
+        alert('A clínica Alpale atende apenas de segunda a sexta-feira.');
+        e.target.value = '';
+        dateInfoBadge.style.display = 'none';
+        divMedico.style.display = 'none';
+        divHorario.style.display = 'none';
+        agendamentosDoDiaAtual = [];
+        renderizarExames();
+        return;
+      }
+
+      if (regrasVagas.datasBloqueadas.includes(dataSelecionada)) {
+        alert(`A data ${dataSelecionada.split('-').reverse().join('/')} está bloqueada para novos agendamentos (feriado ou sem atendimento na clínica). Por favor, selecione outra data.`);
+        e.target.value = '';
+        dateInfoBadge.style.display = 'none';
+        divMedico.style.display = 'none';
+        divHorario.style.display = 'none';
+        agendamentosDoDiaAtual = [];
+        renderizarExames();
+        return;
+      }
+
+      dateInfoBadge.style.display = 'block';
+      dateInfoBadge.style.color = 'var(--secondary)';
+      dateInfoBadge.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Verificando vagas disponíveis...`;
+
+      try {
+        const q = query(collection(db, "agendamentos"), where("date", "==", dataSelecionada));
+        const snap = await getDocs(q);
+        agendamentosDoDiaAtual = [];
+        snap.forEach(d => agendamentosDoDiaAtual.push(d.data()));
+
+        const totalNoDia = agendamentosDoDiaAtual.length;
+        const limiteGeral = regrasVagas.limiteTotalDia || 35;
+
+        if (totalNoDia >= limiteGeral) {
+          alert(`Desculpe, as vagas para o dia ${dataSelecionada.split('-').reverse().join('/')} estão totalmente esgotadas (${totalNoDia}/${limiteGeral} agendamentos). Por favor, escolha outra data.`);
+          e.target.value = '';
+          dateInfoBadge.style.display = 'none';
+          divMedico.style.display = 'none';
+          divHorario.style.display = 'none';
+          agendamentosDoDiaAtual = [];
+          renderizarExames();
+          return;
+        }
+
+        const vagasRestantes = limiteGeral - totalNoDia;
+        dateInfoBadge.style.color = vagasRestantes <= 5 ? 'var(--warning)' : 'var(--success)';
+        dateInfoBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> Data disponível: <strong>${vagasRestantes} vagas restantes</strong> para este dia.`;
+
+        renderizarExames();
+        preencherMedicos();
+
+      } catch (err) {
+        console.error("Erro ao verificar vagas:", err);
+        dateInfoBadge.style.display = 'none';
+      }
+    });
+
+    medicoSelect.addEventListener('change', atualizarHorario);
+
+    arquivoInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        fileNameSpan.textContent = e.target.files[0].name;
+        filePreview.style.display = 'flex';
+        uploadText.style.display = 'none';
+        uploadArea.style.borderColor = 'var(--success)';
+      }
+    });
+
+    function gerarPdfComprovante(dados) {
+      if (!window.jspdf) return;
+      const { jsPDF } = window.jspdf;
+      const docPdf = new jsPDF();
+
+      docPdf.setFillColor(30, 58, 95);
+      docPdf.rect(0, 0, 210, 35, "F");
+      docPdf.setTextColor(255, 255, 255);
+      docPdf.setFont("helvetica", "bold");
+      docPdf.setFontSize(16);
+      docPdf.text("ALPALE SAÚDE OCUPACIONAL", 15, 22);
+      
+      docPdf.setTextColor(44, 62, 80);
+      docPdf.setFontSize(18);
+      docPdf.text("Comprovante de Agendamento", 15, 50);
+      
+      docPdf.setFontSize(11);
+      docPdf.setFont("helvetica", "normal");
+      docPdf.text(`Emitido em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 15, 58);
+      
+      docPdf.setDrawColor(200, 200, 200);
+      docPdf.line(15, 65, 195, 65);
+      
+      docPdf.setFont("helvetica", "bold");
+      docPdf.text("Dados do Atendimento:", 15, 78);
+      docPdf.setFont("helvetica", "normal");
+      docPdf.text(`• Empresa: ${dados.empresa}`, 15, 88);
+      docPdf.text(`• Colaborador: ${dados.funcionario}`, 15, 98);
+      docPdf.text(`• Tipo de Exame (ASO): ${dados.tipo}`, 15, 108);
+      docPdf.text(`• Médico Selecionado: ${dados.medico}`, 15, 118);
+      docPdf.text(`• Data Marcada: ${dados.date.split('-').reverse().join('/')}`, 15, 128);
+      docPdf.text(`• Horário de Chegada: ${dados.horario}`, 15, 138);
+
+      const listaExamesStr = Object.keys(dados.exams).map(k => NOMES_EXAMES_MAP[k] || k).join(", ");
+      docPdf.text(`• Exames Solicitados: ${listaExamesStr}`, 15, 148);
+
+      docPdf.setFillColor(240, 244, 248);
+      docPdf.roundedRect(15, 165, 180, 30, 3, 3, "F");
+      docPdf.setFont("helvetica", "bold");
+      docPdf.setTextColor(30, 58, 95);
+      docPdf.text("Instruções Importantes:", 20, 175);
+      docPdf.setFont("helvetica", "normal");
+      docPdf.setFontSize(10);
+      docPdf.text(`Por favor, compareça à clínica Alpale às ${dados.horario} com documento de`, 20, 183);
+      docPdf.text("identidade com foto e guia de encaminhamento (quando aplicável).", 20, 190);
+
+      docPdf.save(`Comprovante_Alpale_${dados.funcionario.replace(/\s+/g, '_')}.pdf`);
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const dataEscolhida = dataInput.value;
+      if (!dataEscolhida) {
+        alert("Por favor, selecione uma data para o agendamento.");
+        return;
+      }
+
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> PROCESSANDO...`;
+      statusMsg.style.color = 'var(--primary)';
+      statusMsg.textContent = 'Verificando vagas e registrando agendamento...';
+
+      try {
+        if (regrasVagas.datasBloqueadas.includes(dataEscolhida)) {
+          throw new Error("DATA_BLOQUEADA");
+        }
+
+        const qCheck = query(collection(db, "agendamentos"), where("date", "==", dataEscolhida));
+        const snapCheck = await getDocs(qCheck);
+        const docsNoDia = [];
+        snapCheck.forEach(d => docsNoDia.push(d.data()));
+
+        const limiteGeral = regrasVagas.limiteTotalDia || 35;
+        if (docsNoDia.length >= limiteGeral) {
+          throw new Error("VAGAS_ESGOTADAS");
+        }
+
+        const examesSelecionados = {};
+        document.querySelectorAll('.exam-chip.active').forEach(chip => {
+          examesSelecionados[chip.getAttribute('data-exam')] = 1;
+        });
+
+        for (const cod of Object.keys(examesSelecionados)) {
+          const cfgEx = regrasVagas.exames[cod];
+          if (cfgEx && cfgEx.limiteDia > 0) {
+            const qtdDesseExame = docsNoDia.filter(d => d.exams && d.exams[cod]).length;
+            if (qtdDesseExame >= cfgEx.limiteDia) {
+              throw new Error(`EXAME_ESGOTADO:${cfgEx.nome}`);
+            }
+          }
+        }
+
+        let urlArquivo = "";
+        const arquivo = arquivoInput.files[0];
+        const nomeColab = document.getElementById('funcionario').value.trim();
+
+        if (arquivo) {
+          const ext = arquivo.name.split('.').pop();
+          const refArquivo = storageRef(storage, `kits/${Date.now()}_${nomeColab.replace(/\s+/g, '')}.${ext}`);
+          await uploadBytes(refArquivo, arquivo);
+          urlArquivo = await getDownloadURL(refArquivo);
+        }
+
+        // Pega a exata key (slot) para cruzar direitinho com o contadores do index.html
+        const opcaoSelecionada = medicoSelect.options[medicoSelect.selectedIndex];
+        const slotKeyForm = opcaoSelecionada ? opcaoSelecionada.dataset.slotkey : null;
+
+        const entryId = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        const entryData = {
+          id: entryId,
+          date: dataEscolhida,
+          horario: horarioInput.value,
+          medico: medicoSelect.value,
+          slot: slotKeyForm,
+          empresa: document.getElementById('empresa').value.trim(),
+          tipo: document.getElementById('tipo').value,
+          funcionario: nomeColab,
+          funcao: document.getElementById('funcao') ? document.getElementById('funcao').value.trim() : "",
+          exams: examesSelecionados,
+          qtd: 1,
+          kitUrl: urlArquivo,
+          criadoEm: new Date().toISOString()
+        };
+
+        const promessaBanco = gravarAgendamentoComContador(entryData);
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("TIMEOUT")), 15000));
+        
+        await Promise.race([promessaBanco, timeout]);
+        gerarPdfComprovante(entryData);
+
+        statusMsg.style.color = 'var(--success)';
+        statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> Agendamento confirmado com sucesso!`;
+        
+        form.reset();
+        dateInfoBadge.style.display = 'none';
+        divMedico.style.display = 'none';
+        divHorario.style.display = 'none';
+        filePreview.style.display = 'none';
+        uploadText.style.display = 'block';
+        uploadArea.style.borderColor = 'var(--border-color)';
+        alertBanner.style.display = 'none';
+        
+        agendamentosDoDiaAtual = [];
+        renderizarExames();
+
+      } catch (err) {
+        console.error(err);
+        statusMsg.style.color = 'var(--danger)';
+        if (err.message === "DATA_BLOQUEADA") {
+          statusMsg.textContent = 'A data selecionada está bloqueada para agendamentos. Escolha outra data.';
+        } else if (err.message === "VAGAS_ESGOTADAS") {
+          statusMsg.textContent = 'Desculpe, as vagas para este dia acabaram de se esgotar. Por favor, escolha outra data.';
+        } else if (err.message === "TURNO_ESGOTADO") {
+          statusMsg.textContent = 'As vagas para o turno deste médico já se esgotaram. Por favor, selecione outro médico ou data.';
+        } else if (err.message && err.message.startsWith("EXAME_ESGOTADO:")) {
+          const nomeExame = err.message.split(":")[1];
+          statusMsg.textContent = `As vagas para o exame "${nomeExame}" se esgotaram nesta data.`;
+        } else if (err.message === "TIMEOUT") {
+          statusMsg.textContent = 'A conexão demorou muito. Verifique a internet e tente novamente.';
+        } else {
+          statusMsg.textContent = 'Erro ao registrar agendamento. Tente novamente.';
+        }
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `CONFIRMAR AGENDAMENTO`;
+      }
+    });
+
+    carregarRegrasVagas();
+
+    // =====================================================
+    // ABAS DE NAVEGAÇÃO
+    // =====================================================
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // =====================================================
+    // AGENDAMENTO EM LOTE - MOTOR PDF.js
+    // =====================================================
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const MAPA_NOMES_EXAMES = {
+      CLINICO: 'Clínico',
+      AUDIO:   'Audiometria',
+      ACV:     'Acuidade Visual',
+      LAB:     'Laboratório',
+      RX:      'Raio-X',
+      PSICO:   'Psicossocial',
+      ECG:     'ECG',
+      EEG:     'EEG',
+      ESP:     'Espirometria',
+      ISHI:    'Ishihara',
+    };
+
+    let linhasLote = [];
+
+    // Extrair texto de um PDF
+    async function extrairTextoDoPdf(file) {
+      const buffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+      let textoFull = '';
+      for (let p = 1; p <= pdf.numPages; p++) {
+        const page = await pdf.getPage(p);
+        const content = await page.getTextContent();
+        textoFull += content.items.map(i => i.str).join(' ') + '\n';
+      }
+      return textoFull;
+    }
+
+    // Parser de ASO 
+    function analisarAso(texto, nomeArquivo) {
+      // Empresa
+      let empresa = '';
+      const mEmp = texto.match(/Empresa:\s*(.+?)(?:\s+CNPJ:|\s+Nome Fantasia:|\n|$)/i);
+      if (mEmp) empresa = mEmp[1].trim().replace(/^[\d\.\-\/]+\s+/, '');
+
+      // Funcionário
+      let funcionario = '';
+      const mFunc = texto.match(/Funcion[aá]rio:\s*(.+?)(?:\s+CPF:|\s+RG:|\s+Sexo:|\s+Data Nasc|\n|$)/i);
+      if (mFunc) funcionario = mFunc[1].trim();
+
+      // --- EXTRAÇÃO LIMPA DO TIPO DE ASO ---
+      let tipo = 'Admissional';
+      const mTipoX = texto.match(/\(\s*[xX]\s*\)\s*([A-Za-zÀ-ÿ\s]+?)(?=\s*\(|\s*Risco|\s*Exame|\n|\r|$)/i);
+      if (mTipoX && mTipoX[1].trim().length < 30) {
+        tipo = mTipoX[1].trim();
+      } else {
+        const mTipoEsp = texto.match(/Tipo\s+Espec[ií]fico:\s*([^\r\n]+?)(?:\s+Funcion[aá]rio|\s+M[eé]dico|\r|\n|$)/i);
+        if (mTipoEsp) {
+          const val = mTipoEsp[1].trim();
+          const mX2 = val.match(/\(\s*[xX]\s*\)\s*([A-Za-zÀ-ÿ\s]+)/i);
+          if (mX2) {
+            tipo = mX2[1].trim();
+          } else if (!val.includes('(') && val.length < 30) {
+            tipo = val;
+          } else {
+            const padroes = ['Demissional', 'Admissional', 'Periódico', 'Mudança de Risco', 'Mudança de Função', 'Retorno', 'Revalidação', 'Perícia Domiciliar', 'Perícia'];
+            for (const p of padroes) {
+              if (new RegExp('\\b' + p + '\\b', 'i').test(val)) { tipo = p; break; }
+            }
+          }
+        }
+      }
+
+      // --- EXTRAÇÃO LIMPA DO CARGO / FUNÇÃO ---
+      let cargo = 'Não informado';
+      const mCargo = texto.match(/Cargo:\s*([^\r\n]+?)(?:\s+Tipo|\s+M[eé]dico|\s+Fun[çc][ãa]o|\s+Setor|\s+Riscos|\s+CPF|\r|\n|$)/i);
+      if (mCargo && mCargo[1].trim().length < 40 && !/Tipo\s+Espec/i.test(mCargo[1])) {
+        cargo = mCargo[1].trim();
+      } else {
+        const mCbo = texto.match(/(?:Trabalhava na |Trabalhar[aá] na )?fun[çc][ãa]o(?:\(CBO\))?:\s*([^\r\n]+?)(?:\s+Setor|\s+Tipo|\r|\n|$)/i);
+        if (mCbo && mCbo[1].trim().length < 40) {
+          cargo = mCbo[1].trim();
+        }
+      }
+
+      const datas = [...texto.matchAll(/\b(\d{2})\/(\d{2})\/(\d{4})\b/g)];
+      let dataFinal = '';
+      const hojeStr = new Date().toISOString().split('T')[0];
+      for (const [, d, m, y] of datas) {
+        const cand = `${y}-${m}-${d}`;
+        if (cand >= hojeStr) { dataFinal = cand; break; }
+      }
+      if (!dataFinal) dataFinal = hojeStr;
+      
+      const t = texto.toLowerCase();
+      const exames = { CLINICO: 1 };
+      if (/audiometria|audiom[eé]trico/.test(t)) exames.AUDIO = 1;
+      if (/acuidade visual/.test(t)) exames.ACV = 1;
+      if (/eletroencefalo|eeg\b/.test(t)) exames.EEG = 1;
+      if (/eletrocardio|ecg\b/.test(t)) exames.ECG = 1;
+      if (/radiografia|raio[\s\-]x/.test(t)) exames.RX = 1;
+      if (/glicemia|hemograma|fezes|coprocultura|epf\b|laborat[oó]rio|sangue/.test(t)) exames.LAB = 1;
+      if (/psico[ss]ocial|psicol[oó]gico/.test(t)) exames.PSICO = 1;
+      if (/espirometria/.test(t)) exames.ESP = 1;
+      if (/ishihara|teste de cores/.test(t)) exames.ISHI = 1;
+
+      return { empresa, funcionario, tipo, cargo, data: dataFinal, exames, arquivo: nomeArquivo, fileObj: null, status: 'pendente', statusMsg: '', medico: '', horario: '', slotKey: '' };
+    }
+
+    // Validação Avançada da Linha do Lote (Lendo restrições e Slots dinâmicos)
+    async function validarLinha(linha) {
+      const { data, exames, tipo } = linha;
+      if (!data) return { ok: false, msg: 'Data não identificada no PDF' };
+
+      const [ano, mes, dia] = data.split('-').map(Number);
+      const dw = new Date(ano, mes - 1, dia).getDay();
+      if (dw === 0 || dw === 6) return { ok: false, msg: 'Data cai em fim de semana' };
+      if (regrasVagas.datasBloqueadas.includes(data)) return { ok: false, msg: 'Data bloqueada / feriado' };
+
+      try {
+        const q = query(collection(db, "agendamentos"), where("date", "==", data));
+        const snap = await getDocs(q);
+        const agsDoDia = [];
+        snap.forEach(d => agsDoDia.push(d.data()));
+        const total = agsDoDia.length;
+        const limite = regrasVagas.limiteTotalDia || 35;
+        if (total >= limite) return { ok: false, msg: `Vagas esgotadas (${total}/${limite})` };
+
+        for (const cod of Object.keys(exames)) {
+          const cfgEx = regrasVagas.exames[cod];
+          if (cfgEx && cfgEx.limiteDia > 0) {
+            const qtd = agsDoDia.filter(d => d.exams && d.exams[cod]).length;
+            if (qtd >= cfgEx.limiteDia) return { ok: false, msg: `Exame esgotado` };
+          }
+        }
+
+        // --- ALOCAÇÃO AUTOMÁTICA DO MÉDICO NO LOTE C/ REGRAS DO PAINEL ---
+        const medicosDoDia = escalaSemanal[dw] || [];
+        const countPorSlot = {};
+
+        // Vagas já ocupadas no banco
+        agsDoDia.forEach(ag => {
+            let slotKey = ag.slot;
+            if (!slotKey) {
+                let base = ag.horario;
+                if (base === "08:30" || base === "06:30") base = "06:30";
+                slotKey = `${dw}|${base}`;
+            }
+            countPorSlot[slotKey] = (countPorSlot[slotKey] || 0) + (ag.qtd || 1);
+        });
+
+        // Vagas já consumidas por colaboradores aprovados anteriormente neste mesmo lote
+        linhasLote.forEach(l => {
+           if (l !== linha && l.status === 'ok' && l.data === data && l.slotKey) {
+               countPorSlot[l.slotKey] = (countPorSlot[l.slotKey] || 0) + 1;
+           }
+        });
+
+        let medicoAlocado = null;
+        let horarioAlocado = null;
+        let slotAlocado = null;
+
+        for (const m of medicosDoDia) {
+           const slotKey = `${dw}|${m.slotBase}`;
+           const configSlot = regrasVagas.slots[slotKey] || { limite: 0, tiposAso: [], exames: [] };
+           const marcados = countPorSlot[slotKey] || 0;
+
+           const temVaga = configSlot.limite === 0 || marcados < configSlot.limite;
+
+           let permiteTipo = true;
+           if (tipo && configSlot.tiposAso && configSlot.tiposAso.length > 0) {
+               permiteTipo = configSlot.tiposAso.some(t => t.toLowerCase() === tipo.toLowerCase());
+           }
+
+           let permiteExames = true;
+           if (configSlot.exames && configSlot.exames.length > 0) {
+               const codigosExamesLinha = Object.keys(exames);
+               const exameProibido = codigosExamesLinha.find(cod => !configSlot.exames.includes(cod));
+               if (exameProibido) permiteExames = false;
+           }
+
+           if (temVaga && permiteTipo && permiteExames) {
+               medicoAlocado = m.nome;
+               horarioAlocado = exames.PSICO ? '06:30' : m.horarioInicio;
+               slotAlocado = slotKey;
+               break; 
+           }
+        }
+
+        if (!medicoAlocado) return { ok: false, msg: `Sem médico para ${tipo} ou turno lotado` };
+
+        linha.medico = medicoAlocado;
+        linha.horario = horarioAlocado;
+        linha.slotKey = slotAlocado;
+
+        const vagasRestantes = limite - total;
+        return { ok: true, msg: `${vagasRestantes} vaga(s) restante(s)` };
+      } catch (e) {
+        return { ok: false, msg: 'Erro de conexão' };
+      }
+    }
+
+    // Renderizar tabela de lote
+    function atualizarStatusBar() {
+      const total = linhasLote.length;
+      const oks = linhasLote.filter(l => l.status === 'ok').length;
+      const erros = linhasLote.filter(l => l.status === 'erro').length;
+      const pendentes = total - oks - erros;
+      document.getElementById('loteContador').textContent = `${total} colaborador${total !== 1 ? 'es' : ''} carregado${total !== 1 ? 's' : ''}`;
+      document.getElementById('loteBadges').innerHTML = `
+        <span class="lote-badge ok"><i class="fa-solid fa-check"></i> ${oks} OK</span>
+        ${erros > 0 ? `<span class="lote-badge err"><i class="fa-solid fa-triangle-exclamation"></i> ${erros} com problema</span>` : ''}
+        ${pendentes > 0 ? `<span class="lote-badge warn"><i class="fa-solid fa-clock"></i> ${pendentes} verificando...</span>` : ''}
+      `;
+      const btnLote = document.getElementById('btnConfirmarLote');
+      const btnLabel = document.getElementById('btnLoteLabel');
+      if (linhasLote.length > 0) {
+        btnLote.style.display = 'flex';
+        const prontos = linhasLote.filter(l => l.status === 'ok').length;
+        btnLote.disabled = prontos === 0;
+        btnLabel.textContent = `Confirmar ${prontos} Agendamento${prontos !== 1 ? 's' : ''} em Lote`;
+      }
+    }
+
+    function renderizarTabelaLote() {
+      const tbody = document.getElementById('corpoTabelaLote');
+      tbody.innerHTML = '';
+      linhasLote.forEach((linha, idx) => {
+        const examesTags = Object.keys(linha.exames).map(cod =>
+          `<span class="exame-tag">${MAPA_NOMES_EXAMES[cod] || cod}</span>`
+        ).join('');
+
+        const classeStatus = linha.status === 'ok' ? 'linha-ok' : linha.status === 'erro' ? 'linha-erro' : 'linha-aviso';
+        const iconeStatus = linha.status === 'ok'
+          ? `<span class="status-icon" style="color:var(--success)" title="${linha.statusMsg}">✅</span>`
+          : linha.status === 'erro'
+          ? `<span class="status-icon" style="color:var(--danger)" title="${linha.statusMsg}">⚠️ <small>${linha.statusMsg}</small></span>`
+          : `<span class="status-icon" style="color:var(--warning)">⏳</span>`;
+
+        const tr = document.createElement('tr');
+        tr.className = classeStatus;
+        tr.dataset.idx = idx;
+        tr.innerHTML = `
+          <td style="font-weight:700; color:#94A3B8; text-align:center;">${idx + 1}</td>
+          <td><strong>${linha.funcionario || '—'}</strong></td>
+          <td style="font-size:0.78rem;">${linha.empresa || '—'}</td>
+          <td style="font-size:0.78rem;"><strong>${linha.cargo}</strong><br><span style="color:#6C7A89;">${linha.tipo}</span></td>
+          <td>${examesTags}</td>
+          <td>
+            <input type="date" class="input-data-lote ${linha.status === 'erro' ? 'erro' : ''}" value="${linha.data}" data-idx="${idx}">
+          </td>
+          <td style="font-size:0.78rem;">
+            <strong>${linha.medico || '—'}</strong><br>
+            <span style="color:var(--secondary);">${linha.horario || '—'}</span>
+          </td>
+          <td>${iconeStatus}</td>
+          <td>
+            <button class="btn-remover-linha" data-idx="${idx}" title="Remover esta linha"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Eventos de edição de data
+      document.querySelectorAll('.input-data-lote').forEach(input => {
+        input.addEventListener('change', async (e) => {
+          const idx = parseInt(e.target.dataset.idx);
+          linhasLote[idx].data = e.target.value;
+          linhasLote[idx].status = 'pendente';
+          atualizarStatusBar();
+          const resultado = await validarLinha(linhasLote[idx]);
+          linhasLote[idx].status = resultado.ok ? 'ok' : 'erro';
+          linhasLote[idx].statusMsg = resultado.msg;
+          renderizarTabelaLote();
+          atualizarStatusBar();
+        });
+      });
+
+      // Eventos de remoção
+      document.querySelectorAll('.btn-remover-linha').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.idx);
+          linhasLote.splice(idx, 1);
+          if (linhasLote.length === 0) {
+            document.getElementById('tabelaLoteWrap').style.display = 'none';
+            document.getElementById('loteStatusBar').style.display = 'none';
+            document.getElementById('btnConfirmarLote').style.display = 'none';
+          } else {
+            renderizarTabelaLote();
+            atualizarStatusBar();
+          }
+        });
+      });
+
+      document.getElementById('tabelaLoteWrap').style.display = 'block';
+      document.getElementById('loteStatusBar').style.display = 'flex';
+    }
+
+    // Processar arquivos selecionados
+    async function processarArquivos(files) {
+      if (files.length === 0) return;
+      document.getElementById('processandoMsg').style.display = 'block';
+
+      const novos = [];
+      for (const file of files) {
+        try {
+          const texto = await extrairTextoDoPdf(file);
+          const dados = analisarAso(texto, file.name);
+          dados.fileObj = file;
+          novos.push(dados);
+        } catch (e) {
+          console.error('Erro ao ler PDF:', file.name, e);
+          novos.push({ empresa: '?', funcionario: file.name, tipo: '?', cargo: '?', data: '', exames: {}, arquivo: file.name, fileObj: file, status: 'erro', statusMsg: 'Erro ao ler PDF', medico: '', horario: '', slotKey: '' });
+        }
+      }
+
+      document.getElementById('processandoMsg').style.display = 'none';
+
+      for (const linha of novos) {
+        linha.status = 'pendente';
+        linhasLote.push(linha);
+      }
+      renderizarTabelaLote();
+      atualizarStatusBar();
+
+      for (let i = 0; i < linhasLote.length; i++) {
+        if (linhasLote[i].status === 'pendente') {
+          const r = await validarLinha(linhasLote[i]);
+          linhasLote[i].status = r.ok ? 'ok' : 'erro';
+          linhasLote[i].statusMsg = r.msg;
+        }
+      }
+      renderizarTabelaLote();
+      atualizarStatusBar();
+    }
+
+    // Eventos de drag & drop e input file
+    const dropzone = document.getElementById('dropzoneLote');
+    const inputPdfs = document.getElementById('inputPdfsLote');
+
+    inputPdfs.addEventListener('change', (e) => processarArquivos(e.target.files));
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      processarArquivos(e.dataTransfer.files);
+    });
+
+    // Confirmar lote
+    document.getElementById('btnConfirmarLote').addEventListener('click', async () => {
+      const linhasOk = linhasLote.filter(l => l.status === 'ok');
+      if (linhasOk.length === 0) return;
+
+      const btn = document.getElementById('btnConfirmarLote');
+      const progressWrap = document.getElementById('progressWrap');
+      const progressBar = document.getElementById('progressBar');
+      const gravMsg = document.getElementById('loteGravacaoMsg');
+
+      btn.disabled = true;
+      progressWrap.style.display = 'block';
+      gravMsg.style.display = 'block';
+
+      const agendados = [];
+      for (let i = 0; i < linhasOk.length; i++) {
+        const linha = linhasOk[i];
+        gravMsg.textContent = `Gravando ${i + 1} de ${linhasOk.length}: ${linha.funcionario}...`;
+        progressBar.style.width = `${Math.round(((i) / linhasOk.length) * 100)}%`;
+
+        try {
+          let kitUrl = '';
+          if (linha.fileObj) {
+            const refKit = storageRef(storage, `kits/${Date.now()}_${(linha.funcionario || 'colab').replace(/\s+/g, '')}.pdf`);
+            await uploadBytes(refKit, linha.fileObj);
+            kitUrl = await getDownloadURL(refKit);
+          }
+
+          const entryId = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+          const entryData = {
+            id: entryId,
+            date: linha.data,
+            horario: linha.horario,
+            medico: linha.medico,
+            slot: linha.slotKey,
+            empresa: linha.empresa,
+            tipo: linha.tipo,
+            funcionario: linha.funcionario,
+            funcao: linha.cargo,
+            exams: linha.exames,
+            qtd: 1,
+            kitUrl,
+            criadoEm: new Date().toISOString()
+          };
+          await gravarAgendamentoComContador(entryData);
+          agendados.push(linha);
+        } catch (e) {
+          console.error('Erro ao gravar linha:', linha.funcionario, e);
+        }
+
+        progressBar.style.width = `${Math.round(((i + 1) / linhasOk.length) * 100)}%`;
+      }
+
+      progressWrap.style.display = 'none';
+      gravMsg.style.display = 'none';
+      btn.disabled = false;
+
+      linhasLote = [];
+      renderizarTabelaLote();
+      atualizarStatusBar();
+      document.getElementById('tabelaLoteWrap').style.display = 'none';
+      document.getElementById('loteStatusBar').style.display = 'none';
+      btn.style.display = 'none';
+      progressBar.style.width = '0%';
+
+      document.getElementById('modalSucessoTexto').textContent = `${agendados.length} colaborador${agendados.length !== 1 ? 'es foram agendados' : ' foi agendado'} com sucesso no sistema da Alpale!`;
+      const lista = document.getElementById('modalSucessoLista');
+      lista.innerHTML = agendados.map(l => `<li>✅ <strong>${l.funcionario}</strong> — ${l.empresa} — ${(l.data || '').split('-').reverse().join('/')} às ${l.horario}</li>`).join('');
+      document.getElementById('modalSucesso').classList.add('aberto');
+    });
+
+    document.getElementById('btnFecharModal').addEventListener('click', () => {
+      document.getElementById('modalSucesso').classList.remove('aberto');
+    });
+  </script>
 </body>
 </html>
