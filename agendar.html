@@ -393,6 +393,14 @@
           </div>
 
           <div class="input-group">
+            <label for="funcao">Função / Cargo (Opcional)</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-helmet-safety"></i>
+              <input type="text" id="funcao" placeholder="Ex: Soldador, Motorista...">
+            </div>
+          </div>
+
+          <div class="input-group">
             <label for="tipo">Tipo de Exame (ASO) *</label>
             <div class="input-wrapper">
               <i class="fa-solid fa-notes-medical"></i>
@@ -1004,7 +1012,7 @@
 
         const examesSelecionados = {};
         document.querySelectorAll('.exam-chip.active').forEach(chip => {
-          examesSelecionados[chip.getAttribute('data-exam')] = true;
+          examesSelecionados[chip.getAttribute('data-exam')] = 1;
         });
 
         for (const cod of Object.keys(examesSelecionados)) {
@@ -1042,6 +1050,7 @@
           empresa: document.getElementById('empresa').value.trim(),
           tipo: document.getElementById('tipo').value,
           funcionario: nomeColab,
+          funcao: document.getElementById('funcao') ? document.getElementById('funcao').value.trim() : "",
           exams: examesSelecionados,
           qtd: 1,
           kitUrl: urlArquivo,
@@ -1186,26 +1195,26 @@
         }
       }
 
-     const datas = [...texto.matchAll(/\b(\d{2})\/(\d{2})\/(\d{4})\b/g)];
+      const datas = [...texto.matchAll(/\b(\d{2})\/(\d{2})\/(\d{4})\b/g)];
       let dataFinal = '';
       const hojeStr = new Date().toISOString().split('T')[0];
       for (const [, d, m, y] of datas) {
-        const cand = `${y}-${m}-${d}`; // ✅ CORRIGIDO
+        const cand = `${y}-${m}-${d}`;
         if (cand >= hojeStr) { dataFinal = cand; break; }
       }
       if (!dataFinal) dataFinal = hojeStr;
       
       const t = texto.toLowerCase();
-      const exames = { CLINICO: true };
-      if (/audiometria|audiom[eé]trico/.test(t)) exames.AUDIO = true;
-      if (/acuidade visual/.test(t)) exames.ACV = true;
-      if (/eletroencefalo|eeg\b/.test(t)) exames.EEG = true;
-      if (/eletrocardio|ecg\b/.test(t)) exames.ECG = true;
-      if (/radiografia|raio[\s\-]x/.test(t)) exames.RX = true;
-      if (/glicemia|hemograma|fezes|coprocultura|epf\b|laborat[oó]rio|sangue/.test(t)) exames.LAB = true;
-      if (/psico[ss]ocial|psicol[oó]gico/.test(t)) exames.PSICO = true;
-      if (/espirometria/.test(t)) exames.ESP = true;
-      if (/ishihara|teste de cores/.test(t)) exames.ISHI = true;
+      const exames = { CLINICO: 1 };
+      if (/audiometria|audiom[eé]trico/.test(t)) exames.AUDIO = 1;
+      if (/acuidade visual/.test(t)) exames.ACV = 1;
+      if (/eletroencefalo|eeg\b/.test(t)) exames.EEG = 1;
+      if (/eletrocardio|ecg\b/.test(t)) exames.ECG = 1;
+      if (/radiografia|raio[\s\-]x/.test(t)) exames.RX = 1;
+      if (/glicemia|hemograma|fezes|coprocultura|epf\b|laborat[oó]rio|sangue/.test(t)) exames.LAB = 1;
+      if (/psico[ss]ocial|psicol[oó]gico/.test(t)) exames.PSICO = 1;
+      if (/espirometria/.test(t)) exames.ESP = 1;
+      if (/ishihara|teste de cores/.test(t)) exames.ISHI = 1;
 
       return { empresa, funcionario, tipo, cargo, data: dataFinal, exames, arquivo: nomeArquivo, fileObj: null, status: 'pendente', statusMsg: '', medico: '', horario: '', slotKey: '' };
     }
@@ -1488,7 +1497,7 @@
             empresa: linha.empresa,
             tipo: linha.tipo,
             funcionario: linha.funcionario,
-            cargo: linha.cargo,
+            funcao: linha.cargo,
             exams: linha.exames,
             qtd: 1,
             kitUrl,
