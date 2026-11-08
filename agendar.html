@@ -1564,7 +1564,7 @@
       docPdf.text(`• Exames Solicitados: ${listaExamesStr}`, 15, 148);
 
       docPdf.setFillColor(240, 244, 248);
-      docPdf.roundedRect(15, 165, 180, 30, 3, 3, "F");
+      docPdf.roundedRect(15, 165, 180, 58, 3, 3, "F");
       docPdf.setFont("helvetica", "bold");
       docPdf.setTextColor(30, 58, 95);
       docPdf.text("Instruções Importantes:", 20, 175);
@@ -1572,6 +1572,10 @@
       docPdf.setFontSize(10);
       docPdf.text(`Por favor, compareça à clínica Alpale às ${dados.horario} com documento de`, 20, 183);
       docPdf.text("identidade com foto e guia de encaminhamento (quando aplicável).", 20, 190);
+      docPdf.text("Endereço: Avenida Gustavo Chiozzi, nº 71, Bairro Vila Netinho Prado,", 20, 198);
+      docPdf.text("Jaú/SP, CEP 17208-088.", 20, 205);
+      docPdf.text("O atendimento é por ordem de chegada. Ao chegar, retire sua senha", 20, 212);
+      docPdf.text("e aguarde ser chamado(a).", 20, 219);
 
       docPdf.save(`Comprovante_Alpale_${dados.funcionario.replace(/\s+/g, '_')}.pdf`);
     }
