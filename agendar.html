@@ -263,6 +263,71 @@
     }
     .input-data-lote.erro { border-color: var(--danger); background: #FFF5F5; }
 
+    /* Estilos de Edição Inline na Tabela de Lote */
+    .input-inline-lote {
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 4px 6px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: inherit;
+      color: var(--primary);
+      transition: all 0.2s;
+    }
+    .input-inline-lote:hover {
+      border-color: var(--border-color);
+      background: #FFFFFF;
+    }
+    .input-inline-lote:focus {
+      border-color: var(--secondary);
+      background: #FFFFFF;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(0, 140, 180, 0.15);
+    }
+    .select-inline-lote {
+      width: 100%;
+      border: 1px solid #CBD5E1;
+      background: #FFFFFF;
+      padding: 3px 5px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      color: var(--primary);
+      margin-top: 3px;
+    }
+    .badge-remanejado {
+      display: inline-block;
+      background: #FEF3C7;
+      color: #92400E;
+      border: 1px solid #FCD34D;
+      border-radius: 6px;
+      padding: 3px 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .btn-edit-exames {
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      color: var(--primary);
+      border-radius: 12px;
+      padding: 2px 7px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.2s;
+    }
+    .btn-edit-exames:hover {
+      background: #E0F2FE;
+      border-color: var(--secondary);
+      color: var(--secondary);
+    }
+
     .btn-remover-linha {
       background: none;
       border: none;
@@ -363,13 +428,32 @@
 
       <!-- ABAS DE NAVEGAÇÃO -->
       <div class="tabs-nav">
-        <button class="tab-btn active" data-tab="individual">
+        <button type="button" class="tab-btn active" data-tab="individual" onclick="trocarAba('individual')">
           <i class="fa-solid fa-user"></i> Agendamento Individual
         </button>
-        <button class="tab-btn" data-tab="lote">
+        <button type="button" class="tab-btn" data-tab="lote" onclick="trocarAba('lote')">
           <i class="fa-solid fa-file-pdf"></i> Agendamento em Lote (PDFs)
         </button>
       </div>
+
+      <script>
+        function trocarAba(nomeAba) {
+          document.querySelectorAll('.tab-btn').forEach(function(b) {
+            if (b.dataset.tab === nomeAba) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+          document.querySelectorAll('.tab-pane').forEach(function(p) {
+            p.classList.remove('active');
+          });
+          var targetPane = document.getElementById('tab-' + nomeAba);
+          if (targetPane) {
+            targetPane.classList.add('active');
+          }
+        }
+      </script>
 
       <!-- ABA INDIVIDUAL (formulário original) -->
       <div class="tab-pane active" id="tab-individual">
@@ -1106,12 +1190,23 @@
     // =====================================================
     // ABAS DE NAVEGAÇÃO
     // =====================================================
+    window.trocarAba = function(nomeAba) {
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        if (b.dataset.tab === nomeAba) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      const targetPane = document.getElementById('tab-' + nomeAba);
+      if (targetPane) targetPane.classList.add('active');
+    };
+
     document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.trocarAba(btn.dataset.tab);
       });
     });
 
@@ -1220,99 +1315,198 @@
     }
 
     // Validação Avançada da Linha do Lote (Lendo restrições e Slots dinâmicos)
-    async function validarLinha(linha) {
-      const { data, exames, tipo } = linha;
-      if (!data) return { ok: false, msg: 'Data não identificada no PDF' };
+    // Auxiliar: Próximo dia útil (segunda a sexta)
+    function proximoDiaUtil(dataISO) {
+      const [y, m, d] = dataISO.split('-').map(Number);
+      const data = new Date(y, m - 1, d);
+      do {
+        data.setDate(data.getDate() + 1);
+      } while (data.getDay() === 0 || data.getDay() === 6);
+      return data.toISOString().split('T')[0];
+    }
 
-      const [ano, mes, dia] = data.split('-').map(Number);
+    // Modal simples para editar exames de uma linha de lote
+    window.editarExamesLinha = function(idx) {
+      const linha = linhasLote[idx];
+      if (!linha) return;
+      const codigos = Object.keys(MAPA_NOMES_EXAMES);
+      let html = `<div style="text-align:left; display:flex; flex-wrap:wrap; gap:8px; margin:15px 0;">`;
+      codigos.forEach(cod => {
+        const ativo = !!linha.exames[cod];
+        html += `<label style="display:inline-flex; align-items:center; gap:5px; background:${ativo ? '#E0F2FE' : '#F8FAFC'}; border:1px solid ${ativo ? 'var(--secondary)' : '#CBD5E1'}; padding:6px 10px; border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:600;">
+          <input type="checkbox" class="chk-exame-lote" value="${cod}" ${ativo ? 'checked' : ''} ${cod==='CLINICO' ? 'disabled' : ''}>
+          ${MAPA_NOMES_EXAMES[cod]}
+        </label>`;
+      });
+      html += `</div>`;
+      
+      const modal = document.getElementById('modalSucesso');
+      const card = modal.querySelector('.modal-sucesso-card');
+      const backupHtml = card.innerHTML;
+
+      card.innerHTML = `
+        <div style="font-size:1.8rem; color:var(--primary); margin-bottom:0.5rem;"><i class="fa-solid fa-notes-medical"></i></div>
+        <h3 style="font-size:1.2rem; font-weight:700; color:var(--primary);">Exames de ${linha.funcionario || 'Colaborador'}</h3>
+        <p style="font-size:0.82rem; color:#6C7A89;">Selecione os exames ocupacionais solicitados para esta linha:</p>
+        ${html}
+        <div style="display:flex; justify-content:center; gap:10px;">
+          <button type="button" id="btnSalvarExamesLinha" style="background:var(--secondary); color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:700; cursor:pointer;">Salvar</button>
+          <button type="button" id="btnCancelarExamesLinha" style="background:#E2E8F0; color:#475569; border:none; padding:8px 20px; border-radius:20px; font-weight:700; cursor:pointer;">Cancelar</button>
+        </div>
+      `;
+      modal.classList.add('aberto');
+
+      document.getElementById('btnSalvarExamesLinha').onclick = async () => {
+        const novosExames = { CLINICO: 1 };
+        card.querySelectorAll('.chk-exame-lote').forEach(chk => {
+          if (chk.checked) novosExames[chk.value] = 1;
+        });
+        linha.exames = novosExames;
+        modal.classList.remove('aberto');
+        card.innerHTML = backupHtml;
+        linha.status = 'pendente';
+        atualizarStatusBar();
+        const r = await validarLinha(linha);
+        linha.status = r.ok ? 'ok' : 'erro';
+        linha.statusMsg = r.msg;
+        renderizarTabelaLote();
+        atualizarStatusBar();
+      };
+
+      document.getElementById('btnCancelarExamesLinha').onclick = () => {
+        modal.classList.remove('aberto');
+        card.innerHTML = backupHtml;
+      };
+    };
+
+    // Validação com Busca e Alocação Automática no Próximo Dia Útil Disponível
+    async function testarDisponibilidadeNaData(dataAlvo, linha, excluirLinhasLote) {
+      const [ano, mes, dia] = dataAlvo.split('-').map(Number);
       const dw = new Date(ano, mes - 1, dia).getDay();
-      if (dw === 0 || dw === 6) return { ok: false, msg: 'Data cai em fim de semana' };
-      if (regrasVagas.datasBloqueadas.includes(data)) return { ok: false, msg: 'Data bloqueada / feriado' };
+      if (dw === 0 || dw === 6) return { ok: false, motivo: 'Fim de semana' };
+      if (regrasVagas.datasBloqueadas.includes(dataAlvo)) return { ok: false, motivo: 'Data bloqueada' };
+
+      const q = query(collection(db, "agendamentos"), where("date", "==", dataAlvo));
+      const snap = await getDocs(q);
+      const agsDoDia = [];
+      snap.forEach(d => agsDoDia.push(d.data()));
+
+      const total = agsDoDia.length;
+      const limite = regrasVagas.limiteTotalDia || 35;
+      if (total >= limite) return { ok: false, motivo: `Vagas esgotadas (${total}/${limite})` };
+
+      for (const cod of Object.keys(linha.exames)) {
+        const cfgEx = regrasVagas.exames[cod];
+        if (cfgEx && cfgEx.limiteDia > 0) {
+          const qtd = agsDoDia.filter(d => d.exams && d.exams[cod]).length;
+          if (qtd >= cfgEx.limiteDia) return { ok: false, motivo: `Exame ${cod} esgotado` };
+        }
+      }
+
+      const medicosDoDia = escalaSemanal[dw] || [];
+      const countPorSlot = {};
+
+      agsDoDia.forEach(ag => {
+        let slotKey = ag.slot;
+        if (!slotKey) {
+          let base = ag.horario;
+          if (base === "08:30" || base === "06:30") base = "06:30";
+          slotKey = `${dw}|${base}`;
+        }
+        countPorSlot[slotKey] = (countPorSlot[slotKey] || 0) + (ag.qtd || 1);
+      });
+
+      linhasLote.forEach(l => {
+        if (l !== linha && l.status === 'ok' && l.data === dataAlvo && l.slotKey) {
+          countPorSlot[l.slotKey] = (countPorSlot[l.slotKey] || 0) + 1;
+        }
+      });
+
+      let medicoAlocado = null;
+      let horarioAlocado = null;
+      let slotAlocado = null;
+
+      for (const m of medicosDoDia) {
+        const slotKey = `${dw}|${m.slotBase}`;
+        const configSlot = regrasVagas.slots[slotKey] || { limite: 0, tiposAso: [], exames: [] };
+        const marcados = countPorSlot[slotKey] || 0;
+        const temVaga = configSlot.limite === 0 || marcados < configSlot.limite;
+
+        let permiteTipo = true;
+        if (linha.tipo && configSlot.tiposAso && configSlot.tiposAso.length > 0) {
+          permiteTipo = configSlot.tiposAso.some(t => t.toLowerCase() === linha.tipo.toLowerCase());
+        }
+
+        let permiteExames = true;
+        if (configSlot.exames && configSlot.exames.length > 0) {
+          const codigosExamesLinha = Object.keys(linha.exames);
+          const exameProibido = codigosExamesLinha.find(cod => !configSlot.exames.includes(cod));
+          if (exameProibido) permiteExames = false;
+        }
+
+        if (temVaga && permiteTipo && permiteExames) {
+          medicoAlocado = m.nome;
+          horarioAlocado = linha.exames.PSICO ? '06:30' : m.horarioInicio;
+          slotAlocado = slotKey;
+          break;
+        }
+      }
+
+      if (!medicoAlocado) return { ok: false, motivo: `Sem médico para ${linha.tipo} ou turno lotado` };
+
+      return {
+        ok: true,
+        data: dataAlvo,
+        medico: medicoAlocado,
+        horario: horarioAlocado,
+        slotKey: slotAlocado,
+        vagasRestantes: limite - total
+      };
+    }
+
+    async function validarLinha(linha) {
+      if (!linha.data) return { ok: false, msg: 'Data não identificada no PDF' };
 
       try {
-        const q = query(collection(db, "agendamentos"), where("date", "==", data));
-        const snap = await getDocs(q);
-        const agsDoDia = [];
-        snap.forEach(d => agsDoDia.push(d.data()));
-        const total = agsDoDia.length;
-        const limite = regrasVagas.limiteTotalDia || 35;
-        if (total >= limite) return { ok: false, msg: `Vagas esgotadas (${total}/${limite})` };
+        // 1. Tentar na data solicitada
+        let res = await testarDisponibilidadeNaData(linha.data, linha);
+        if (res.ok) {
+          linha.medico = res.medico;
+          linha.horario = res.horario;
+          linha.slotKey = res.slotKey;
+          delete linha.dataRemanejada;
+          return { ok: true, msg: `${res.vagasRestantes} vaga(s) restante(s)` };
+        }
 
-        for (const cod of Object.keys(exames)) {
-          const cfgEx = regrasVagas.exames[cod];
-          if (cfgEx && cfgEx.limiteDia > 0) {
-            const qtd = agsDoDia.filter(d => d.exams && d.exams[cod]).length;
-            if (qtd >= cfgEx.limiteDia) return { ok: false, msg: `Exame esgotado` };
+        // 2. Se a data estiver esgotada ou sem vaga, buscar próximo dia útil disponível (até 15 dias úteis)
+        let dataCandidata = linha.data;
+        const dataOriginal = linha.data;
+        let achouProximo = false;
+
+        for (let tentativas = 0; tentativas < 15; tentativas++) {
+          dataCandidata = proximoDiaUtil(dataCandidata);
+          const resCand = await testarDisponibilidadeNaData(dataCandidata, linha);
+          if (resCand.ok) {
+            linha.data = dataCandidata;
+            linha.dataRemanejada = dataOriginal;
+            linha.medico = resCand.medico;
+            linha.horario = resCand.horario;
+            linha.slotKey = resCand.slotKey;
+            achouProximo = true;
+            return {
+              ok: true,
+              msg: `Remanejado de ${dataOriginal.split('-').reverse().join('/')} para ${dataCandidata.split('-').reverse().join('/')} (vagas da data original esgotadas)`
+            };
           }
         }
 
-        // --- ALOCAÇÃO AUTOMÁTICA DO MÉDICO NO LOTE C/ REGRAS DO PAINEL ---
-        const medicosDoDia = escalaSemanal[dw] || [];
-        const countPorSlot = {};
-
-        // Vagas já ocupadas no banco
-        agsDoDia.forEach(ag => {
-            let slotKey = ag.slot;
-            if (!slotKey) {
-                let base = ag.horario;
-                if (base === "08:30" || base === "06:30") base = "06:30";
-                slotKey = `${dw}|${base}`;
-            }
-            countPorSlot[slotKey] = (countPorSlot[slotKey] || 0) + (ag.qtd || 1);
-        });
-
-        // Vagas já consumidas por colaboradores aprovados anteriormente neste mesmo lote
-        linhasLote.forEach(l => {
-           if (l !== linha && l.status === 'ok' && l.data === data && l.slotKey) {
-               countPorSlot[l.slotKey] = (countPorSlot[l.slotKey] || 0) + 1;
-           }
-        });
-
-        let medicoAlocado = null;
-        let horarioAlocado = null;
-        let slotAlocado = null;
-
-        for (const m of medicosDoDia) {
-           const slotKey = `${dw}|${m.slotBase}`;
-           const configSlot = regrasVagas.slots[slotKey] || { limite: 0, tiposAso: [], exames: [] };
-           const marcados = countPorSlot[slotKey] || 0;
-
-           const temVaga = configSlot.limite === 0 || marcados < configSlot.limite;
-
-           let permiteTipo = true;
-           if (tipo && configSlot.tiposAso && configSlot.tiposAso.length > 0) {
-               permiteTipo = configSlot.tiposAso.some(t => t.toLowerCase() === tipo.toLowerCase());
-           }
-
-           let permiteExames = true;
-           if (configSlot.exames && configSlot.exames.length > 0) {
-               const codigosExamesLinha = Object.keys(exames);
-               const exameProibido = codigosExamesLinha.find(cod => !configSlot.exames.includes(cod));
-               if (exameProibido) permiteExames = false;
-           }
-
-           if (temVaga && permiteTipo && permiteExames) {
-               medicoAlocado = m.nome;
-               horarioAlocado = exames.PSICO ? '06:30' : m.horarioInicio;
-               slotAlocado = slotKey;
-               break; 
-           }
-        }
-
-        if (!medicoAlocado) return { ok: false, msg: `Sem médico para ${tipo} ou turno lotado` };
-
-        linha.medico = medicoAlocado;
-        linha.horario = horarioAlocado;
-        linha.slotKey = slotAlocado;
-
-        const vagasRestantes = limite - total;
-        return { ok: true, msg: `${vagasRestantes} vaga(s) restante(s)` };
+        return { ok: false, msg: res.motivo || 'Sem vagas disponíveis nas próximas datas' };
       } catch (e) {
+        console.error('Erro na validação da linha:', e);
         return { ok: false, msg: 'Erro de conexão' };
       }
     }
 
-    // Renderizar tabela de lote
     function atualizarStatusBar() {
       const total = linhasLote.length;
       const oks = linhasLote.filter(l => l.status === 'ok').length;
@@ -1337,6 +1531,8 @@
     function renderizarTabelaLote() {
       const tbody = document.getElementById('corpoTabelaLote');
       tbody.innerHTML = '';
+      const TIPOS_ASO_OPCOES = ['Admissional', 'Periódico', 'Demissional', 'Mudança de Risco', 'Mudança de Função', 'Retorno', 'Revalidação', 'Perícia Domiciliar', 'Consulta'];
+
       linhasLote.forEach((linha, idx) => {
         const examesTags = Object.keys(linha.exames).map(cod =>
           `<span class="exame-tag">${MAPA_NOMES_EXAMES[cod] || cod}</span>`
@@ -1344,26 +1540,45 @@
 
         const classeStatus = linha.status === 'ok' ? 'linha-ok' : linha.status === 'erro' ? 'linha-erro' : 'linha-aviso';
         const iconeStatus = linha.status === 'ok'
-          ? `<span class="status-icon" style="color:var(--success)" title="${linha.statusMsg}">✅</span>`
+          ? (linha.dataRemanejada 
+              ? `<span class="status-icon" style="color:var(--warning)" title="${linha.statusMsg}">⚠️ OK</span>`
+              : `<span class="status-icon" style="color:var(--success)" title="${linha.statusMsg}">✅</span>`)
           : linha.status === 'erro'
-          ? `<span class="status-icon" style="color:var(--danger)" title="${linha.statusMsg}">⚠️ <small>${linha.statusMsg}</small></span>`
+          ? `<span class="status-icon" style="color:var(--danger)" title="${linha.statusMsg}">❌ <small>${linha.statusMsg}</small></span>`
           : `<span class="status-icon" style="color:var(--warning)">⏳</span>`;
+
+        const avisoRemanejado = linha.dataRemanejada
+          ? `<div class="badge-remanejado" title="Data original esgotada: ${linha.dataRemanejada.split('-').reverse().join('/')}">📅 Alocado p/ ${linha.data.split('-').reverse().join('/')}</div>`
+          : '';
 
         const tr = document.createElement('tr');
         tr.className = classeStatus;
         tr.dataset.idx = idx;
         tr.innerHTML = `
           <td style="font-weight:700; color:#94A3B8; text-align:center;">${idx + 1}</td>
-          <td><strong>${linha.funcionario || '—'}</strong></td>
-          <td style="font-size:0.78rem;">${linha.empresa || '—'}</td>
-          <td style="font-size:0.78rem;"><strong>${linha.cargo}</strong><br><span style="color:#6C7A89;">${linha.tipo}</span></td>
-          <td>${examesTags}</td>
+          <td>
+            <input type="text" class="input-inline-lote input-colab" data-idx="${idx}" value="${linha.funcionario || ''}" placeholder="Nome do colaborador">
+          </td>
+          <td>
+            <input type="text" class="input-inline-lote input-empresa" data-idx="${idx}" value="${linha.empresa || ''}" placeholder="Empresa">
+          </td>
+          <td>
+            <input type="text" class="input-inline-lote input-cargo" data-idx="${idx}" value="${linha.cargo || ''}" placeholder="Cargo / Função" style="font-weight:600;">
+            <select class="select-inline-lote select-tipo" data-idx="${idx}">
+              ${TIPOS_ASO_OPCOES.map(opt => `<option value="${opt}" ${opt.toLowerCase() === (linha.tipo||'').toLowerCase() ? 'selected' : ''}>${opt}</option>`).join('')}
+            </select>
+          </td>
+          <td>
+            <div>${examesTags}</div>
+            <button type="button" class="btn-edit-exames" onclick="window.editarExamesLinha(${idx})"><i class="fa-solid fa-pen"></i> Alterar Exames</button>
+          </td>
           <td>
             <input type="date" class="input-data-lote ${linha.status === 'erro' ? 'erro' : ''}" value="${linha.data}" data-idx="${idx}">
+            ${avisoRemanejado}
           </td>
           <td style="font-size:0.78rem;">
             <strong>${linha.medico || '—'}</strong><br>
-            <span style="color:var(--secondary);">${linha.horario || '—'}</span>
+            <span style="color:var(--secondary); font-weight:600;">${linha.horario || '—'}</span>
           </td>
           <td>${iconeStatus}</td>
           <td>
@@ -1373,11 +1588,47 @@
         tbody.appendChild(tr);
       });
 
-      // Eventos de edição de data
+      // Eventos de edição inline (Nome, Empresa, Cargo)
+      document.querySelectorAll('.input-colab').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const idx = parseInt(e.target.dataset.idx);
+          linhasLote[idx].funcionario = e.target.value.trim();
+        });
+      });
+      document.querySelectorAll('.input-empresa').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const idx = parseInt(e.target.dataset.idx);
+          linhasLote[idx].empresa = e.target.value.trim();
+        });
+      });
+      document.querySelectorAll('.input-cargo').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const idx = parseInt(e.target.dataset.idx);
+          linhasLote[idx].cargo = e.target.value.trim();
+        });
+      });
+
+      // Evento de alteração de Tipo de ASO (revalida médico)
+      document.querySelectorAll('.select-tipo').forEach(sel => {
+        sel.addEventListener('change', async (e) => {
+          const idx = parseInt(e.target.dataset.idx);
+          linhasLote[idx].tipo = e.target.value;
+          linhasLote[idx].status = 'pendente';
+          atualizarStatusBar();
+          const r = await validarLinha(linhasLote[idx]);
+          linhasLote[idx].status = r.ok ? 'ok' : 'erro';
+          linhasLote[idx].statusMsg = r.msg;
+          renderizarTabelaLote();
+          atualizarStatusBar();
+        });
+      });
+
+      // Eventos de edição de data manual
       document.querySelectorAll('.input-data-lote').forEach(input => {
         input.addEventListener('change', async (e) => {
           const idx = parseInt(e.target.dataset.idx);
           linhasLote[idx].data = e.target.value;
+          delete linhasLote[idx].dataRemanejada;
           linhasLote[idx].status = 'pendente';
           atualizarStatusBar();
           const resultado = await validarLinha(linhasLote[idx]);
@@ -1422,7 +1673,7 @@
           novos.push(dados);
         } catch (e) {
           console.error('Erro ao ler PDF:', file.name, e);
-          novos.push({ empresa: '?', funcionario: file.name, tipo: '?', cargo: '?', data: '', exames: {}, arquivo: file.name, fileObj: file, status: 'erro', statusMsg: 'Erro ao ler PDF', medico: '', horario: '', slotKey: '' });
+          novos.push({ empresa: '?', funcionario: file.name, tipo: 'Admissional', cargo: 'Não informado', data: hojeStr, exames: { CLINICO: 1 }, arquivo: file.name, fileObj: file, status: 'erro', statusMsg: 'Erro ao ler PDF', medico: '', horario: '', slotKey: '' });
         }
       }
 
@@ -1504,12 +1755,23 @@
             criadoEm: new Date().toISOString()
           };
           await gravarAgendamentoComContador(entryData);
-          agendados.push(linha);
+          agendados.push(entryData);
         } catch (e) {
           console.error('Erro ao gravar linha:', linha.funcionario, e);
         }
 
         progressBar.style.width = `${Math.round(((i + 1) / linhasOk.length) * 100)}%`;
+      }
+
+      // Download automático sequencial dos comprovantes individuais em PDF
+      gravMsg.textContent = 'Gerando comprovantes em PDF individuais...';
+      for (let i = 0; i < agendados.length; i++) {
+        try {
+          gerarPdfComprovante(agendados[i]);
+          await new Promise(r => setTimeout(r, 400));
+        } catch (errPdf) {
+          console.error('Erro ao baixar comprovante individual:', agendados[i].funcionario, errPdf);
+        }
       }
 
       progressWrap.style.display = 'none';
@@ -1524,9 +1786,9 @@
       btn.style.display = 'none';
       progressBar.style.width = '0%';
 
-      document.getElementById('modalSucessoTexto').textContent = `${agendados.length} colaborador${agendados.length !== 1 ? 'es foram agendados' : ' foi agendado'} com sucesso no sistema da Alpale!`;
+      document.getElementById('modalSucessoTexto').textContent = `${agendados.length} colaborador${agendados.length !== 1 ? 'es foram agendados' : ' foi agendado'} com sucesso e os comprovantes em PDF individuais foram gerados para download!`;
       const lista = document.getElementById('modalSucessoLista');
-      lista.innerHTML = agendados.map(l => `<li>✅ <strong>${l.funcionario}</strong> — ${l.empresa} — ${(l.data || '').split('-').reverse().join('/')} às ${l.horario}</li>`).join('');
+      lista.innerHTML = agendados.map(l => `<li>✅ <strong>${l.funcionario}</strong> — ${l.empresa} — ${(l.date || '').split('-').reverse().join('/')} às ${l.horario} (Dr(a). ${l.medico})</li>`).join('');
       document.getElementById('modalSucesso').classList.add('aberto');
     });
 
