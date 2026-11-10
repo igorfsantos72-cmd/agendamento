@@ -150,10 +150,21 @@
 </style>
 </head>
 <body>
+<section id="login-area" style="max-width:400px;margin:12vh auto;padding:24px;background:#fff;border:1px solid #DCD6C9;border-radius:14px;">
+  <h1>Acesso da equipe</h1>
+  <p>Entre com sua conta para acessar a agenda.</p>
+  <form id="login-form">
+    <label class="field">E-mail<input type="email" id="login-email" autocomplete="username" required style="width:100%;padding:10px;margin:6px 0 14px;"></label>
+    <label class="field">Senha<input type="password" id="login-senha" autocomplete="current-password" required style="width:100%;padding:10px;margin:6px 0 14px;"></label>
+    <p id="login-erro" role="alert" style="color:#a22;"></p>
+    <button class="submit-btn" type="submit">Entrar</button>
+  </form>
+</section>
+<div id="painel-interno" hidden>
 <header>
   <div class="wrap">
     <div class="row top">
-      <div><h1>Agenda de Exames Ocupacionais</h1></div>
+      <div><h1>Agenda de Exames Ocupacionais</h1><button id="btn-sair" class="btn-ghost" type="button">Sair</button></div>
       <div class="logo-badge"><img src="logo.png" alt="Alpale Saúde Ocupacional"></div>
       <div class="tabs" id="tabs"></div>
     </div>
@@ -212,8 +223,10 @@
   </div>
 </div>
 
+</div><!-- painel-interno -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
   import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -226,6 +239,7 @@
   };
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const auth = getAuth(app);
   window.db = db;
 
   /* =========================================================
@@ -378,15 +392,38 @@
     render();
   }
 
-  if(db){
-    onSnapshot(collection(db,"agendamentos"), snap => {
+  let cancelarAgendamentos = null;
+  document.getElementById("login-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const erro = document.getElementById("login-erro");
+    erro.textContent = "";
+    const botao = e.currentTarget.querySelector("button");
+    botao.disabled = true;
+    try {
+      await signInWithEmailAndPassword(auth, document.getElementById("login-email").value.trim(), document.getElementById("login-senha").value);
+      document.getElementById("login-senha").value = "";
+    } catch (_) {
+      erro.textContent = "Não foi possível entrar. Confira seus dados ou contate o administrador.";
+    } finally { botao.disabled = false; }
+  });
+  document.getElementById("btn-sair").addEventListener("click", () => signOut(auth));
+  onAuthStateChanged(auth, user => {
+    if(cancelarAgendamentos){ cancelarAgendamentos(); cancelarAgendamentos = null; }
+    state.allEntries = []; state.entries = []; state.index = {};
+    state.editForm = null; state.editOriginal = null; state.chatMessages = [];
+    state.pendingAppointment = null; state.awaitingConfirmation = false;
+    document.getElementById("painel-interno").hidden = !user;
+    document.getElementById("login-area").hidden = !!user;
+    if(!user) { document.getElementById("main").innerHTML = ""; return; }
+    render();
+    cancelarAgendamentos = onSnapshot(collection(db,"agendamentos"), snap => {
       const all=[], idx={};
       snap.forEach(d => { const data=d.data(); all.push(data); idx[data.date]=(idx[data.date]||0)+(data.qtd||1); });
       state.allEntries = all; state.index = idx;
       state.entries = all.filter(e => e.date === state.date);
-      render();
-    });
-  }
+      state.error = ""; render();
+    }, () => { state.error = "Não foi possível acessar os agendamentos. Verifique as permissões do Firebase."; render(); });
+  });
 
   /* =========================================================
      AÇÕES DO PAINEL
@@ -1272,7 +1309,6 @@ Responda APENAS com JSON válido, sem markdown, no formato:
     }finally{ btn.disabled=false; }
   });
 
-  render();
 </script>
 </body>
 </html>
