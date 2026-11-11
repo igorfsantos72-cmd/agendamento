@@ -147,6 +147,59 @@
   .modal-vagas-footer{padding:14px 24px;background:#F8FAFC;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
   .btn-salvar-vagas{background:#008CB4;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;}
   .btn-recalc{background:#E2E8F0;color:#1E3A5F;border:none;padding:10px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;}
+
+  .usuario-logado{font-size:12px;color:rgba(255,255,255,.85);overflow-wrap:anywhere;}
+  .tabs{flex-wrap:wrap;}
+  .tab .badge{display:inline-block;min-width:16px;margin-left:6px;padding:0 5px;border-radius:999px;background:rgba(255,255,255,.28);color:#fff;font-size:10px;line-height:16px;text-align:center;vertical-align:1px;}
+  .tab .badge.has{background:#B91C1C;}
+  .tab.active .badge{background:var(--navy);color:#fff;}
+  .tab.active .badge.has{background:#B91C1C;}
+  .acoes-nav-hint{font-size:14px;color:rgba(255,255,255,.92);line-height:1.4;}
+  .wrap-acoes{padding-bottom:96px;}
+  .acoes-intro p{margin:0;font-size:14px;line-height:1.55;color:#374151;font-weight:500;}
+  .acoes-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;}
+  .acoes-filtro{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
+  .acoes-filtro.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .acoes-filtro b{font-weight:800;font-variant-numeric:tabular-nums;}
+  .acao-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;min-width:0;}
+  .acao-top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;}
+  .acao-badges{display:flex;gap:6px;flex-wrap:wrap;}
+  .acao-pill{display:inline-block;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;}
+  .acao-pill.tipo{background:#E6F3F8;color:var(--navy);}
+  .acao-pill.status-pendente{background:var(--amber-bg);color:var(--amber-fg);}
+  .acao-pill.status-aprovado,.acao-pill.status-enviado{background:var(--good-bg);color:var(--good-fg);}
+  .acao-pill.status-ajustar{background:#E0F2FE;color:#075985;}
+  .acao-pill.status-recusado{background:#FEE2E2;color:#DC2626;}
+  .acao-quando{font-size:12px;color:#6B7280;}
+  .acao-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px 16px;margin-top:12px;font-size:14px;overflow-wrap:anywhere;}
+  .acao-meta span{display:block;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#9CA3AF;margin-bottom:2px;}
+  .acao-meta a{color:var(--teal);font-weight:700;}
+  .acao-bloco{margin-top:12px;min-width:0;}
+  .acao-bloco h3{margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--navy);}
+  .acao-texto{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--paper);border-radius:8px;padding:10px 12px;font-size:14px;line-height:1.5;}
+  .acao-hint{margin:10px 0 0;font-size:13px;color:#4B5563;line-height:1.45;}
+  .acao-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+  .acao-acoes button{border:none;border-radius:9px;padding:10px 14px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
+  .acao-acoes button:disabled{opacity:.6;cursor:not-allowed;}
+  .btn-aprovar{background:var(--good-fg);color:#fff;}
+  .btn-ajustar{background:var(--amber-bg);color:var(--amber-fg);}
+  .btn-recusar{background:#FEE2E2;color:#DC2626;}
+  .acao-acoes .btn-cancelar-acao{background:#fff;color:var(--ink);border:1px solid var(--line);}
+  .acao-editor label{display:block;font-size:12px;font-weight:700;color:#6B7280;margin:12px 0 4px;}
+  .acao-editor textarea{width:100%;min-height:140px;border:1px solid var(--line);border-radius:8px;padding:10px;font-family:inherit;font-size:14px;line-height:1.45;resize:vertical;}
+  .acao-editor textarea.acao-comentario{min-height:72px;}
+  .acao-historico{margin-top:10px;font-size:13px;color:#4B5563;}
+  .acao-historico summary{cursor:pointer;font-weight:700;color:var(--navy);}
+  .acao-historico ul{margin:8px 0 0;padding-left:18px;}
+  .acao-historico li{margin:6px 0;overflow-wrap:anywhere;}
+  @media (max-width:720px){
+    .top .tabs{width:100%;}
+    .tab{flex:1 1 auto;text-align:center;}
+  }
+  @media (max-width:640px){
+    .acao-acoes{flex-direction:column;}
+    .acao-acoes button{width:100%;}
+  }
 </style>
 </head>
 <body>
@@ -164,7 +217,13 @@
 <header>
   <div class="wrap">
     <div class="row top">
-      <div><h1>Agenda de Exames Ocupacionais</h1><button id="btn-sair" class="btn-ghost" type="button">Sair</button></div>
+      <div>
+        <h1>Agenda de Exames Ocupacionais</h1>
+        <div class="row" style="margin-top:8px;">
+          <button id="btn-sair" class="btn-ghost" type="button">Sair</button>
+          <span id="usuario-logado" class="usuario-logado"></span>
+        </div>
+      </div>
       <div class="logo-badge"><img src="logo.png" alt="Alpale Saúde Ocupacional"></div>
       <div class="tabs" id="tabs"></div>
     </div>
@@ -227,7 +286,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-  import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, runTransaction, arrayUnion } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAL2xXqo83pWKhyCta4Nk0gockDstxtJY4",
@@ -382,7 +441,8 @@
     allEntries:[], entries:[], index:{}, form: emptyForm(todayISO()), editForm:null, editOriginal:null,
     formError:"", confirmDeleteId:null, error:"", listening:false, aiThinking:false,
     apiKey: localStorage.getItem("claude-api-key")||"", showAiPanel:false, apiKeyDraft:"",
-    widgetOpen:false, chatMessages:[], speechEnabled:true, pendingAppointment:null, awaitingConfirmation:false
+    widgetOpen:false, chatMessages:[], speechEnabled:true, pendingAppointment:null, awaitingConfirmation:false,
+    acoes:[], acoesVisao:"pendentes", acaoEdicao:null, acaoErro:"", acaoSalvando:null, acoesErro:"", acaoFocar:false
   };
   let configAtual = { limiteTotalDia:35, datasBloqueadas:[], exames: structuredClone(CATALOGO), slots:{} };
 
@@ -393,6 +453,7 @@
   }
 
   let cancelarAgendamentos = null;
+  let cancelarAcoes = null;
   document.getElementById("login-form").addEventListener("submit", async e => {
     e.preventDefault();
     const erro = document.getElementById("login-erro");
@@ -409,11 +470,15 @@
   document.getElementById("btn-sair").addEventListener("click", () => signOut(auth));
   onAuthStateChanged(auth, user => {
     if(cancelarAgendamentos){ cancelarAgendamentos(); cancelarAgendamentos = null; }
+    if(cancelarAcoes){ cancelarAcoes(); cancelarAcoes = null; }
     state.allEntries = []; state.entries = []; state.index = {};
     state.editForm = null; state.editOriginal = null; state.chatMessages = [];
     state.pendingAppointment = null; state.awaitingConfirmation = false;
+    state.acoes = []; state.acoesVisao = "pendentes"; state.acaoEdicao = null;
+    state.acaoErro = ""; state.acaoSalvando = null; state.acoesErro = ""; state.acaoFocar = false;
     document.getElementById("painel-interno").hidden = !user;
     document.getElementById("login-area").hidden = !!user;
+    document.getElementById("usuario-logado").textContent = user?.email || "";
     if(!user) { document.getElementById("main").innerHTML = ""; return; }
     render();
     cancelarAgendamentos = onSnapshot(collection(db,"agendamentos"), snap => {
@@ -421,8 +486,22 @@
       snap.forEach(d => { const data=d.data(); all.push(data); idx[data.date]=(idx[data.date]||0)+(data.qtd||1); });
       state.allEntries = all; state.index = idx;
       state.entries = all.filter(e => e.date === state.date);
-      state.error = ""; render();
-    }, () => { state.error = "Não foi possível acessar os agendamentos. Verifique as permissões do Firebase."; render(); });
+      state.error = "";
+      if(state.viewMode !== "acoes") render();
+    }, () => { state.error = "Não foi possível acessar os agendamentos. Verifique as permissões do Firebase."; if(state.viewMode !== "acoes") render(); });
+    cancelarAcoes = onSnapshot(collection(db,"acoes_pendentes"), snap => {
+      const all = [];
+      snap.forEach(d => all.push({ id:d.id, ...d.data() }));
+      state.acoes = ordenarAcoes(all);
+      state.acoesErro = "";
+      if(state.viewMode === "acoes" && !state.acaoEdicao) render();
+      else renderTabs();
+    }, err => {
+      console.error(err);
+      state.acoesErro = "Não foi possível ler as ações pendentes. Se o acesso foi negado, publique no Firestore o bloco de regras de acoes_pendentes (arquivo regras/acoes_pendentes.rules).";
+      if(state.viewMode === "acoes") render();
+      else renderTabs();
+    });
   });
 
   /* =========================================================
@@ -672,11 +751,20 @@ Responda APENAS com JSON válido, sem markdown, no formato:
      ========================================================= */
   function renderTabs(){
     const tabs = document.getElementById("tabs"); tabs.innerHTML="";
-    [["day","Dia"],["month","Mês"],["year","Ano"]].forEach(([id,label])=>{
-      const b = el(`<button class="tab ${state.viewMode===id?'active':''}">${label}</button>`);
+    const pendentes = state.acoes.filter(ehPendente).length;
+    const itens = [
+      ["day","Dia"],
+      ["month","Mês"],
+      ["year","Ano"],
+      ["acoes", `Ações <span class="badge${pendentes ? " has" : ""}">${pendentes}</span>`]
+    ];
+    itens.forEach(([id,label])=>{
+      const b = el(`<button type="button" class="tab ${state.viewMode===id?'active':''}" data-tab="${id}">${label}</button>`);
+      if(id==="acoes") b.setAttribute("aria-label", `Ações pendentes, ${pendentes} ${pendentes===1?"pendente":"pendentes"}`);
       b.onclick = ()=>{
         if(id==="month") state.monthCursor = state.date.slice(0,7);
         if(id==="year") state.yearCursor = Number(state.date.slice(0,4));
+        if(id!=="acoes"){ state.acaoEdicao = null; state.acaoErro = ""; }
         setState({ viewMode:id });
       };
       tabs.appendChild(b);
@@ -698,13 +786,16 @@ Responda APENAS com JSON válido, sem markdown, no formato:
       const today=el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Mês atual</button>`); today.onclick=()=>setState({monthCursor:todayISO().slice(0,7)});
       const total=Object.entries(state.index).filter(([d])=>d.startsWith(state.monthCursor)).reduce((s,[,c])=>s+c,0);
       nav.append(prev,label,next,today,el(`<span class="mono" style="color:rgba(255,255,255,.8);font-size:13px;">${total} exame${total!==1?"s":""} no mês</span>`));
-    } else {
+    } else if(state.viewMode==="year"){
       const prev=el(`<button class="btn-ghost">‹</button>`); prev.onclick=()=>setState({yearCursor:state.yearCursor-1});
       const label=el(`<span class="mono" style="font-weight:800;min-width:70px;font-size:14px;">${state.yearCursor}</span>`);
       const next=el(`<button class="btn-ghost">›</button>`); next.onclick=()=>setState({yearCursor:state.yearCursor+1});
       const today=el(`<button class="btn-ghost mono" style="font-size:12px;font-weight:700;">Ano atual</button>`); today.onclick=()=>setState({yearCursor:Number(todayISO().slice(0,4))});
       const total=Object.entries(state.index).filter(([d])=>d.startsWith(String(state.yearCursor))).reduce((s,[,c])=>s+c,0);
       nav.append(prev,label,next,today,el(`<span class="mono" style="color:rgba(255,255,255,.8);font-size:13px;">${total} exame${total!==1?"s":""} no ano</span>`));
+    } else {
+      const n = state.acoes.filter(ehPendente).length;
+      nav.append(el(`<span class="acoes-nav-hint">${n} pendente${n===1?"":"s"} · nada é enviado sem a sua decisão</span>`));
     }
   }
 
@@ -1110,6 +1201,12 @@ Responda APENAS com JSON válido, sem markdown, no formato:
 
   function renderVoiceWidget(){
     const host = document.getElementById("voice-widget"); host.innerHTML="";
+    const cfg = document.getElementById("btnAbrirConfigVagas");
+    if(state.viewMode === "acoes"){
+      if(cfg) cfg.style.display = "none";
+      return;
+    }
+    if(cfg) cfg.style.display = "";
     if(state.widgetOpen){
       const panel = el(`<div class="chat-panel"></div>`);
       const head = el(`<div class="chat-head"><div><div class="title">🎙️ Assistente de voz</div><div class="status">${state.listening?'ouvindo…':(state.aiThinking?'pensando…':(state.apiKey?'IA ativada':'modo palavras-chave'))}</div></div></div>`);
@@ -1166,13 +1263,313 @@ Responda APENAS com JSON válido, sem markdown, no formato:
     host.appendChild(fab);
   }
 
+  /* =========================================================
+     AÇÕES PENDENTES (fila de aprovação do assistente)
+     Coleção Firestore: acoes_pendentes
+     ========================================================= */
+  const TIPO_ACAO_LABEL = {
+    resposta_email:"Resposta de e-mail",
+    agendamento:"Agendamento",
+    remarcacao:"Remarcação"
+  };
+  const STATUS_ACAO_LABEL = {
+    pendente:"Pendente",
+    aprovado:"Aprovado",
+    ajustar:"Ajuste pedido",
+    recusado:"Recusado",
+    enviado:"Enviado"
+  };
+  const STATUS_ACAO_HINT = {
+    aprovado:"Aprovado. O assistente pode enviar ou agendar e depois marca como enviado.",
+    ajustar:"Ajuste pedido. O assistente deve refazer a proposta e devolver como pendente.",
+    recusado:"Recusado. Nada será enviado nem agendado.",
+    enviado:"Concluído pelo assistente."
+  };
+
+  function ehPendente(a){ return (a?.status || "pendente") === "pendente"; }
+  function rotuloTipo(t){ return TIPO_ACAO_LABEL[t] || t || "Ação"; }
+  function rotuloStatus(s){ return STATUS_ACAO_LABEL[s] || s || "Pendente"; }
+  function instanteDe(v){
+    if(!v) return null;
+    if(typeof v === "object" && typeof v.toDate === "function"){
+      const d = v.toDate();
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+    if(typeof v === "object" && typeof v.seconds === "number"){
+      const d = new Date(v.seconds * 1000);
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+    const d = new Date(v);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  function fmtQuando(v){
+    const d = instanteDe(v);
+    if(!d) return v ? String(v) : "—";
+    return d.toLocaleString("pt-BR", { dateStyle:"short", timeStyle:"short" });
+  }
+  function fmtDia(v){
+    if(!v) return "";
+    const s = String(v);
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+      const [y,m,d] = s.split("-");
+      return `${d}/${m}/${y}`;
+    }
+    return s;
+  }
+  function urlHttp(u){
+    try{
+      const x = new URL(String(u));
+      if(x.protocol !== "https:" && x.protocol !== "http:") return "";
+      return x.href;
+    }catch(_){ return ""; }
+  }
+  function ordenarAcoes(lista){
+    return [...lista].sort((a,b)=>{
+      const da = instanteDe(a.criadoEm)?.getTime() || 0;
+      const db = instanteDe(b.criadoEm)?.getTime() || 0;
+      return db - da;
+    });
+  }
+  function ordenarHistorico(lista){
+    return [...lista].sort((a,b)=>{
+      const da = instanteDe(a.respondidoEm)?.getTime() || instanteDe(a.criadoEm)?.getTime() || 0;
+      const db = instanteDe(b.respondidoEm)?.getTime() || instanteDe(b.criadoEm)?.getTime() || 0;
+      return db - da;
+    });
+  }
+  function metaItem(rotulo, valor){
+    if(valor === undefined || valor === null || String(valor).trim() === "" || String(valor).trim() === "—") return "";
+    return `<div><span>${esc(rotulo)}</span>${esc(valor)}</div>`;
+  }
+  function blocoTexto(titulo, texto){
+    return el(`<div class="acao-bloco"><h3>${esc(titulo)}</h3><div class="acao-texto">${esc(texto)}</div></div>`);
+  }
+  function mensagemErroAcao(err){
+    const code = err?.code || "";
+    const msg = err?.message || "";
+    if(code === "permission-denied" || /insufficient permissions|Missing or insufficient/i.test(msg)){
+      return "Sem permissão para gravar. Publique as regras da coleção acoes_pendentes no Firestore.";
+    }
+    return msg || "Não foi possível salvar.";
+  }
+  function abrirReacao(item, modo){
+    state.acaoEdicao = { id:item.id, modo, comentario:"", rascunho:item.rascunho || "" };
+    state.acaoErro = "";
+    state.acaoFocar = modo === "ajustar" ? "rascunho" : "comentario";
+    render();
+  }
+  async function salvarReacao(item){
+    const ed = state.acaoEdicao;
+    if(!ed || ed.id !== item.id || state.acaoSalvando) return;
+    const status = ed.modo === "aprovar" ? "aprovado" : ed.modo === "recusar" ? "recusado" : "ajustar";
+    const comentario = (ed.comentario || "").trim();
+    const rascunhoEditado = ed.rascunho ?? "";
+    if(status === "ajustar" && !comentario){
+      state.acaoErro = "Para pedir um ajuste, escreva o que deve mudar.";
+      state.acaoFocar = "comentario";
+      render();
+      return;
+    }
+    state.acaoErro = "";
+    state.acaoSalvando = item.id;
+    render();
+    const email = auth.currentUser?.email || "";
+    const agora = new Date().toISOString();
+    try{
+      await runTransaction(db, async (tx)=>{
+        const ref = doc(db, "acoes_pendentes", item.id);
+        const snap = await tx.get(ref);
+        if(!snap.exists()) throw new Error("Esta ação não existe mais.");
+        const atual = snap.data() || {};
+        if((atual.status || "pendente") !== "pendente"){
+          throw new Error("Esta ação já foi respondida" + (atual.respondidoPor ? " por " + atual.respondidoPor : "") + ".");
+        }
+        const baseRascunho = atual.rascunho || "";
+        const rascunho = status === "ajustar" ? rascunhoEditado : baseRascunho;
+        const patch = {
+          status,
+          comentario,
+          rascunho,
+          respondidoPor: email,
+          respondidoEm: agora,
+          historico: arrayUnion({
+            status,
+            comentario,
+            respondidoPor: email,
+            respondidoEm: agora,
+            rascunhoAlterado: rascunho !== baseRascunho
+          })
+        };
+        if(status === "ajustar" && rascunho !== baseRascunho && !atual.rascunhoOriginal){
+          patch.rascunhoOriginal = baseRascunho;
+        }
+        tx.update(ref, patch);
+      });
+      state.acaoEdicao = null;
+      state.acaoSalvando = null;
+      render();
+    }catch(err){
+      console.error(err);
+      state.acaoSalvando = null;
+      state.acaoErro = mensagemErroAcao(err);
+      render();
+    }
+  }
+  function listaHistorico(item){
+    const h = Array.isArray(item.historico) ? item.historico : [];
+    if(!h.length) return null;
+    const box = el(`<details class="acao-historico"><summary>Revisões (${h.length})</summary></details>`);
+    const ul = el(`<ul></ul>`);
+    h.forEach(evt=>{
+      if(!evt || typeof evt !== "object") return;
+      const extra = evt.rascunhoAlterado ? "<br><i>Rascunho editado nesta revisão.</i>" : "";
+      const nota = evt.comentario ? `<br>${esc(evt.comentario)}` : "";
+      ul.appendChild(el(`<li><b>${esc(rotuloStatus(evt.status))}</b> · ${esc(fmtQuando(evt.respondidoEm))} · ${esc(evt.respondidoPor || "equipe")}${nota}${extra}</li>`));
+    });
+    if(!ul.childNodes.length) return null;
+    box.appendChild(ul);
+    return box;
+  }
+  function botoesReacao(item){
+    const box = el(`<div class="acao-acoes"></div>`);
+    const aprovar = el(`<button type="button" class="btn-aprovar">Aprovar</button>`);
+    const ajustar = el(`<button type="button" class="btn-ajustar">Ajustar</button>`);
+    const recusar = el(`<button type="button" class="btn-recusar">Recusar</button>`);
+    aprovar.onclick = ()=>abrirReacao(item, "aprovar");
+    ajustar.onclick = ()=>abrirReacao(item, "ajustar");
+    recusar.onclick = ()=>abrirReacao(item, "recusar");
+    box.append(aprovar, ajustar, recusar);
+    return box;
+  }
+  function editorReacao(item){
+    const ed = state.acaoEdicao;
+    const box = el(`<div class="acao-editor"></div>`);
+    if(ed.modo === "ajustar"){
+      box.appendChild(el(`<label for="acao-rascunho">Rascunho — edite o texto que o assistente deve usar</label>`));
+      const ta = el(`<textarea id="acao-rascunho"></textarea>`);
+      ta.value = ed.rascunho || "";
+      ta.oninput = e=>{ ed.rascunho = e.target.value; };
+      box.appendChild(ta);
+    }
+    const obrigatorio = ed.modo === "ajustar";
+    box.appendChild(el(`<label for="acao-comentario">Comentário ${obrigatorio ? "(obrigatório)" : "(opcional)"}</label>`));
+    const tc = el(`<textarea id="acao-comentario" class="acao-comentario" placeholder="${obrigatorio ? "Diga o que o assistente deve mudar." : "Uma nota para o assistente, se quiser."}"></textarea>`);
+    tc.value = ed.comentario || "";
+    tc.oninput = e=>{ ed.comentario = e.target.value; };
+    box.appendChild(tc);
+    const dica = ed.modo === "aprovar"
+      ? "Aprovar libera o assistente a enviar ou agendar. O texto do rascunho acima segue como está."
+      : ed.modo === "recusar"
+        ? "Recusar encerra este pedido. Nada será enviado nem agendado."
+        : "Pedir ajuste não envia. O assistente usa o seu comentário e o rascunho editado, e a proposta volta para a fila.";
+    box.appendChild(el(`<p class="acao-hint">${dica}</p>`));
+    if(state.acaoErro) box.appendChild(el(`<p class="err" role="alert">${esc(state.acaoErro)}</p>`));
+    const actions = el(`<div class="acao-acoes"></div>`);
+    const rotulo = ed.modo === "aprovar" ? "Confirmar aprovação" : ed.modo === "recusar" ? "Confirmar recusa" : "Pedir ajuste";
+    const ok = el(`<button type="button">${state.acaoSalvando === item.id ? "Salvando…" : rotulo}</button>`);
+    ok.className = ed.modo === "recusar" ? "btn-recusar" : ed.modo === "ajustar" ? "btn-ajustar" : "btn-aprovar";
+    const cancelar = el(`<button type="button" class="btn-cancelar-acao">Cancelar</button>`);
+    const travado = state.acaoSalvando === item.id;
+    ok.disabled = travado;
+    cancelar.disabled = travado;
+    ok.onclick = ()=>salvarReacao(item);
+    cancelar.onclick = ()=>{ state.acaoEdicao = null; state.acaoErro = ""; render(); };
+    actions.append(ok, cancelar);
+    box.appendChild(actions);
+    if(state.acaoFocar){
+      const alvo = state.acaoFocar === "rascunho" ? "acao-rascunho" : "acao-comentario";
+      state.acaoFocar = false;
+      requestAnimationFrame(()=>document.getElementById(alvo)?.focus());
+    }
+    return box;
+  }
+  function montarCartaoAcao(item){
+    const status = item.status || "pendente";
+    const card = el(`<article class="acao-card"></article>`);
+    card.appendChild(el(`<div class="acao-top">
+      <div class="acao-badges">
+        <span class="acao-pill tipo">${esc(rotuloTipo(item.tipo))}</span>
+        <span class="acao-pill status-${esc(status)}">${esc(rotuloStatus(status))}</span>
+      </div>
+      <time class="acao-quando">Criado em ${esc(fmtQuando(item.criadoEm))}</time>
+    </div>`));
+    const meta = el(`<div class="acao-meta"></div>`);
+    meta.innerHTML = [
+      metaItem("Remetente", item.remetente),
+      metaItem("Empresa", item.empresa),
+      metaItem("Assunto", item.assunto),
+      metaItem("Data sugerida", fmtDia(item.dataSugerida)),
+      metaItem("Médico sugerido", item.medicoSugerido),
+      metaItem("Horário sugerido", item.horarioSugerido),
+      metaItem("Referência", item.referencia)
+    ].join("");
+    const kit = urlHttp(item.kitUrl);
+    if(kit) meta.insertAdjacentHTML("beforeend", `<div><span>Kit</span><a href="${esc(kit)}" target="_blank" rel="noopener noreferrer">Abrir arquivo</a></div>`);
+    else if(item.kitUrl) meta.insertAdjacentHTML("beforeend", metaItem("Kit", item.kitUrl));
+    if(meta.textContent.trim()) card.appendChild(meta);
+    if(item.resumo) card.appendChild(blocoTexto("Resumo do pedido", item.resumo));
+    if(item.motivo) card.appendChild(blocoTexto("Por que o assistente sugeriu isso", item.motivo));
+    const editandoEste = state.acaoEdicao && state.acaoEdicao.id === item.id;
+    if(!(editandoEste && state.acaoEdicao.modo === "ajustar")){
+      card.appendChild(blocoTexto("Rascunho", item.rascunho || "—"));
+    }
+    if(item.rascunhoOriginal && item.rascunhoOriginal !== item.rascunho){
+      const det = el(`<details class="acao-historico"><summary>Ver rascunho original do assistente</summary></details>`);
+      det.appendChild(el(`<div class="acao-texto">${esc(item.rascunhoOriginal)}</div>`));
+      card.appendChild(det);
+    }
+    if(!ehPendente(item)){
+      const resp = el(`<div class="acao-meta"></div>`);
+      resp.innerHTML = [
+        metaItem("Respondido por", item.respondidoPor),
+        metaItem("Respondido em", fmtQuando(item.respondidoEm) === "—" ? "" : fmtQuando(item.respondidoEm)),
+        metaItem("Comentário da equipe", item.comentario)
+      ].join("");
+      if(resp.textContent.trim()) card.appendChild(resp);
+      if(STATUS_ACAO_HINT[status]) card.appendChild(el(`<p class="acao-hint">${esc(STATUS_ACAO_HINT[status])}</p>`));
+    } else if(item.comentario){
+      card.appendChild(blocoTexto("Comentário da última revisão", item.comentario));
+    }
+    const hist = listaHistorico(item);
+    if(hist) card.appendChild(hist);
+    if(ehPendente(item)){
+      card.appendChild(editandoEste ? editorReacao(item) : botoesReacao(item));
+    }
+    return card;
+  }
+  function renderAcoesView(){
+    const root = el(`<section class="acoes-view"></section>`);
+    root.appendChild(el(`<div class="card acoes-intro"><h2>Ações pendentes</h2><p>O assistente prepara a resposta ou o agendamento. Nada é enviado e nenhum horário é marcado até você aprovar, pedir ajuste ou recusar.</p></div>`));
+    const pendentes = state.acoes.filter(ehPendente);
+    const historico = state.acoes.filter(a => !ehPendente(a));
+    const barra = el(`<div class="acoes-toolbar"></div>`);
+    const bPend = el(`<button type="button" class="acoes-filtro ${state.acoesVisao==="pendentes"?"active":""}" aria-pressed="${state.acoesVisao==="pendentes"}">Pendentes <b>${pendentes.length}</b></button>`);
+    const bHist = el(`<button type="button" class="acoes-filtro ${state.acoesVisao==="historico"?"active":""}" aria-pressed="${state.acoesVisao==="historico"}">Histórico <b>${historico.length}</b></button>`);
+    bPend.onclick = ()=>{ state.acoesVisao = "pendentes"; state.acaoEdicao = null; state.acaoErro = ""; render(); };
+    bHist.onclick = ()=>{ state.acoesVisao = "historico"; state.acaoEdicao = null; state.acaoErro = ""; render(); };
+    barra.append(bPend, bHist);
+    root.appendChild(barra);
+    if(state.acoesErro) root.appendChild(el(`<p class="err" role="alert">${esc(state.acoesErro)}</p>`));
+    const lista = state.acoesVisao === "historico" ? ordenarHistorico(historico) : ordenarAcoes(pendentes);
+    if(!lista.length){
+      const vazio = state.acoesVisao === "historico"
+        ? "Nenhuma ação respondida ainda."
+        : "Nenhuma ação pendente. Quando o assistente preparar uma resposta ou um agendamento, ela aparece aqui.";
+      root.appendChild(el(`<div class="card empty">${vazio}</div>`));
+      return root;
+    }
+    lista.forEach(item => root.appendChild(montarCartaoAcao(item)));
+    return root;
+  }
+
   function render(){
     renderTabs(); renderNav();
     const main = document.getElementById("main"); main.innerHTML="";
-    const wrap = el(`<div class="wrap" style="padding-top:0;"></div>`);
+    const wrap = el(`<div class="wrap${state.viewMode==="acoes" ? " wrap-acoes" : ""}" style="padding-top:0;"></div>`);
     if(state.viewMode==="day") wrap.appendChild(renderDayView());
     else if(state.viewMode==="month") wrap.appendChild(renderMonthView());
-    else wrap.appendChild(renderYearView());
+    else if(state.viewMode==="year") wrap.appendChild(renderYearView());
+    else wrap.appendChild(renderAcoesView());
     main.appendChild(wrap);
     renderVoiceWidget();
     const modal = renderEditModal(); if(modal) main.appendChild(modal);
