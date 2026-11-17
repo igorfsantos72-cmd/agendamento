@@ -157,7 +157,9 @@
   .acoes-nav-hint{font-size:14px;color:rgba(255,255,255,.92);line-height:1.4;}
   .wrap-acoes{padding-bottom:96px;}
   .acoes-intro p{margin:0;font-size:14px;line-height:1.55;color:#374151;font-weight:500;}
-  .acoes-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;}
+  .acoes-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 14px;}
+  .btn-novo-rascunho{margin-left:auto;border:none;background:var(--navy);color:#fff;border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
+  .btn-novo-rascunho:disabled{opacity:.6;cursor:not-allowed;}
   .acoes-filtro{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
   .acoes-filtro.active{background:var(--navy);color:#fff;border-color:var(--navy);}
   .acoes-filtro b{font-weight:800;font-variant-numeric:tabular-nums;}
@@ -166,6 +168,7 @@
   .acao-badges{display:flex;gap:6px;flex-wrap:wrap;}
   .acao-pill{display:inline-block;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;}
   .acao-pill.tipo{background:#E6F3F8;color:var(--navy);}
+  .acao-pill.manual{background:#F3E8FF;color:#6B21A8;}
   .acao-pill.status-pendente{background:var(--amber-bg);color:var(--amber-fg);}
   .acao-pill.status-aprovado,.acao-pill.status-enviado{background:var(--good-bg);color:var(--good-fg);}
   .acao-pill.status-ajustar{background:#E0F2FE;color:#075985;}
@@ -174,6 +177,15 @@
   .acao-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px 16px;margin-top:12px;font-size:14px;overflow-wrap:anywhere;}
   .acao-meta span{display:block;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#9CA3AF;margin-bottom:2px;}
   .acao-meta a{color:var(--teal);font-weight:700;}
+  .acao-meta label{min-width:0;font-weight:inherit;}
+  .acao-meta input,.acao-meta select,.acao-meta textarea,.acao-bloco textarea{display:block;width:100%;margin-top:2px;text-transform:none;letter-spacing:0;font-weight:500;font-size:14px;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:inherit;background:#fff;}
+  .acao-meta textarea{min-height:58px;line-height:1.45;resize:vertical;}
+  .acao-meta .cheio{grid-column:1 / -1;}
+  .acao-bloco textarea{min-height:88px;line-height:1.5;resize:vertical;}
+  .acao-bloco textarea.acao-rascunho-campo{min-height:220px;}
+  .acao-meta .largo{grid-column:1 / -1;}
+  .acao-meta span .req,.acao-bloco h3 .req{color:#B45309;font-style:normal;letter-spacing:0;text-transform:none;}
+  .acao-campo-hint{display:block;margin-top:4px;text-transform:none;letter-spacing:0;font-weight:500;font-size:12px;color:#6B7280;line-height:1.4;}
   .acao-bloco{margin-top:12px;min-width:0;}
   .acao-bloco h3{margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--navy);}
   .acao-texto{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--paper);border-radius:8px;padding:10px 12px;font-size:14px;line-height:1.5;}
@@ -199,6 +211,7 @@
   @media (max-width:640px){
     .acao-acoes{flex-direction:column;}
     .acao-acoes button{width:100%;}
+    .btn-novo-rascunho{margin-left:0;width:100%;}
   }
 </style>
 </head>
@@ -286,7 +299,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-  import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, runTransaction, arrayUnion } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, runTransaction, arrayUnion, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAL2xXqo83pWKhyCta4Nk0gockDstxtJY4",
@@ -442,7 +455,8 @@
     formError:"", confirmDeleteId:null, error:"", listening:false, aiThinking:false,
     apiKey: localStorage.getItem("claude-api-key")||"", showAiPanel:false, apiKeyDraft:"",
     widgetOpen:false, chatMessages:[], speechEnabled:true, pendingAppointment:null, awaitingConfirmation:false,
-    acoes:[], acoesVisao:"pendentes", acaoEdicao:null, acaoErro:"", acaoSalvando:null, acoesErro:"", acaoFocar:false
+    acoes:[], acoesVisao:"pendentes", acaoEdicao:null, acaoErro:"", acaoSalvando:null, acoesErro:"", acaoFocar:false,
+    acaoNovo:null, acaoNovoErro:"", acaoNovoSalvando:false, acaoNovoFocar:false
   };
   let configAtual = { limiteTotalDia:35, datasBloqueadas:[], exames: structuredClone(CATALOGO), slots:{} };
 
@@ -476,6 +490,7 @@
     state.pendingAppointment = null; state.awaitingConfirmation = false;
     state.acoes = []; state.acoesVisao = "pendentes"; state.acaoEdicao = null;
     state.acaoErro = ""; state.acaoSalvando = null; state.acoesErro = ""; state.acaoFocar = false;
+    state.acaoNovo = null; state.acaoNovoErro = ""; state.acaoNovoSalvando = false; state.acaoNovoFocar = false;
     document.getElementById("painel-interno").hidden = !user;
     document.getElementById("login-area").hidden = !!user;
     document.getElementById("usuario-logado").textContent = user?.email || "";
@@ -494,7 +509,7 @@
       snap.forEach(d => all.push({ id:d.id, ...d.data() }));
       state.acoes = ordenarAcoes(all);
       state.acoesErro = "";
-      if(state.viewMode === "acoes" && !state.acaoEdicao) render();
+      if(state.viewMode === "acoes" && !state.acaoEdicao && !state.acaoNovo) render();
       else renderTabs();
     }, err => {
       console.error(err);
@@ -1337,9 +1352,9 @@ Responda APENAS com JSON válido, sem markdown, no formato:
       return db - da;
     });
   }
-  function metaItem(rotulo, valor){
+  function metaItem(rotulo, valor, classe){
     if(valor === undefined || valor === null || String(valor).trim() === "" || String(valor).trim() === "—") return "";
-    return `<div><span>${esc(rotulo)}</span>${esc(valor)}</div>`;
+    return `<div${classe ? ` class="${classe}"` : ""}><span>${esc(rotulo)}</span>${esc(valor)}</div>`;
   }
   function blocoTexto(titulo, texto){
     return el(`<div class="acao-bloco"><h3>${esc(titulo)}</h3><div class="acao-texto">${esc(texto)}</div></div>`);
@@ -1351,6 +1366,241 @@ Responda APENAS com JSON válido, sem markdown, no formato:
       return "Sem permissão para gravar. Publique as regras da coleção acoes_pendentes no Firestore.";
     }
     return msg || "Não foi possível salvar.";
+  }
+  const CC_PADRAO_ACAO = "agendamento@alpale.com.br, comercial@alpale.com.br";
+  const ASSINATURA_ACAO = "•\tNosso atendimento é por ordem de chegada a partir do horário agendado.\n\nRafaela Castro\n14 3416 6244\n14 99662-2560 Whats\nAvenida Gustavo Chiozzi, 71 Jaú /SP - 17208-088\nwww.alpale.com.br";
+  const EMAIL_ACAO_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  function rascunhoManualEmBranco(){
+    return {
+      tipo:"resposta_email",
+      para:"",
+      cc:CC_PADRAO_ACAO,
+      remetente:"",
+      empresa:"",
+      assunto:"",
+      resumo:"",
+      motivo:"",
+      rascunho:"\n\n"+ASSINATURA_ACAO,
+      dataSugerida:"",
+      medicoSugerido:"",
+      horarioSugerido:""
+    };
+  }
+  function separarEmails(texto){
+    return String(texto || "").split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+  }
+  function validarListaEmails(texto, obrigatorio, mensagens){
+    const brutos = separarEmails(texto);
+    if(!brutos.length){
+      return obrigatorio
+        ? { ok:false, lista:[], erro:mensagens.vazio }
+        : { ok:true, lista:[], erro:"" };
+    }
+    const invalido = brutos.find(e => e.length > 254 || !EMAIL_ACAO_RE.test(e));
+    if(invalido) return { ok:false, lista:[], erro:mensagens.invalido + invalido };
+    const vistos = new Set();
+    const lista = [];
+    brutos.forEach(e => {
+      const chave = e.toLowerCase();
+      if(vistos.has(chave)) return;
+      vistos.add(chave);
+      lista.push(e);
+    });
+    return { ok:true, lista, erro:"" };
+  }
+  function textoCampoEmails(v){
+    if(Array.isArray(v)) return v.map(x => String(x ?? "").trim()).filter(Boolean).join(", ");
+    return v == null ? "" : String(v);
+  }
+  function abrirNovoRascunho(){
+    state.acoesVisao = "pendentes";
+    state.acaoEdicao = null;
+    state.acaoErro = "";
+    if(!state.acaoNovo) state.acaoNovo = rascunhoManualEmBranco();
+    state.acaoNovoErro = "";
+    state.acaoNovoFocar = "para";
+    render();
+  }
+  function cancelarNovoRascunho(){
+    if(state.acaoNovoSalvando) return;
+    state.acaoNovo = null;
+    state.acaoNovoErro = "";
+    state.acaoNovoFocar = false;
+    render();
+  }
+  async function salvarNovoRascunho(){
+    const f = state.acaoNovo;
+    if(!f || state.acaoNovoSalvando) return;
+    const para = validarListaEmails(f.para, true, {
+      vazio:"Informe pelo menos um e-mail de destinatário.",
+      invalido:"E-mail inválido no destinatário: "
+    });
+    if(!para.ok){ state.acaoNovoErro = para.erro; state.acaoNovoFocar = "para"; render(); return; }
+    const cc = validarListaEmails(f.cc, false, { invalido:"E-mail inválido no CC: " });
+    if(!cc.ok){ state.acaoNovoErro = cc.erro; state.acaoNovoFocar = "cc"; render(); return; }
+    const assunto = (f.assunto || "").trim();
+    if(!assunto){ state.acaoNovoErro = "Informe o assunto."; state.acaoNovoFocar = "assunto"; render(); return; }
+    const rascunho = (f.rascunho || "").trim();
+    if(!rascunho){ state.acaoNovoErro = "Escreva o texto do rascunho."; state.acaoNovoFocar = "rascunho"; render(); return; }
+    const data = (f.dataSugerida || "").trim();
+    if(data && !/^\d{4}-\d{2}-\d{2}$/.test(data)){
+      state.acaoNovoErro = "Data sugerida inválida. Use o formato do calendário.";
+      state.acaoNovoFocar = "data";
+      render();
+      return;
+    }
+    const horarioBruto = (f.horarioSugerido || "").trim();
+    const horario = horarioBruto ? horarioBruto.slice(0, 5) : "";
+    if(horario && !/^\d{2}:\d{2}$/.test(horario)){
+      state.acaoNovoErro = "Horário sugerido inválido.";
+      state.acaoNovoFocar = "horario";
+      render();
+      return;
+    }
+    const tipo = Object.prototype.hasOwnProperty.call(TIPO_ACAO_LABEL, f.tipo) ? f.tipo : "resposta_email";
+    if(!auth.currentUser){
+      state.acaoNovoErro = "Entre novamente para salvar o rascunho.";
+      render();
+      return;
+    }
+    const novo = {
+      tipo,
+      para: para.lista.join(", "),
+      assunto,
+      rascunho,
+      status: "pendente",
+      origem: "manual",
+      criadoPor: auth.currentUser.email || "",
+      criadoEm: serverTimestamp(),
+      comentario: ""
+    };
+    if(cc.lista.length) novo.cc = cc.lista.join(", ");
+    const opcionais = {
+      remetente: (f.remetente || "").trim(),
+      empresa: (f.empresa || "").trim(),
+      resumo: (f.resumo || "").trim(),
+      motivo: (f.motivo || "").trim(),
+      dataSugerida: data,
+      medicoSugerido: (f.medicoSugerido || "").trim(),
+      horarioSugerido: horario
+    };
+    Object.entries(opcionais).forEach(([k, v]) => { if(v) novo[k] = v; });
+    state.acaoNovoErro = "";
+    state.acaoNovoSalvando = true;
+    render();
+    try{
+      await addDoc(collection(db, "acoes_pendentes"), novo);
+      state.acaoNovo = null;
+      state.acaoNovoSalvando = false;
+      state.acaoNovoFocar = false;
+      state.acoesVisao = "pendentes";
+      render();
+    }catch(err){
+      console.error(err);
+      state.acaoNovoSalvando = false;
+      state.acaoNovoErro = mensagemErroAcao(err);
+      render();
+    }
+  }
+  function montarCartaoNovoRascunho(){
+    const f = state.acaoNovo;
+    const card = el(`<article class="acao-card" id="novo-rascunho-card"></article>`);
+    card.appendChild(el(`<div class="acao-top">
+      <div class="acao-badges">
+        <span class="acao-pill tipo">Novo rascunho</span>
+        <span class="acao-pill manual">Manual</span>
+        <span class="acao-pill status-pendente">Pendente</span>
+      </div>
+      <span class="acao-quando">Ainda não salvo</span>
+    </div>`));
+    card.appendChild(el(`<p class="acao-hint">Preencha o e-mail. Ele entra na fila como qualquer proposta e só é enviado depois de aprovado. Escreva a mensagem acima da assinatura.</p>`));
+    const meta = el(`<div class="acao-meta"></div>`);
+    const tipoSel = el(`<select id="novo-tipo"></select>`);
+    Object.entries(TIPO_ACAO_LABEL).forEach(([k, lab]) => {
+      tipoSel.appendChild(el(`<option value="${k}">${esc(lab)}</option>`));
+    });
+    tipoSel.value = Object.prototype.hasOwnProperty.call(TIPO_ACAO_LABEL, f.tipo) ? f.tipo : "resposta_email";
+    tipoSel.oninput = e => { f.tipo = e.target.value; };
+    const paraIn = el(`<textarea id="novo-para" inputmode="email" autocomplete="off" placeholder="ex.: rh@empresa.com" required></textarea>`);
+    paraIn.value = f.para || "";
+    paraIn.oninput = e => { f.para = e.target.value; };
+    const ccIn = el(`<textarea id="novo-cc" inputmode="email" autocomplete="off" placeholder="copia@empresa.com"></textarea>`);
+    ccIn.value = f.cc || "";
+    ccIn.oninput = e => { f.cc = e.target.value; };
+    const remIn = el(`<input id="novo-remetente" type="text" autocomplete="off" placeholder="quem pediu">`);
+    remIn.value = f.remetente || "";
+    remIn.oninput = e => { f.remetente = e.target.value; };
+    const empIn = el(`<input id="novo-empresa" type="text" autocomplete="off" placeholder="ex.: Paraty">`);
+    empIn.value = f.empresa || "";
+    empIn.oninput = e => { f.empresa = e.target.value; };
+    const assIn = el(`<input id="novo-assunto" type="text" autocomplete="off" placeholder="RES: " required>`);
+    assIn.value = f.assunto || "";
+    assIn.oninput = e => { f.assunto = e.target.value; };
+    const dataIn = el(`<input id="novo-data" type="date">`);
+    dataIn.value = f.dataSugerida || "";
+    dataIn.oninput = e => { f.dataSugerida = e.target.value; };
+    const medIn = el(`<input id="novo-medico" type="text" autocomplete="off" placeholder="ex.: Dra. Gizelle">`);
+    medIn.value = f.medicoSugerido || "";
+    medIn.oninput = e => { f.medicoSugerido = e.target.value; };
+    const horIn = el(`<input id="novo-horario" type="time">`);
+    horIn.value = f.horarioSugerido || "";
+    horIn.oninput = e => { f.horarioSugerido = e.target.value; };
+    function rotuloCampo(id, titulo, controle, opts={}){
+      const lab = el(`<label for="${id}"></label>`);
+      if(opts.largo) lab.className = "largo";
+      lab.appendChild(el(`<span>${esc(titulo)}${opts.obrigatorio ? ' <i class="req">*</i>' : ""}</span>`));
+      lab.appendChild(controle);
+      if(opts.hint) lab.appendChild(el(`<small class="acao-campo-hint">${esc(opts.hint)}</small>`));
+      return lab;
+    }
+    meta.append(
+      rotuloCampo("novo-tipo", "Tipo", tipoSel),
+      rotuloCampo("novo-remetente", "Remetente", remIn),
+      rotuloCampo("novo-empresa", "Empresa", empIn),
+      rotuloCampo("novo-para", "Destinatário", paraIn, { obrigatorio:true, largo:true, hint:"Um ou mais e-mails, separados por vírgula." }),
+      rotuloCampo("novo-cc", "CC", ccIn, { largo:true, hint:"Pode editar ou apagar. Vários e-mails, separados por vírgula." }),
+      rotuloCampo("novo-assunto", "Assunto", assIn, { obrigatorio:true, largo:true, hint:"Comece com RES: " }),
+      rotuloCampo("novo-data", "Data sugerida", dataIn),
+      rotuloCampo("novo-medico", "Médico sugerido", medIn),
+      rotuloCampo("novo-horario", "Horário sugerido", horIn)
+    );
+    card.appendChild(meta);
+    function blocoEditavel(titulo, id, valor, oninput, opts={}){
+      const box = el(`<div class="acao-bloco"></div>`);
+      box.appendChild(el(`<h3>${esc(titulo)}${opts.obrigatorio ? ' <i class="req">*</i>' : ""}</h3>`));
+      if(opts.hint) box.appendChild(el(`<p class="acao-campo-hint">${esc(opts.hint)}</p>`));
+      const ta = el(`<textarea id="${id}"></textarea>`);
+      if(opts.alto) ta.classList.add("acao-rascunho-campo");
+      ta.value = valor || "";
+      ta.oninput = oninput;
+      box.appendChild(ta);
+      return box;
+    }
+    card.appendChild(blocoEditavel("Resumo do pedido", "novo-resumo", f.resumo, e => { f.resumo = e.target.value; }));
+    card.appendChild(blocoEditavel("Por que esta ação", "novo-motivo", f.motivo, e => { f.motivo = e.target.value; }));
+    card.appendChild(blocoEditavel("Rascunho", "novo-rascunho", f.rascunho, e => { f.rascunho = e.target.value; }, { obrigatorio:true, alto:true, hint:"Escreva a mensagem acima da assinatura. O texto salvo é o que o assistente envia." }));
+    if(state.acaoNovoErro) card.appendChild(el(`<p class="err" role="alert">${esc(state.acaoNovoErro)}</p>`));
+    const actions = el(`<div class="acao-acoes"></div>`);
+    const ok = el(`<button type="button" class="btn-aprovar">${state.acaoNovoSalvando ? "Salvando…" : "Salvar rascunho"}</button>`);
+    const cancelar = el(`<button type="button" class="btn-cancelar-acao">Cancelar</button>`);
+    ok.disabled = !!state.acaoNovoSalvando;
+    cancelar.disabled = !!state.acaoNovoSalvando;
+    ok.onclick = () => salvarNovoRascunho();
+    cancelar.onclick = () => cancelarNovoRascunho();
+    actions.append(ok, cancelar);
+    card.appendChild(actions);
+    if(state.acaoNovoFocar){
+      const mapa = { para:"novo-para", cc:"novo-cc", assunto:"novo-assunto", rascunho:"novo-rascunho", data:"novo-data", horario:"novo-horario" };
+      const alvoId = mapa[state.acaoNovoFocar] || "novo-para";
+      state.acaoNovoFocar = false;
+      requestAnimationFrame(() => {
+        const alvo = document.getElementById(alvoId);
+        document.getElementById("novo-rascunho-card")?.scrollIntoView({ block:"nearest" });
+        alvo?.focus();
+        if(alvo && alvoId === "novo-rascunho") alvo.setSelectionRange(0, 0);
+      });
+    }
+    return card;
   }
   function abrirReacao(item, modo){
     state.acaoEdicao = { id:item.id, modo, comentario:"", rascunho:item.rascunho || "" };
@@ -1489,15 +1739,19 @@ Responda APENAS com JSON válido, sem markdown, no formato:
     card.appendChild(el(`<div class="acao-top">
       <div class="acao-badges">
         <span class="acao-pill tipo">${esc(rotuloTipo(item.tipo))}</span>
+        ${item.origem === "manual" ? `<span class="acao-pill manual">Manual</span>` : ""}
         <span class="acao-pill status-${esc(status)}">${esc(rotuloStatus(status))}</span>
       </div>
       <time class="acao-quando">Criado em ${esc(fmtQuando(item.criadoEm))}</time>
     </div>`));
     const meta = el(`<div class="acao-meta"></div>`);
     meta.innerHTML = [
+      metaItem("Para", textoCampoEmails(item.para), "cheio"),
+      metaItem("CC", textoCampoEmails(item.cc), "cheio"),
       metaItem("Remetente", item.remetente),
       metaItem("Empresa", item.empresa),
       metaItem("Assunto", item.assunto),
+      metaItem("Criado por", item.criadoPor),
       metaItem("Data sugerida", fmtDia(item.dataSugerida)),
       metaItem("Médico sugerido", item.medicoSugerido),
       metaItem("Horário sugerido", item.horarioSugerido),
@@ -1508,13 +1762,13 @@ Responda APENAS com JSON válido, sem markdown, no formato:
     else if(item.kitUrl) meta.insertAdjacentHTML("beforeend", metaItem("Kit", item.kitUrl));
     if(meta.textContent.trim()) card.appendChild(meta);
     if(item.resumo) card.appendChild(blocoTexto("Resumo do pedido", item.resumo));
-    if(item.motivo) card.appendChild(blocoTexto("Por que o assistente sugeriu isso", item.motivo));
+    if(item.motivo) card.appendChild(blocoTexto(item.origem === "manual" ? "Motivo" : "Por que o assistente sugeriu isso", item.motivo));
     const editandoEste = state.acaoEdicao && state.acaoEdicao.id === item.id;
     if(!(editandoEste && state.acaoEdicao.modo === "ajustar")){
       card.appendChild(blocoTexto("Rascunho", item.rascunho || "—"));
     }
     if(item.rascunhoOriginal && item.rascunhoOriginal !== item.rascunho){
-      const det = el(`<details class="acao-historico"><summary>Ver rascunho original do assistente</summary></details>`);
+      const det = el(`<details class="acao-historico"><summary>Ver rascunho original ${item.origem === "manual" ? "da equipe" : "do assistente"}</summary></details>`);
       det.appendChild(el(`<div class="acao-texto">${esc(item.rascunhoOriginal)}</div>`));
       card.appendChild(det);
     }
@@ -1539,7 +1793,7 @@ Responda APENAS com JSON válido, sem markdown, no formato:
   }
   function renderAcoesView(){
     const root = el(`<section class="acoes-view"></section>`);
-    root.appendChild(el(`<div class="card acoes-intro"><h2>Ações pendentes</h2><p>O assistente prepara a resposta ou o agendamento. Nada é enviado e nenhum horário é marcado até você aprovar, pedir ajuste ou recusar.</p></div>`));
+    root.appendChild(el(`<div class="card acoes-intro"><h2>Ações pendentes</h2><p>O assistente prepara a resposta ou o agendamento. Nada é enviado e nenhum horário é marcado até você aprovar, pedir ajuste ou recusar. Em Novo rascunho você monta um e-mail à mão; ele entra nesta fila e segue o mesmo caminho.</p></div>`));
     const pendentes = state.acoes.filter(ehPendente);
     const historico = state.acoes.filter(a => !ehPendente(a));
     const barra = el(`<div class="acoes-toolbar"></div>`);
@@ -1547,14 +1801,19 @@ Responda APENAS com JSON válido, sem markdown, no formato:
     const bHist = el(`<button type="button" class="acoes-filtro ${state.acoesVisao==="historico"?"active":""}" aria-pressed="${state.acoesVisao==="historico"}">Histórico <b>${historico.length}</b></button>`);
     bPend.onclick = ()=>{ state.acoesVisao = "pendentes"; state.acaoEdicao = null; state.acaoErro = ""; render(); };
     bHist.onclick = ()=>{ state.acoesVisao = "historico"; state.acaoEdicao = null; state.acaoErro = ""; render(); };
-    barra.append(bPend, bHist);
+    const bNovo = el(`<button type="button" class="btn-novo-rascunho">Novo rascunho</button>`);
+    bNovo.setAttribute("aria-label", "Criar rascunho manual");
+    bNovo.onclick = ()=>abrirNovoRascunho();
+    barra.append(bPend, bHist, bNovo);
     root.appendChild(barra);
     if(state.acoesErro) root.appendChild(el(`<p class="err" role="alert">${esc(state.acoesErro)}</p>`));
+    if(state.acoesVisao === "pendentes" && state.acaoNovo) root.appendChild(montarCartaoNovoRascunho());
     const lista = state.acoesVisao === "historico" ? ordenarHistorico(historico) : ordenarAcoes(pendentes);
     if(!lista.length){
+      if(state.acoesVisao === "pendentes" && state.acaoNovo) return root;
       const vazio = state.acoesVisao === "historico"
         ? "Nenhuma ação respondida ainda."
-        : "Nenhuma ação pendente. Quando o assistente preparar uma resposta ou um agendamento, ela aparece aqui.";
+        : "Nenhuma ação pendente. Quando o assistente preparar uma resposta ou um agendamento, ela aparece aqui. Você também pode criar um rascunho manual.";
       root.appendChild(el(`<div class="card empty">${vazio}</div>`));
       return root;
     }

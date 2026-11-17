@@ -17,21 +17,25 @@ O assistente entra com um usuário próprio do Firebase Auth (e-mail e senha), p
 
 | Campo | Quem grava | Conteúdo |
 | --- | --- | --- |
-| `tipo` | assistente | `resposta_email`, `agendamento` ou `remarcacao`. Outro texto curto também aparece no painel. |
-| `remetente` | assistente | E-mail ou nome de quem pediu. |
-| `empresa` | assistente | Empresa do pedido. |
-| `assunto` | assistente | Assunto do e-mail. |
-| `resumo` | assistente | Pedido em uma ou duas frases. |
-| `rascunho` | assistente; a equipe pode editar ao pedir ajuste | Texto integral proposto. |
-| `motivo` | assistente | Por que esta ação foi escolhida. |
-| `dataSugerida` | assistente | Data `AAAA-MM-DD`, se houver. |
-| `medicoSugerido` | assistente | Nome do médico, se houver. |
-| `horarioSugerido` | assistente | Horário `HH:MM`, se houver. |
+| `tipo` | assistente; painel no rascunho manual | `resposta_email`, `agendamento` ou `remarcacao`. Outro texto curto também aparece no painel. |
+| `remetente` | assistente; painel no rascunho manual | E-mail ou nome de quem pediu. |
+| `empresa` | assistente; painel no rascunho manual | Empresa do pedido. |
+| `assunto` | assistente; painel no rascunho manual | Assunto do e-mail. Obrigatório no rascunho manual. |
+| `resumo` | assistente; painel no rascunho manual | Pedido em uma ou duas frases. |
+| `rascunho` | assistente; a equipe pode editar ao pedir ajuste ou ao criar um rascunho manual | Texto integral proposto. Obrigatório no rascunho manual. |
+| `motivo` | assistente; painel no rascunho manual | Por que esta ação foi escolhida. |
+| `dataSugerida` | assistente; painel no rascunho manual | Data `AAAA-MM-DD`, se houver. |
+| `medicoSugerido` | assistente; painel no rascunho manual | Nome do médico, se houver. |
+| `horarioSugerido` | assistente; painel no rascunho manual | Horário `HH:MM`, se houver. |
+| `para` | assistente ou painel | Destinatários do e-mail, separados por vírgula. Opcional nas propostas do assistente (ele pode responder pelo fio da caixa). Obrigatório no rascunho manual: é o Para do envio. |
+| `cc` | assistente ou painel | Cópias, separadas por vírgula. Opcional. No rascunho manual o painel sugere `agendamento@alpale.com.br` e `comercial@alpale.com.br`; a equipe pode editar ou apagar. |
 | `kitUrl` | assistente | Link http(s) do kit, se houver. Pode omitir. |
 | `referencia` | assistente | Id opcional da mensagem na caixa de entrada, para o assistente achar o fio. |
 | `status` | os dois | Ver ciclo abaixo. |
 | `comentario` | equipe | Obrigatório em `ajustar`. Opcional em `aprovado` e `recusado`. |
-| `criadoEm` | assistente | Data ISO 8601 (`2026-11-11T14:00:00Z`) ou timestamp do Firestore. |
+| `criadoEm` | assistente ou painel | Data ISO 8601 (`2026-11-11T14:00:00Z`) ou timestamp do Firestore. No rascunho manual o painel grava o timestamp do servidor. |
+| `origem` | painel | Opcional. `manual` quando a equipe criou o rascunho pelo botão **Novo rascunho**. O assistente omite. O painel mostra o selo Manual. |
+| `criadoPor` | painel | Opcional. E-mail da conta que criou o rascunho manual. |
 | `respondidoPor` | painel | E-mail da conta que decidiu. |
 | `respondidoEm` | painel | Data ISO 8601 da decisão. |
 | `rascunhoOriginal` | painel | Primeiro rascunho do assistente, gravado só se a equipe editar o texto num ajuste. |
@@ -42,7 +46,7 @@ A coleção nasce no primeiro documento. Não é preciso criá-la à mão.
 
 ### Ciclo do `status`
 
-1. **`pendente`** — o assistente criou a proposta. Ela aparece em Ações pendentes, da mais nova para a mais antiga. Nada é enviado.
+1. **`pendente`** — o assistente criou a proposta, ou a equipe salvou um rascunho manual. Ela aparece em Ações pendentes, da mais nova para a mais antiga. Nada é enviado.
 2. **`aprovado`** — a equipe aceitou o rascunho atual. O assistente pode enviar o e-mail ou gravar o agendamento e, ao terminar, muda o status para `enviado`.
 3. **`ajustar`** — a equipe não aceitou como está. `comentario` vem preenchido e `rascunho` pode ter sido reescrito. Isso **não** autoriza envio. O assistente lê o comentário e o rascunho, monta a nova proposta, grava esse texto, deixa o comentário para contexto e volta `status` para `pendente`. A equipe precisa aprovar a nova versão.
 4. **`recusado`** — a equipe recusou. O assistente não envia e não agenda.
@@ -51,6 +55,16 @@ A coleção nasce no primeiro documento. Não é preciso criá-la à mão.
 `aprovado`, `ajustar`, `recusado` e `enviado` ficam no filtro **Histórico**. Se o assistente devolver um item de `ajustar` para `pendente`, ele volta para a fila.
 
 O painel só grava a decisão se o documento ainda estiver `pendente`, para duas pessoas não responderem o mesmo item.
+
+### Rascunho manual
+
+Na aba **Ações**, o botão **Novo rascunho** abre um cartão em branco, no mesmo formato da fila. **Cancelar** descarta e não grava. **Salvar rascunho** cria um documento com `status` = `pendente`, `origem` = `manual`, `criadoPor` = e-mail de quem entrou e `criadoEm` = timestamp do servidor. O cartão passa a aparecer na fila, com o selo Manual, e segue Aprovar / Ajustar / Recusar. Nada é enviado na hora.
+
+O painel exige destinatário, assunto e rascunho, e só aceita e-mails válidos em `para` e `cc`. O assunto pede o prefixo `RES: `. O rascunho já vem com a assinatura da clínica no final; a equipe escreve a mensagem acima dela. Os outros campos (`tipo`, `remetente`, `empresa`, `resumo`, `motivo`, `dataSugerida`, `medicoSugerido`, `horarioSugerido`) são opcionais. `tipo` começa como `resposta_email`.
+
+Quando o status chega a `aprovado`, o assistente envia esse texto por SMTP: Para = `para`, Cc = `cc` (se houver), assunto = `assunto`, corpo = `rascunho` exato.
+
+Não é preciso mudar as regras do Firestore. O bloco de `acoes_pendentes` já permite que um usuário autenticado crie documentos.
 
 ### Regras de segurança
 
